@@ -12,7 +12,8 @@ enum Updater {
         init(_ message: String) { errorDescription = message }
     }
 
-    static func install(_ update: UpdateChecker.Update) async throws {
+    /// Reports download progress (0...1) on the way; returns only if installing failed.
+    static func install(_ update: UpdateChecker.Update, progress: @escaping (Double) -> Void) async throws {
         guard let zipURL = update.zip, let checksumsURL = update.checksums else {
             throw Failure("这个版本没有可安装的包")
         }
@@ -27,8 +28,7 @@ enum Updater {
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         do {
             let zip = work.appendingPathComponent(zipURL.lastPathComponent)
-            let (downloaded, _) = try await URLSession.shared.download(from: zipURL)
-            try FileManager.default.moveItem(at: downloaded, to: zip)
+            try await download(zipURL, to: zip, progress: progress)
             let (checksums, _) = try await URLSession.shared.data(from: checksumsURL)
             guard let expected = expectedHash(of: zip.lastPathComponent, in: checksums),
                   try await sha256(of: zip) == expected else {
@@ -76,6 +76,27 @@ enum Updater {
             .map { $0.split(separator: " ", omittingEmptySubsequences: true) }
             .first { $0.count == 2 && $0[1].trimmingCharacters(in: CharacterSet(charactersIn: "*")) == name }
             .map { $0[0].lowercased() }
+    }
+
+    private static func download(_ url: URL, to destination: URL, progress: @escaping (Double) -> Void) async throws {
+        var observation: NSKeyValueObservation?
+        defer { observation?.invalidate() }
+        try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, Error>) in
+            let task = URLSession.shared.downloadTask(with: url) { file, response, error in
+                if let status = (response as? HTTPURLResponse)?.statusCode, status != 200 {
+                    return done.resume(throwing: Failure("下载失败（HTTP \(status)）"))
+                }
+                guard let file else { return done.resume(throwing: error ?? Failure("下载失败")) }
+                // The temporary file is deleted when this handler returns, so move it now.
+                do { try FileManager.default.moveItem(at: file, to: destination); done.resume() }
+                catch { done.resume(throwing: error) }
+            }
+            observation = task.progress.observe(\.fractionCompleted) { p, _ in
+                let fraction = p.fractionCompleted
+                Task { @MainActor in progress(fraction) }
+            }
+            task.resume()
+        }
     }
 
     private static func sha256(of file: URL) async throws -> String {

@@ -4,7 +4,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 ## Scope (deliberately small)
 
-- One menu bar popover, no other windows. Its contents: show/hide switch, character thumbnails (select / add), size slider, launch at login, quit.
+- One menu bar popover, no other windows (the standard About panel aside). Its contents: show/hide switch, character thumbnails (select / add) with a gallery link, size slider, check for updates / install update, About, launch at login, quit.
 - One character = one looping video. There are no clips, manifests or per-character settings.
 - Exception: the built-in cat Chaofei (`Character.builtInCat`), drawn in code and always first in the list. It wanders on its own (walk, sit, lie down, stand, roll), rolls when clicked, dangles while dragged, and the popover shows action chips (自由 + the five actions) only while it is selected.
 - Formats: HEVC with Alpha (.mov) and ProRes 4444 (.mov), both decoded natively by AVFoundation. No FFmpeg, WebM or packed alpha.
@@ -41,7 +41,7 @@ CAMEO_OPEN_POPOVER=1 build/Cameo.app/Contents/MacOS/Cameo   # launch with the po
 .build/debug/Cameo --render-poses poses.png                  # contact sheet of the cat's poses
 ```
 
-Release: `scripts/release.sh <x.y.z>` (clean `main` only) bumps `Resources/Info.plist`, commits, tags `v<x.y.z>` and pushes; `.github/workflows/release.yml` builds and publishes the zip to GitHub Releases. `UpdateChecker` polls `releases/latest` daily and shows a popover banner plus an amber dot on the menu bar icon; it stays silent while the repository is private (the API returns 404).
+Release: `scripts/release.sh <x.y.z>` (clean `main` only) bumps `Resources/Info.plist`, commits, tags `v<x.y.z>` and pushes; `.github/workflows/release.yml` builds and publishes the zip to GitHub Releases. `UpdateChecker` polls `releases/latest` daily (and on "检查更新…") and marks a newer release with an amber dot on the menu bar icon; it stays silent while the repository is private (the API returns 404). Clicking the update row runs `Updater`: download the release zip, verify it against `checksums.txt`, swap the bundle after quitting and relaunch; it falls back to the release page when the app can't be replaced. `CAMEO_UPDATE_FEED=file:///…/release.json` points both at a local fake release for testing.
 
 Only Command Line Tools are required (no Xcode project). Do not add an `.xcodeproj`.
 

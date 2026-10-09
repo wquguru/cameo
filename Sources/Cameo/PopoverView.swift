@@ -13,7 +13,7 @@ struct PopoverView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             separator
-            section("角色") {
+            section("角色", link: ("浏览画廊", GalleryLink.gallery)) {
                 cards
                 if model.selected?.isBuiltIn == true {
                     catActions
@@ -36,21 +36,12 @@ struct PopoverView: View {
                 }
                 .help("点按关闭")
             }
-            if let update = model.update {
-                separator
-                MenuRow(action: { model.installUpdate() }) {
-                    VStack(alignment: .leading, spacing: 1) {
-                        HStack(spacing: 6) {
-                            Circle().fill(Theme.spotlight).frame(width: 6, height: 6)
-                            Text("新版本 \(update.version) 可用")
-                        }
-                        Text(model.installingUpdate ? "正在下载并安装…" : "点击更新，完成后自动重新打开")
-                            .font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 12)
-                    }
-                }
-                .disabled(model.installingUpdate)
-                .contextMenu {
-                    Button("查看更新说明") { NSWorkspace.shared.open(update.url) }
+            separator
+            updateRow
+            MenuRow(action: AboutPanel.show) {
+                HStack(spacing: 4) {
+                    Color.clear.frame(width: 14, height: 1)
+                    Text("关于 Cameo")
                 }
             }
             separator
@@ -109,13 +100,98 @@ struct PopoverView: View {
         return "显示中 · \(name)"
     }
 
+    /// "检查更新…" with the current version; becomes the update itself once one is found,
+    /// a progress bar while it installs, and says why when installing in place failed.
+    @ViewBuilder private var updateRow: some View {
+        let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        if let update = model.update, let progress = model.installProgress {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text("正在下载 \(update.version)…")
+                    Spacer()
+                    Text("\(Int(progress * 100))%").font(.system(size: 12)).foregroundStyle(.secondary).monospacedDigit()
+                }
+                ProgressView(value: progress).controlSize(.small).accessibilityLabel("下载进度")
+            }
+            .padding(.leading, 32)
+            .padding(.trailing, 14)
+            .padding(.vertical, 4)
+        } else if let update = model.update, let failure = model.updateFailure {
+            MenuRow(action: { model.updateFailure = nil }) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Label("无法自动更新", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                    Text("\(failure)。已打开下载页").font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 18)
+                }
+            }
+            .help("点按关闭 · \(update.url.absoluteString)")
+        } else if let update = model.update {
+            MenuRow(action: model.installUpdate) {
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(spacing: 4) {
+                        Circle().fill(Theme.spotlight).frame(width: 6, height: 6).frame(width: 14)
+                        Text("更新到 \(update.version)")
+                    }
+                    Text(update.size > 0
+                         ? "\(ByteCountFormatter.string(fromByteCount: Int64(update.size), countStyle: .file)) · 完成后自动重新打开"
+                         : "完成后自动重新打开")
+                        .font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 18)
+                }
+            }
+            .contextMenu {
+                Button("查看更新说明") { NSWorkspace.shared.open(update.url) }
+            }
+        } else {
+            MenuRow(action: model.checkForUpdates) {
+                HStack(spacing: 4) {
+                    Group {
+                        switch model.updateCheck {
+                        case .checking: ProgressView().controlSize(.mini)
+                        case .upToDate: Image(systemName: "checkmark").foregroundStyle(.green)
+                        case .failed: Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                        case .idle: Color.clear
+                        }
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 14, height: 14)
+                    Text(checkLabel)
+                    Spacer()
+                    Text(current).font(.system(size: 12)).opacity(0.6)
+                }
+            }
+            .disabled(model.updateCheck == .checking)
+        }
+    }
+
+    private var checkLabel: String {
+        switch model.updateCheck {
+        case .checking: "正在检查更新…"
+        case .upToDate: "已是最新版本"
+        case .failed: "无法连接 GitHub"
+        case .idle: "检查更新…"
+        }
+    }
+
     private var separator: some View {
         Divider().padding(.horizontal, 14).padding(.vertical, 6)
     }
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: String, link: (String, URL)? = nil,
+                                        @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline) {
+                Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                Spacer()
+                if let (label, url) = link {
+                    Link(destination: url) {
+                        HStack(spacing: 2) {
+                            Text(label)
+                            Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
+                        }
+                    }
+                    .font(.system(size: 11))
+                    .help(url.absoluteString)
+                }
+            }
             content()
         }
         .padding(.horizontal, 14)

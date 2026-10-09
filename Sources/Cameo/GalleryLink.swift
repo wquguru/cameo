@@ -3,6 +3,7 @@ import Foundation
 /// A `cameo://add?url=<https .mov>&name=<name>` link, as used by the character gallery.
 struct GalleryLink {
     static let maxBytes = 200_000_000
+    static let gallery = URL(string: "https://wquguru.github.io/cameo/")!
 
     let source: URL
     let name: String

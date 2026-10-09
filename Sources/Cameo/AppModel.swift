@@ -19,11 +19,18 @@ final class AppModel: ObservableObject {
     /// What the built-in cat should do; nil lets it wander on its own.
     @Published var catAction: CatAction?
     /// A newer release on GitHub, if the update checker found one.
-    @Published var update: UpdateChecker.Update?
-    /// True while an update downloads and installs; Cameo quits and relaunches when it's done.
-    @Published private(set) var installingUpdate = false
+    @Published private(set) var update: UpdateChecker.Update?
+    /// What a "检查更新…" click is doing; returns to idle a few seconds after it finishes.
+    @Published private(set) var updateCheck = UpdateCheck.idle
+    /// Download progress (0...1) while an update installs; Cameo quits and relaunches when it's done.
+    @Published private(set) var installProgress: Double?
+    /// Why the last in-place update failed (the release page was opened instead).
+    @Published var updateFailure: String?
+
+    enum UpdateCheck { case idle, checking, upToDate, failed }
 
     let store = CharacterStore()
+    private lazy var updateChecker = UpdateChecker { [weak self] in self?.update = $0 }
     private let defaults = UserDefaults.standard
 
     init() {
@@ -94,16 +101,32 @@ final class AppModel: ObservableObject {
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
-    /// Installs the update in place; if that can't be done, explains why and opens the release page.
+    func startUpdateChecks() {
+        updateChecker.start()
+    }
+
+    func checkForUpdates() {
+        guard updateCheck != .checking else { return }
+        updateCheck = .checking
+        Task {
+            let reached = await updateChecker.check()
+            updateCheck = update != nil ? .idle : reached ? .upToDate : .failed
+            try? await Task.sleep(for: .seconds(3))
+            if updateCheck != .checking { updateCheck = .idle }
+        }
+    }
+
+    /// Installs the update in place; if that can't be done, says why and opens the release page.
     func installUpdate() {
-        guard let update, !installingUpdate else { return }
-        installingUpdate = true
+        guard let update, installProgress == nil else { return }
+        installProgress = 0
+        updateFailure = nil
         Task {
             do {
-                try await Updater.install(update)
+                try await Updater.install(update) { [weak self] in self?.installProgress = $0 }
             } catch {
-                installingUpdate = false
-                errorMessage = "无法自动更新：\(error.localizedDescription)。已打开下载页。"
+                installProgress = nil
+                updateFailure = error.localizedDescription
                 NSWorkspace.shared.open(update.url)
             }
         }

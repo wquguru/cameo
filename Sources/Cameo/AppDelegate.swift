@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -9,7 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
     private var characterWindow: CharacterWindowController!
-    private var updateChecker: UpdateChecker!
+    private var updateBadge: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -25,11 +26,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
 
         characterWindow = CharacterWindowController(model: model)
-        updateChecker = UpdateChecker { [weak self] update in
-            self?.model.update = update
+        updateBadge = model.$update.sink { [weak self] update in
             self?.statusItem.button?.image = update == nil ? Glyph.template : Glyph.withBadge
         }
-        updateChecker.start()
+        model.startUpdateChecks()
         let firstLaunch = !UserDefaults.standard.bool(forKey: "launched")
         UserDefaults.standard.set(true, forKey: "launched")
         if firstLaunch || ProcessInfo.processInfo.environment["CAMEO_OPEN_POPOVER"] != nil {

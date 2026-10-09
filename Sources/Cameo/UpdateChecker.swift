@@ -11,6 +11,8 @@ final class UpdateChecker {
         /// The app zip and its checksums, when the release has them.
         let zip: URL?
         let checksums: URL?
+        /// The zip's size in bytes, 0 when unknown.
+        let size: Int
     }
 
     /// `CAMEO_UPDATE_FEED` points at another release JSON (a file:// URL works), for testing.
@@ -30,22 +32,25 @@ final class UpdateChecker {
         }
     }
 
-    func check() async {
+    /// Returns false when GitHub couldn't be reached or answered with something unexpected.
+    @discardableResult
+    func check() async -> Bool {
         var request = URLRequest(url: Self.latestRelease)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode ?? 200 == 200,
               let release = try? JSONDecoder().decode(Release.self, from: data),
-              let url = URL(string: release.html_url) else { return }
+              let url = URL(string: release.html_url) else { return false }
         let latest = release.tag_name.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
         let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        let asset = { (match: (String) -> Bool) in
-            release.assets.first { match($0.name) }.flatMap { URL(string: $0.browser_download_url) }
-        }
+        let zip = release.assets.first { $0.name.hasPrefix("Cameo-") && $0.name.hasSuffix("-macOS-Universal.zip") }
+        let checksums = release.assets.first { $0.name == "checksums.txt" }
         let update = Update(version: latest, url: url,
-                            zip: asset { $0.hasPrefix("Cameo-") && $0.hasSuffix("-macOS-Universal.zip") },
-                            checksums: asset { $0 == "checksums.txt" })
+                            zip: zip.flatMap { URL(string: $0.browser_download_url) },
+                            checksums: checksums.flatMap { URL(string: $0.browser_download_url) },
+                            size: zip?.size ?? 0)
         onUpdate(Self.isNewer(latest, than: current) ? update : nil)
+        return true
     }
 
     /// Compares dotted numeric versions: "0.10.0" is newer than "0.9.1".
@@ -68,5 +73,6 @@ final class UpdateChecker {
     private struct Asset: Decodable {
         let name: String
         let browser_download_url: String
+        let size: Int?
     }
 }
