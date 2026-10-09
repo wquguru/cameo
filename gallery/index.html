@@ -4,145 +4,308 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cameo Characters</title>
-<meta name="description" content="Free characters for Cameo, the macOS app that puts a transparent video on your desktop.">
+<meta name="description" content="Free characters for Cameo, the macOS app that puts a transparent character on your desktop.">
 <link rel="icon" href="icon.png">
 <style>
   :root {
-    --stage: #161618;
-    --card: #1E1E21;
-    --line: #2C2C30;
-    --ivory: #F5F1EA;
-    --muted: #9A968F;
-    --spotlight: #FFB340;
-    color-scheme: dark;
+    --ink: #1D1D1F;
+    --ink-2: #48484A;
+    --muted: #6E6E73;
+    --line: #EEECE8;
+    --soft: #F7F6F3;
+    --chip: #F2F1EE;
+    --stage: #F4F2EE;
+    --hero: #FFF3DF;
+    --hero-ink: #5A5148;
+    --amber: #FFB340;
+    --amber-ink: #8A5200;
+    --radius: 18px;
+    --wrap: 1200px;
+    color-scheme: light;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--stage);
-    color: var(--ivory);
-    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    margin: 0; background: #FFFFFF; color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+  img { display: block; }
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+  .icon { width: 1em; height: 1em; flex: none; }
 
-  header { padding-top: 56px; padding-bottom: 40px; text-align: center; }
-  header img { width: 88px; height: 88px; }
-  h1 { margin: 12px 0 6px; font-size: 32px; font-weight: 650; letter-spacing: -0.01em; }
-  .lede { margin: 0 auto; max-width: 520px; color: var(--muted); }
-  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
-  .button {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 36px; padding: 0 16px; border-radius: 9px;
-    border: 1px solid var(--line); background: var(--card);
-    font-weight: 560; text-decoration: none; white-space: nowrap;
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 18px; border: 0; border-radius: 12px;
+    font: inherit; font-weight: 650; text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: transform .15s ease, filter .15s ease, background-color .15s ease;
   }
-  .button:hover { border-color: #45454B; }
-  .button.primary { background: var(--spotlight); border-color: var(--spotlight); color: #1A1305; }
-  .button.primary:hover { filter: brightness(1.06); }
-  .lang { position: absolute; top: 16px; right: 16px; background: none; border: 0; color: var(--muted); font: inherit; cursor: pointer; }
+  .btn:active { transform: scale(.98); }
+  .btn-dark { background: var(--ink); color: #FFFFFF; }
+  .btn-dark:hover { background: #3A3A3C; }
+  .btn-soft { background: var(--chip); color: var(--ink); }
+  .btn-soft:hover { background: #E8E6E1; }
+  .btn-amber { background: var(--amber); color: var(--ink); }
+  .btn-amber:hover { filter: brightness(1.05); }
+  .btn-sm { height: 40px; padding: 0 14px; border-radius: 10px; font-size: 14px; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding-bottom: 48px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
-  .stage {
-    position: relative; aspect-ratio: 3 / 4;
-    background:
-      radial-gradient(60% 12% at 50% 94%, rgba(255, 179, 64, 0.22), transparent 70%),
-      radial-gradient(50% 75% at 50% 0%, rgba(255, 200, 100, 0.13), transparent 75%),
-      var(--stage);
-  }
-  .stage img { position: absolute; inset: 8% 8% 6%; width: 84%; height: 86%; object-fit: contain; object-position: bottom; }
-  .meta { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-  .name { font-weight: 620; }
-  .by { color: var(--muted); font-size: 13px; }
+  /* Header */
+  .top { border-bottom: 1px solid var(--line); background: rgba(255,255,255,.86); backdrop-filter: saturate(180%) blur(14px); position: sticky; top: 0; z-index: 10; }
+  .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; padding-top: 12px; padding-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 20px; font-weight: 750; letter-spacing: -.02em; }
+  .brand img { width: 32px; height: 32px; }
+  .links { display: flex; flex-wrap: wrap; gap: 4px 26px; flex: 1; font-size: 15px; }
+  .links a { text-decoration: none; color: var(--ink-2); white-space: nowrap; }
+  .links a:hover, .links a[aria-current] { color: var(--ink); }
+  .links a[aria-current] { font-weight: 650; }
+  .nav-actions { display: flex; gap: 10px; }
+
+  /* Hero */
+  main.wrap { padding-top: 20px; padding-bottom: 64px; display: flex; flex-direction: column; gap: 44px; }
+  .crumbs { font-size: 14px; color: #8E8E93; display: flex; gap: 8px; }
+  .crumbs a { text-decoration: none; }
+  .hero { border-radius: 28px; background: var(--hero); display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden; }
+  .hero-copy { flex: 1 1 420px; min-width: 0; padding: 52px 48px; display: flex; flex-direction: column; gap: 18px; justify-content: center; }
+  .hero h1 { margin: 0; font-size: clamp(32px, 4.4vw, 48px); line-height: 1.07; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
+  .hero p { margin: 0; max-width: 480px; font-size: 17px; line-height: 1.55; color: var(--hero-ink); }
+  .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; padding-top: 4px; }
+  .hero-cta .text-link { font-weight: 650; text-decoration: none; }
+  .hero-cta .text-link:hover { color: var(--amber-ink); }
+  .hero-meta { font-size: 13px; color: #7A6F63; }
+  .hero-art { flex: 1 1 420px; min-width: 0; min-height: 340px; position: relative; }
+  .desk { position: absolute; inset: 40px 40px 0 24px; border-radius: 16px 16px 0 0; overflow: hidden; background: #CFDDEA; box-shadow: 0 20px 50px rgba(120,80,20,.16); }
+  .menubar { height: 22px; background: rgba(255,255,255,.6); display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 12px; font-size: 11px; }
+  .window { position: absolute; left: 34px; right: 34px; top: 150px; bottom: 0; border-radius: 10px 10px 0 0; background: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,.14); }
+  .window .bar { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px; border-bottom: 1px solid #EEEEEE; }
+  .window .bar i { width: 9px; height: 9px; border-radius: 50%; }
+  .window .lines { padding: 16px; display: flex; flex-direction: column; gap: 9px; }
+  .window .lines i { height: 7px; border-radius: 4px; background: #F1F1F3; }
+  .desk .pet { position: absolute; left: 50%; top: 28px; width: 180px; transform: translateX(-35%); }
+
+  /* Characters */
+  .tabs-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: 28px; }
+  .tab { padding: 0 0 12px; border: 0; border-bottom: 3px solid transparent; background: none; font: inherit; font-size: 24px; font-weight: 750; color: #8E8E93; cursor: pointer; }
+  .tab:hover { color: var(--ink-2); }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: #E89A1E; }
+  .count { padding-bottom: 14px; font-size: 14px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; margin-top: 24px; }
+  .card { border-radius: var(--radius); overflow: hidden; background: #FFFFFF; box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; transition: box-shadow .2s ease, transform .2s ease; }
+  .card:hover { box-shadow: 0 0 0 1px var(--line), 0 14px 34px rgba(0,0,0,.08); transform: translateY(-2px); }
+  .stage { position: relative; aspect-ratio: 3 / 4; background: var(--stage); }
+  .stage::before { content: ""; position: absolute; left: 18%; right: 18%; bottom: 13%; height: 6%; border-radius: 50%; background: rgba(0,0,0,.08); }
+  .stage img { position: absolute; left: 6%; right: 6%; bottom: 12%; width: 88%; height: 76%; object-fit: contain; object-position: bottom; }
+  .chip { position: absolute; padding: 3px 9px; border-radius: 999px; background: rgba(29,29,31,.72); color: #FFFFFF; font-size: 12px; font-weight: 600; }
+  .chip.tl { left: 12px; top: 12px; }
+  .chip.br { right: 12px; bottom: 12px; font-weight: 500; }
+  .meta { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .name { font-size: 16px; font-weight: 750; }
+  .by { font-size: 13px; color: var(--muted); }
   .by a { text-decoration: none; }
   .by a:hover { text-decoration: underline; }
-  .row { display: flex; gap: 8px; margin-top: auto; }
-  .row .primary { flex: 1; }
+  .actions { display: flex; gap: 8px; margin-top: auto; }
+  .actions .btn-amber { flex: 1; }
+  .submit { min-height: 380px; border-radius: var(--radius); border: 2px dashed #E3DED5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; text-decoration: none; transition: border-color .2s ease, background-color .2s ease; }
+  .submit:hover { border-color: var(--amber); background: #FFFBF4; }
+  .submit .plus { width: 52px; height: 52px; border-radius: 50%; background: var(--hero); color: #B26A00; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .submit strong { font-size: 16px; }
+  .submit span { font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .submit em { font-style: normal; font-size: 14px; font-weight: 650; color: var(--amber-ink); }
 
-  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 48px 16px; border: 1px dashed var(--line); border-radius: 14px; }
-  footer { border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: 40px; color: var(--muted); font-size: 13px; text-align: center; }
-  footer p { margin: 4px 0; }
+  /* Steps and footer */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .step { padding: 24px; border-radius: var(--radius); background: var(--soft); display: flex; flex-direction: column; gap: 8px; }
+  .step b { font-size: 13px; color: #B26A00; }
+  .step strong { font-size: 17px; }
+  .step span { font-size: 14px; line-height: 1.5; color: #5A5A5F; }
+  footer { border-top: 1px solid var(--line); }
+  footer .wrap { padding-top: 24px; padding-bottom: 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
+  footer nav { display: flex; gap: 20px; }
+
+  @media (max-width: 640px) {
+    .brand { margin-right: auto; }
+    .links { order: 3; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; gap: 22px; padding-bottom: 2px; }
+    .hero-copy { padding: 36px 24px; }
+    .hero-art { min-height: 300px; }
+    .desk { inset: 0 16px 0 16px; }
+    .nav-actions .btn-dark span { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<button class="lang" id="lang" type="button"></button>
-<header class="wrap">
-  <img src="icon.png" alt="">
-  <h1 data-t="title"></h1>
-  <p class="lede" data-t="lede"></p>
-  <div class="actions">
-    <a class="button primary" href="https://github.com/wquguru/cameo/releases/latest" data-t="download"></a>
-    <a class="button" href="https://github.com/wquguru/cameo#make-a-character" data-t="make"></a>
-    <a class="button" href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="submit"></a>
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="./"><img src="icon.png" alt="">Cameo</a>
+    <nav class="links" aria-label="Main">
+      <a href="./" aria-current="page" data-t="navCharacters"></a>
+      <a href="https://github.com/wquguru/cameo#make-a-character" data-t="navMake"></a>
+      <a href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="navSubmit"></a>
+      <a href="https://github.com/wquguru/cameo">GitHub</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn btn-soft btn-sm" id="lang" type="button"></button>
+      <a class="btn btn-dark btn-sm" href="https://github.com/wquguru/cameo/releases/latest">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+        <span data-t="navDownload"></span>
+      </a>
+    </div>
   </div>
 </header>
+
 <main class="wrap">
-  <div class="grid" id="grid"></div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="https://github.com/wquguru/cameo">Cameo</a><span aria-hidden="true">›</span><span data-t="navCharacters"></span></nav>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <h1 data-t="title"></h1>
+      <p data-t="lede"></p>
+      <div class="hero-cta">
+        <a class="btn btn-dark" href="https://github.com/wquguru/cameo/releases/latest">
+          <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+          <span data-t="download"></span>
+        </a>
+        <a class="text-link" href="https://github.com/wquguru/cameo#make-a-character" data-t="make"></a>
+      </div>
+      <span class="hero-meta" data-t="requirements"></span>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="desk">
+        <div class="menubar">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 4.5H4.5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1.3"/><circle cx="8" cy="3.4" r="1.8" fill="currentColor" stroke="none"/><path d="M5.5 14.5v-2.2a2.5 2.5 0 0 1 5 0v2.2"/></svg>
+        </div>
+        <div class="window">
+          <div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></div>
+          <div class="lines"><i style="width:55%;background:#EBEBED"></i><i style="width:85%"></i><i style="width:75%"></i></div>
+        </div>
+        <img class="pet" src="posters/chaofei.png" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="count">
+    <div class="tabs-row">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="steps" aria-label="How it works">
+    <div class="step"><b>1</b><strong data-t="step1"></strong><span data-t="step1b"></span></div>
+    <div class="step"><b>2</b><strong data-t="step2"></strong><span data-t="step2b"></span></div>
+    <div class="step"><b>3</b><strong data-t="step3"></strong><span data-t="step3b"></span></div>
+  </section>
 </main>
-<footer class="wrap">
-  <p data-t="hint"></p>
-  <p data-t="license"></p>
+
+<footer>
+  <div class="wrap">
+    <span data-t="footer"></span>
+    <nav aria-label="Footer"><a href="https://github.com/wquguru/cameo">GitHub</a><a href="https://github.com/wquguru/cameo/releases" data-t="releases"></a></nav>
+  </div>
 </footer>
+
 <script>
   const strings = {
     en: {
-      title: "Cameo Characters",
-      lede: "Free characters for Cameo, the macOS menu bar app that puts a transparent video on your desktop. Click “Add to Cameo” and it appears.",
-      download: "Download Cameo", make: "Make your own", submit: "Submit a character",
-      add: "Add to Cameo", by: "by", empty: "No characters yet. Be the first to submit one.",
-      hint: "“Add to Cameo” needs Cameo 0.3 or later. Older versions: download the .mov and drop it on the popover.",
-      license: "Characters are published by their authors under CC BY 4.0. Cameo is open source under Apache 2.0.",
-      switch: "中文",
+      navCharacters: "Characters", navMake: "Make your own", navSubmit: "Submit", navDownload: "Download for Mac",
+      title: "Free characters for your Mac desktop",
+      lede: "Pick one, click Add to Cameo, and it lives on top of your windows. Transparent, click-through and light on battery.",
+      download: "Download for macOS", make: "Make your own ›",
+      requirements: "macOS 14+ · Apple silicon & Intel · Free and open source",
+      all: "All", animal: "Animals", person: "People", other: "Other",
+      count: n => n === 1 ? "1 character" : `${n} characters`,
+      add: "Add to Cameo", by: "by", mov: "Download .mov",
+      submitTitle: "Your character here",
+      submitBody: "A few seconds of video with a transparent background. Every submission is reviewed.",
+      submitLink: "Submit a character ›",
+      step1: "Install Cameo", step1b: "Open the .dmg and drag Cameo into Applications. It lives in your menu bar.",
+      step2: "Add to Cameo", step2b: "One click on a character here downloads it straight into the app.",
+      step3: "It's on your desktop", step3b: "Drag it anywhere. Clicks pass through its transparent parts.",
+      footer: "Add to Cameo needs Cameo 0.3 or later. Characters are CC BY 4.0; Cameo is Apache 2.0.",
+      releases: "Releases", switch: "中文",
     },
     zh: {
-      title: "Cameo 角色库",
-      lede: "免费的 Cameo 角色。Cameo 是一个 macOS 菜单栏应用，把透明视频放到你的桌面上。点「添加到 Cameo」即可出现。",
-      download: "下载 Cameo", make: "制作自己的角色", submit: "投稿角色",
-      add: "添加到 Cameo", by: "作者", empty: "还没有角色，来投稿第一个吧。",
-      hint: "「添加到 Cameo」需要 Cameo 0.3 或更高版本。旧版本请下载 .mov 后拖到弹窗上。",
-      license: "角色由作者以 CC BY 4.0 发布。Cameo 以 Apache 2.0 开源。",
-      switch: "English",
+      navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
+      title: "给你的 Mac 桌面，添一位免费角色",
+      lede: "挑一个，点「添加到 Cameo」，它就会待在你的窗口上面。背景透明、点击穿透，也很省电。",
+      download: "下载 macOS 版", make: "制作自己的角色 ›",
+      requirements: "macOS 14 及以上 · Apple 芯片与 Intel 通用 · 免费开源",
+      all: "全部", animal: "动物", person: "人物", other: "其他",
+      count: n => `共 ${n} 个角色`,
+      add: "添加到 Cameo", by: "作者", mov: "下载 .mov",
+      submitTitle: "你的角色可以出现在这里",
+      submitBody: "几秒钟、背景透明的视频即可。每个投稿都会经过审核。",
+      submitLink: "投稿角色 ›",
+      step1: "安装 Cameo", step1b: "打开 .dmg，把 Cameo 拖进「应用程序」。它会出现在菜单栏里。",
+      step2: "添加到 Cameo", step2b: "在这里点一下角色，就会直接下载到应用里。",
+      step3: "出现在桌面上", step3b: "随意拖到任何位置，透明的地方点击会直接穿透。",
+      footer: "「添加到 Cameo」需要 Cameo 0.3 或更高版本。角色以 CC BY 4.0 授权，Cameo 以 Apache 2.0 开源。",
+      releases: "版本发布", switch: "English",
     },
   };
+  const categories = ["animal", "person", "other"];
   let lang = "en";
   try { lang = localStorage.getItem("lang") || (navigator.language.startsWith("zh") ? "zh" : "en"); } catch {}
+  const asked = new URLSearchParams(location.search).get("lang");
+  if (asked in strings) lang = asked;
+  let filter = "all";
   let characters = [];
 
   function el(tag, attrs, ...children) {
     const node = document.createElement(tag);
-    Object.assign(node, attrs);
+    for (const [key, value] of Object.entries(attrs || {})) {
+      if (key in node && key !== "role") node[key] = value; else node.setAttribute(key, value);
+    }
     node.append(...children);
     return node;
+  }
+  const svg = markup => { const t = document.createElement("template"); t.innerHTML = markup; return t.content.firstChild; };
+  const downloadIcon = '<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>';
+  const size = b => !b ? "" : b < 1e6 ? `${Math.ceil(b / 1e3)} KB` : `${(b / 1e6).toFixed(1)} MB`;
+
+  function card(c, t) {
+    const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
+    const author = c.authorURL ? el("a", { href: c.authorURL, target: "_blank", rel: "noopener", textContent: c.author }) : c.author;
+    const facts = [c.duration ? `${Math.round(c.duration)} s` : "", size(c.bytes)].filter(Boolean).join(" · ");
+    const stage = el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" }));
+    if (c.category && t[c.category]) stage.append(el("span", { className: "chip tl", textContent: t[c.category] }));
+    if (facts) stage.append(el("span", { className: "chip br", textContent: facts }));
+    return el("article", { className: "card" }, stage,
+      el("div", { className: "meta" },
+        el("div", {}, el("div", { className: "name", textContent: c.name }), el("div", { className: "by" }, `${t.by} `, author)),
+        el("div", { className: "actions" },
+          el("a", { className: "btn btn-amber btn-sm", href: add, textContent: t.add }),
+          el("a", { className: "btn btn-soft btn-sm", href: c.video, "aria-label": t.mov, title: t.mov }, svg(downloadIcon)))));
   }
 
   function render() {
     const t = strings[lang];
     document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-    document.title = t.title;
+    document.title = lang === "zh" ? "Cameo 角色库" : "Cameo Characters";
     document.querySelectorAll("[data-t]").forEach(node => { node.textContent = t[node.dataset.t]; });
     document.getElementById("lang").textContent = t.switch;
 
-    const grid = document.getElementById("grid");
-    grid.replaceChildren();
-    if (!characters.length) {
-      grid.append(el("div", { className: "empty", textContent: t.empty }));
-      return;
-    }
-    for (const c of characters) {
-      const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
-      const author = c.authorURL ? el("a", { href: c.authorURL, target: "_blank", rel: "noopener", textContent: c.author }) : c.author;
-      const size = !c.bytes ? "" : c.bytes < 1e6 ? ` · ${Math.ceil(c.bytes / 1e3)} KB` : ` · ${(c.bytes / 1e6).toFixed(1)} MB`;
-      grid.append(el("article", { className: "card" },
-        el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" })),
-        el("div", { className: "meta" },
-          el("div", {},
-            el("div", { className: "name", textContent: c.name }),
-            el("div", { className: "by" }, `${t.by} `, author, size)),
-          el("div", { className: "row" },
-            el("a", { className: "button primary", href: add, textContent: t.add }),
-            el("a", { className: "button", href: c.video, textContent: ".mov" })))));
-    }
+    // Tabs: All plus each category that has characters.
+    const present = categories.filter(k => characters.some(c => c.category === k));
+    if (filter !== "all" && !present.includes(filter)) filter = "all";
+    const tabs = document.getElementById("tabs");
+    tabs.replaceChildren(...["all", ...present].map(key => {
+      const tab = el("button", { className: "tab", type: "button", role: "tab", textContent: t[key] });
+      tab.setAttribute("aria-selected", String(key === filter));
+      tab.addEventListener("click", () => { filter = key; render(); });
+      return tab;
+    }));
+
+    const shown = filter === "all" ? characters : characters.filter(c => c.category === filter);
+    document.getElementById("count").textContent = t.count(shown.length);
+    const submit = el("a", { className: "submit", href: "https://github.com/wquguru/cameo/issues/new?template=character.yml" },
+      el("span", { className: "plus", "aria-hidden": "true", textContent: "+" }),
+      el("strong", { textContent: t.submitTitle }),
+      el("span", { textContent: t.submitBody }),
+      el("em", { textContent: t.submitLink }));
+    document.getElementById("grid").replaceChildren(...shown.map(c => card(c, t)), submit);
   }
 
   document.getElementById("lang").addEventListener("click", () => {

@@ -101,7 +101,7 @@ swift build               # 调试构建
 scripts/build.sh          # 发布版应用，输出到 build/Cameo.app
 scripts/package.sh        # 通用架构的 .dmg、.zip 和 checksums.txt，输出到 build/
 swift run CameoSample sample.mov                       # 生成一段带透明通道的测试视频
-scripts/gallery-add.sh in.mov <id> "<name>" "@author"  # 发布一个角色到角色库
+scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # 发布一个角色到角色库
 ```
 
 | 路径 | 用途 |

@@ -101,7 +101,7 @@ swift build               # debug build
 scripts/build.sh          # release app bundle in build/Cameo.app
 scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
 swift run CameoSample sample.mov                       # a test clip with alpha
-scripts/gallery-add.sh in.mov <id> "<name>" "@author"  # publish a gallery character
+scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # publish a gallery character
 ```
 
 | 路徑 | 用途 |

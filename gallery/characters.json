@@ -1,12 +1,14 @@
 [
   {
-    "author" : "@wquguru",
-    "authorURL" : "https://x.com/wquguru",
-    "bytes" : 304194,
-    "id" : "chaofei",
-    "license" : "CC BY 4.0",
-    "name" : "Chaofei",
-    "poster" : "posters/chaofei.png",
-    "video" : "https://github.com/wquguru/cameo/releases/download/characters/chaofei.mov"
+    "author": "@wquguru",
+    "authorURL": "https://x.com/wquguru",
+    "bytes": 304194,
+    "category": "animal",
+    "duration": 4.0,
+    "id": "chaofei",
+    "license": "CC BY 4.0",
+    "name": "Chaofei",
+    "poster": "posters/chaofei.png",
+    "video": "https://github.com/wquguru/cameo/releases/download/characters/chaofei.mov"
   }
 ]
