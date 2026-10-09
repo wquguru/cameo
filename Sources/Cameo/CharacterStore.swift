@@ -4,7 +4,7 @@ import Foundation
 struct Character: Codable, Identifiable, Equatable {
     let id: UUID
     let fileName: String
-    let name: String
+    var name: String
     /// Where a gallery character was downloaded from, so adding it twice selects it instead.
     var source: URL? = nil
 
@@ -33,9 +33,11 @@ final class CharacterStore {
     let directory: URL
     private var indexURL: URL { directory.appendingPathComponent("characters.json") }
 
+    /// `CAMEO_DATA_DIR` points at another folder, for testing without touching the real library.
     init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        directory = support.appendingPathComponent("Cameo/Characters", isDirectory: true)
+        directory = ProcessInfo.processInfo.environment["CAMEO_DATA_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? support.appendingPathComponent("Cameo/Characters", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
@@ -68,8 +70,16 @@ final class CharacterStore {
         return Character(id: id, fileName: fileName, name: source.deletingPathExtension().lastPathComponent, source: origin)
     }
 
-    func delete(_ character: Character) {
-        try? FileManager.default.removeItem(at: url(for: character))
+    /// Moves the character's video to the Trash; returns where it went, for undo.
+    func trash(_ character: Character) -> URL? {
+        var trashed: NSURL?
+        try? FileManager.default.trashItem(at: url(for: character), resultingItemURL: &trashed)
+        return trashed as URL?
+    }
+
+    /// Puts a trashed video back.
+    func restore(_ character: Character, from trashed: URL) -> Bool {
+        (try? FileManager.default.moveItem(at: trashed, to: url(for: character))) != nil
     }
 
     nonisolated static func hasAlpha(_ format: CMFormatDescription) -> Bool {

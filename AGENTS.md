@@ -4,7 +4,8 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 ## Scope (deliberately small)
 
-- One menu bar popover, no other windows (the standard About panel aside). Its contents: show/hide switch, character thumbnails (select / add) with a gallery link, size slider, check for updates / install update, About, launch at login, language, quit.
+- One menu bar popover and one library window (plus the standard About panel). The popover: show/hide switch, the 7 most recently shown characters (select / add) with a gallery link, or "All N…" opening the library once there are more, size slider, check for updates / install update, About, launch at login, language, quit.
+- The library window (`LibraryView`, design/Library*.dc.html) is deliberately plain: a grid, most recently shown first, with search and +. Click shows a character, hover previews it, the context menu renames, reveals or trashes (with undo); drop videos to add. No sidebar, views, sorting, favourites or inspector. While it is open Cameo has a Dock icon and menus (`MainMenu`).
 - One character = one looping video. There are no clips, manifests or per-character settings.
 - Exception: the built-in cat Chaofei (`Character.builtInCat`), drawn in code and always first in the list. It wanders on its own (walk, sit, lie down, stand, roll), rolls when clicked, dangles while dragged, and the popover shows action chips (自由 + the five actions) only while it is selected.
 - Formats: HEVC with Alpha (.mov) and ProRes 4444 (.mov), both decoded natively by AVFoundation. No FFmpeg, WebM or packed alpha.
@@ -38,6 +39,7 @@ scripts/build.sh                 # release .app in build/Cameo.app
 open build/Cameo.app
 swift run CameoSample out.mov    # write a sample HEVC-alpha clip
 CAMEO_OPEN_POPOVER=1 build/Cameo.app/Contents/MacOS/Cameo   # launch with the popover open
+CAMEO_OPEN_LIBRARY=1 CAMEO_DATA_DIR=/tmp/lib build/Cameo.app/Contents/MacOS/Cameo   # library window, on a throwaway character folder
 .build/debug/Cameo --render-poses poses.png                  # contact sheet of the cat's poses
 build/Cameo.app/Contents/MacOS/Cameo -AppleLanguages '(ja)'  # try another language for one run
 ```
@@ -51,5 +53,5 @@ Only Command Line Tools are required (no Xcode project). Do not add an `.xcodepr
 - Keep files small and single-purpose; match existing naming and comment density.
 - Main-thread UI code is `@MainActor`; no third-party dependencies.
 - User-facing text goes through `L("English text")` / `L("Format %@", arg)` (`Language.swift`); the English text is the key. Translations live in `Resources/Localizations/<code>.lproj/Localizable.strings` (zh-Hans, zh-Hant, ja, ko, es, fr, de, pt-BR, ru, it; `en.lproj` stays empty) and must gain every new key. The language follows macOS unless chosen in the popover, which writes the standard `AppleLanguages` default in Cameo's domain (the key System Settings' per-app language uses). `swift run` has no tables, so it shows English. READMEs exist in en, zh-CN, zh-TW, ja, ko, es, fr, de: keep them in step.
-- User data lives in `~/Library/Application Support/Cameo/Characters` (imported videos are copied there) and `UserDefaults` (`selectedID`, `scale`, `visible`, `anchor`, `launched`, `AppleLanguages`).
+- User data lives in `~/Library/Application Support/Cameo/Characters` (imported videos are copied there) and `UserDefaults` (`selectedID`, `scale`, `visible`, `anchor`, `launched`, `lastUsed`, `AppleLanguages`).
 - Commit in coherent batches with a short imperative subject.

@@ -7,13 +7,14 @@ struct PopoverView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var thumbnails: Thumbnails
     var onAdd: () -> Void
+    var onOpenLibrary: () -> Void
     @State private var dropTargeted = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             separator
-            section(L("Characters"), link: (L("Gallery"), GalleryLink.gallery)) {
+            section(L("Characters"), accessory: { libraryLink }) {
                 cards
                 if model.selected?.isBuiltIn == true {
                     catActions
@@ -199,31 +200,46 @@ struct PopoverView: View {
         Divider().padding(.horizontal, 14).padding(.vertical, 6)
     }
 
-    private func section<Content: View>(_ title: String, link: (String, URL)? = nil,
-                                        @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        section(title, accessory: { EmptyView() }, content: content)
+    }
+
+    private func section<Accessory: View, Content: View>(_ title: String, @ViewBuilder accessory: () -> Accessory,
+                                                         @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                 Spacer()
-                if let (label, url) = link {
-                    Link(destination: url) {
-                        HStack(spacing: 2) {
-                            Text(label)
-                            Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
-                        }
-                    }
-                    .font(.system(size: 11))
-                    .help(url.absoluteString)
-                }
+                accessory()
             }
             content()
         }
         .padding(.horizontal, 14)
     }
 
+    /// The popover shows the most recent characters; past that, this opens the library.
+    static let recentCount = 7
+
+    @ViewBuilder private var libraryLink: some View {
+        if model.characters.count > Self.recentCount {
+            Button(L("All %@…", String(model.characters.count)), action: onOpenLibrary)
+                .buttonStyle(.link)
+                .font(.system(size: 11))
+        } else {
+            Link(destination: GalleryLink.gallery) {
+                HStack(spacing: 2) {
+                    Text(L("Gallery"))
+                    Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
+                }
+            }
+            .font(.system(size: 11))
+            .help(GalleryLink.gallery.absoluteString)
+        }
+    }
+
     private var cards: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), alignment: .leading, spacing: 8) {
-            ForEach(model.characters) { character in
+            ForEach(model.recent.prefix(Self.recentCount)) { character in
                 let lit = character.id == model.selectedID
                 VStack(spacing: 4) {
                     CharacterCard(image: thumbnails.image(for: character, url: model.url(for: character)), lit: lit) {
@@ -241,7 +257,7 @@ struct PopoverView: View {
                 .accessibilityLabel(character.name)
                 .contextMenu {
                     if !character.isBuiltIn {
-                        Button(L("Delete “%@”", character.name), role: .destructive) { model.remove(character) }
+                        Button(L("Move “%@” to Trash", character.name), role: .destructive) { model.moveToTrash(character) }
                     }
                 }
             }
@@ -325,61 +341,5 @@ private struct MenuRow<Content: View>: View {
         .buttonStyle(.plain)
         .padding(.horizontal, 5)
         .onHover { hovered = $0 }
-    }
-}
-
-/// A character card. The selected one is "lit": a dark stage with spotlight beam, floor glow and
-/// full-colour figure, in light and dark mode alike. Others are plain system-grey tiles.
-private struct CharacterCard: View {
-    static let height: CGFloat = 66
-
-    let image: NSImage?
-    let lit: Bool
-    let action: () -> Void
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        Button(action: action) {
-            ZStack(alignment: .bottom) {
-                RoundedRectangle(cornerRadius: 9).fill(lit ? Theme.stage : Color.primary.opacity(0.07))
-                BeamShape()
-                    .fill(LinearGradient(
-                        colors: [Color(red: 1, green: 0.824, blue: 0.478).opacity(0.42), Theme.spotlight.opacity(0)],
-                        startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.85)))
-                    .opacity(lit ? 1 : 0)
-                Ellipse()
-                    .fill(RadialGradient(colors: [Color(red: 1, green: 0.784, blue: 0.392).opacity(0.7), .clear], center: .center, startRadius: 0, endRadius: 24))
-                    .frame(width: 44, height: 10)
-                    .padding(.bottom, 4)
-                    .opacity(lit ? 1 : 0)
-                figure
-                    .frame(height: 50)
-                    .padding(.bottom, 7)
-            }
-            .frame(height: Self.height)
-            .clipShape(RoundedRectangle(cornerRadius: 9))
-            .overlay(
-                RoundedRectangle(cornerRadius: 9)
-                    .strokeBorder(lit ? Theme.spotlight : Color.primary.opacity(0.1), lineWidth: lit ? 1.5 : 0.5))
-            .animation(.easeOut(duration: 0.25), value: lit)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(lit ? .isSelected : [])
-    }
-
-    /// Unlit figures are greyed: darker on a light tile, dimmer on a dark one.
-    private var dim: Color { Color(white: colorScheme == .dark ? 0.38 : 0.62) }
-
-    @ViewBuilder private var figure: some View {
-        if let image {
-            Image(nsImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .saturation(lit ? 1 : 0)
-                .colorMultiply(lit ? .white : dim)
-        } else {
-            FigureShape().fill(lit ? Theme.figure : dim).frame(width: 26)
-        }
     }
 }

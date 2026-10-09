@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>角色库 · 导入</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0066CC}a:hover{color:#004C99}
+</style>
+</helmet>
+<div style="position: relative; width: 960px; height: 680px; display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+
+<dc-import name="LibraryToolbar" count="24" hint-size="960px,64px"></dc-import>
+
+<div role="alert" style="margin: 0 28px 14px; height: 40px; box-sizing: border-box; padding: 0 6px 0 14px; border-radius: 20px; background: #FBECEA; display: flex; align-items: center; gap: 8px; font-size: 13px">
+<svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3L20 18.5H2Z" fill="none" stroke="#B42318" stroke-width="1.8" stroke-linejoin="round"></path><path d="M11 8.8v4.4" stroke="#B42318" stroke-width="1.8" stroke-linecap="round"></path><circle cx="11" cy="15.6" r="1.1" fill="#B42318"></circle></svg>
+<span style="flex: 1">“green-screen-take3.mov”没有透明通道，未添加。<a href="https://github.com/wquguru/cameo/tree/main/skills/cameo-character" style="text-decoration: none">把绿幕视频转换成角色 ↗</a></span>
+<button aria-label="关闭提示" style="width: 28px; height: 28px; border: 0; border-radius: 14px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6" stroke="#6E6E73" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+</div>
+
+<main aria-label="角色" style="flex: 1; box-sizing: border-box; padding: 0 28px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 17px; row-gap: 18px; align-content: start; justify-items: center; overflow: hidden">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="18">
+<dc-import name="LibraryCard" label="{{c.name}}" figure="{{c.figure}}" state="{{c.state}}" progress="{{c.progress}}" hint-size="136px,136px"></dc-import>
+</sc-for>
+</main>
+
+<div aria-live="polite" style="position: absolute; left: 12px; right: 12px; top: 64px; bottom: 12px; border-radius: 20px; border: 2.5px solid #0A6CE0; background: rgba(10, 108, 224, 0.06); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 24px; pointer-events: none">
+<span style="height: 38px; padding: 0 18px; border-radius: 19px; background: #0A6CE0; color: #FFFFFF; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 18px rgba(10,108,224,0.35)">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M7 2v8M4 7l3 3 3-3M2.5 12h9"></path></svg>
+松开以添加 2 个视频
+</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":680}}'>
+class Component extends DCLogic {
+renderVals() {
+const c = (name, figure, state, progress) => ({ name, figure, state, progress: progress || 0 });
+return {
+  cards: [
+    c('beach-dance', 'person', 'importing', 64),
+    c('green-screen-take3', 'person', 'failed'),
+    c('Chaofei', 'cat', 'lit'),
+    c('Wave', 'person', 'normal'),
+    c('待机', 'person', 'normal'),
+    c('Hip-hop 跳舞', 'person', 'normal'),
+    c('打招呼', 'person', 'normal'),
+    c('伸懒腰', 'person', 'normal'),
+    c('Office Coffee Break Loop v2', 'person', 'normal'),
+    c('鞠躬', 'person', 'normal'),
+    c('点头', 'person', 'normal'),
+    c('跑步', 'person', 'normal'),
+    c('Thinking', 'person', 'normal'),
+    c('坐姿看书', 'person', 'normal'),
+    c('转身挥手', 'person', 'normal'),
+    c('跳绳', 'person', 'normal'),
+    c('弹吉他', 'person', 'normal'),
+    c('Robot', 'person', 'normal')
+  ]
+};
+}
+}
+</script>
+</body>
+</html>

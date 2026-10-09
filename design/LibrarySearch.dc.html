@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>角色库 · 搜索无结果</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0066CC}a:hover{color:#004C99}
+</style>
+</helmet>
+<div style="position: relative; width: 960px; height: 680px; display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+
+<dc-import name="LibraryToolbar" count="23" query="dance" hint-size="960px,64px"></dc-import>
+
+<main style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding-bottom: 70px">
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#AEAEB2" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="19" cy="19" r="13"></circle><path d="M29 29l10 10"></path></svg>
+<h2 style="margin: 4px 0 0; font-size: 17px; font-weight: 600">没有名字含“dance”的角色</h2>
+<a href="https://wquguru.github.io/cameo/" style="font-size: 13px; text-decoration: none">去角色画廊找找 ↗</a>
+</main>
+
+<div role="status" style="position: absolute; left: 50%; bottom: 22px; width: 360px; margin-left: -180px; height: 44px; box-sizing: border-box; padding: 0 6px 0 18px; border-radius: 22px; background: rgba(44,44,46,0.94); color: #F2F2F7; box-shadow: 0 10px 28px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 8px">
+<span style="flex: 1; font-size: 13px">已将“Hip-hop 跳舞”移到废纸篓</span>
+<button style="height: 32px; padding: 0 14px; border: 0; border-radius: 16px; background: rgba(255,255,255,0.14); font: inherit; font-size: 13px; font-weight: 600; color: #FFFFFF; cursor: pointer">撤销</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":680}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

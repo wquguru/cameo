@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>角色卡片</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 136px; height: 136px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 7px; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+
+<button aria-label="{{name}}" aria-pressed="{{pressed}}" style="position: relative; width: 136px; height: 106px; padding: 0; border-radius: 14px; border: {{border}}; background: {{thumbBg}}; box-shadow: {{lift}}; overflow: hidden; cursor: pointer; flex-shrink: 0">
+
+<sc-if value="{{isLit}}" hint-placeholder-val="{{ false }}">
+<span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 210, 122, 0.42), rgba(255, 179, 64, 0) 85%); clip-path: polygon(38% 0, 62% 0, 92% 100%, 8% 100%); display: block"></span>
+<span style="position: absolute; left: 50%; bottom: 8px; width: 88px; height: 14px; margin-left: -44px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 200, 100, 0.7), rgba(255, 200, 100, 0)); display: block"></span>
+</sc-if>
+
+<sc-if value="{{isCat}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 100 70" width="84" height="59" style="position: absolute; left: 50%; bottom: 13px; margin-left: -42px" aria-hidden="true">
+<path d="M22 44 Q6 38 10 20" fill="none" stroke="{{figure}}" stroke-width="6" stroke-linecap="round"></path>
+<ellipse cx="46" cy="44" rx="26" ry="14" fill="{{figure}}"></ellipse>
+<circle cx="72" cy="30" r="13" fill="{{figure}}"></circle>
+<path d="M62 23 L64 10 L71 20 Z M76 19 L83 9 L85 23 Z" fill="{{figure}}"></path>
+<rect x="28" y="50" width="7" height="16" rx="3" fill="{{figure}}"></rect>
+<rect x="56" y="50" width="7" height="16" rx="3" fill="{{figure}}"></rect>
+</svg>
+</sc-if>
+<sc-if value="{{isPerson}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 100 204" width="40" height="82" style="position: absolute; left: 50%; bottom: 11px; margin-left: -20px; opacity: {{figureOpacity}}" aria-hidden="true">
+<path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="{{figure}}"></path>
+</svg>
+</sc-if>
+
+<sc-if value="{{isHover}}" hint-placeholder-val="{{ false }}">
+<span style="position: absolute; left: 8px; bottom: 8px; height: 20px; padding: 0 8px 0 6px; border-radius: 10px; background: rgba(0,0,0,0.55); color: #FFFFFF; font-size: 10px; font-weight: 500; display: flex; align-items: center; gap: 4px"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M1.5 1v6l5-3z" fill="#FFFFFF"></path></svg>预览中</span>
+</sc-if>
+
+<sc-if value="{{isImporting}}" hint-placeholder-val="{{ false }}">
+<span style="position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 5px">
+<span style="font-size: 10px; font-weight: 500; color: #6E6E73; text-align: left">正在导入 {{progress}}%</span>
+<span role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="height: 4px; border-radius: 2px; background: rgba(0,0,0,0.1); display: block; overflow: hidden"><span style="width: {{progress}}%; height: 4px; border-radius: 2px; background: #0A6CE0; display: block"></span></span>
+</span>
+</sc-if>
+
+<sc-if value="{{isFailed}}" hint-placeholder-val="{{ false }}">
+<span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #B42318">
+<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3L20 18.5H2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M11 8.8v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="11" cy="15.6" r="1" fill="currentColor"></circle></svg>
+<span style="font-size: 11px; font-weight: 500">没有透明通道</span>
+</span>
+</sc-if>
+</button>
+
+<div style="max-width: 132px; font-size: 12px; font-weight: {{weight}}; color: {{nameColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{name}}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"label":{"editor":"text","default":"Chaofei"},"figure":{"editor":"enum","options":["cat","person"],"default":"cat"},"state":{"editor":"enum","options":["normal","lit","hover","importing","failed"],"default":"lit"},"progress":{"editor":"int","min":0,"max":100,"default":60},"$preview":{"width":136,"height":136}}'>
+class Component extends DCLogic {
+renderVals() {
+const p = this.props;
+const state = p.state ?? 'lit';
+const figure = p.figure ?? 'cat';
+const lit = state === 'lit';
+const shown = state !== 'failed';
+let thumbBg = '#F3F3F5';
+if (lit) thumbBg = '#161618';
+if (state === 'hover') thumbBg = '#ECECEF';
+if (state === 'failed') thumbBg = '#FBECEA';
+let border = '0.5px solid rgba(0,0,0,0.05)';
+if (lit) border = '1.5px solid #FFB340';
+if (state === 'failed') border = '1px solid rgba(180,35,24,0.35)';
+return {
+  name: p.label ?? 'Chaofei',
+  pressed: lit ? 'true' : 'false',
+  progress: p.progress ?? 60,
+  isLit: lit,
+  isCat: figure === 'cat' && shown,
+  isPerson: figure === 'person' && shown,
+  isHover: state === 'hover',
+  isImporting: state === 'importing',
+  isFailed: state === 'failed',
+  border, thumbBg,
+  lift: state === 'hover' ? '0 6px 16px rgba(0,0,0,0.12)' : 'none',
+  figure: lit ? '#F5F1EA' : state === 'hover' ? '#6E6E73' : '#AEAEB2',
+  figureOpacity: state === 'importing' ? 0.4 : 1,
+  weight: lit ? '600' : '400',
+  nameColor: state === 'failed' ? '#B42318' : '#1D1D1F'
+};
+}
+}
+</script>
+</body>
+</html>

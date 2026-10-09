@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>角色库 · 首次打开</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0066CC}a:hover{color:#004C99}
+</style>
+</helmet>
+<div style="width: 960px; height: 680px; display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+
+<dc-import name="LibraryToolbar" count="1" hint-size="960px,64px"></dc-import>
+
+<main style="flex: 1; box-sizing: border-box; padding: 8px 28px 28px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex">
+<dc-import name="LibraryCard" label="Chaofei" figure="cat" state="lit" hint-size="136px,136px"></dc-import>
+</div>
+
+<section aria-labelledby="empty-title" style="flex: 1; border-radius: 22px; border: 1.5px dashed rgba(0,0,0,0.18); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px">
+<svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="#AEAEB2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M28 8v28M17 25l11 11 11-11"></path><path d="M8 38v6a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4v-6"></path></svg>
+<h2 id="empty-title" style="margin: 0; font-size: 20px; font-weight: 600">把带透明通道的视频拖到这里</h2>
+<p style="margin: 0; font-size: 13px; color: #6E6E73; text-align: center; line-height: 1.5">HEVC with Alpha 或 ProRes 4444 编码的 .mov，可以一次拖入多个。</p>
+<div style="display: flex; gap: 10px; margin-top: 6px">
+<button style="height: 34px; padding: 0 18px; border: 0; border-radius: 17px; background: #0A6CE0; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">选择视频…</button>
+<a href="https://wquguru.github.io/cameo/" style="height: 34px; box-sizing: border-box; padding: 0 18px; border-radius: 17px; border: 0.5px solid rgba(0,0,0,0.16); background: #FFFFFF; color: #1D1D1F; font-size: 13px; display: flex; align-items: center; text-decoration: none">浏览角色画廊 ↗</a>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":680}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
