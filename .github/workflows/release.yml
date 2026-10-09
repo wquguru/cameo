@@ -1,0 +1,26 @@
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag matches Info.plist
+        run: |
+          PLIST=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
+          [[ "v$PLIST" == "$GITHUB_REF_NAME" ]] || { echo "tag $GITHUB_REF_NAME != Info.plist $PLIST"; exit 1; }
+      - name: Build and package
+        run: scripts/package.sh
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+      - name: Publish the release
+        run: gh release create "$GITHUB_REF_NAME" build/Cameo-*.zip --title "Cameo ${GITHUB_REF_NAME#v}" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
