@@ -15,9 +15,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
 </p>
 
-<p align="center">
-  <b>English</b> · <a href="README.zh-CN.md">简体中文</a>
-</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a></p>
 
 ---
 
@@ -47,7 +45,11 @@ The app is ad-hoc signed (not notarized). On first launch macOS blocks it: open 
 
 ### Updates
 
-Cameo checks GitHub Releases once a day. When a newer version is out, the menu bar icon gets an amber dot and the popover shows a **Download** banner that opens the release page; replace `Cameo.app` with the new one.
+Cameo checks GitHub Releases once a day, or when you click **Check for Updates…** in the popover. When a newer version is out, the menu bar icon gets an amber dot and that row turns into **Update to x.y.z**: click it and Cameo downloads the release, verifies its checksum, replaces itself and reopens. If it can't replace itself (for example when it isn't in Applications), it opens the release page instead. **About Cameo** shows the version and links to the project.
+
+### Languages
+
+Cameo speaks English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский and Italiano. It follows your Mac's language; to pick another, use **Language** in the popover, or System Settings › General › Language & Region › Applications.
 
 ### Build from source
 

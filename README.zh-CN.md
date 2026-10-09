@@ -15,9 +15,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
 </p>
 
-<p align="center">
-  <a href="README.md">English</a> · <b>简体中文</b>
-</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a></p>
 
 ---
 
@@ -47,7 +45,11 @@ Cameo 把一段循环播放的透明视频变成一个悬浮在桌面上的角�
 
 ### 更新
 
-Cameo 每天检查一次 GitHub Releases。有新版本时，菜单栏图标会出现一个琥珀色小圆点，弹窗顶部显示**下载**提示，点击打开发布页，用新的 `Cameo.app` 替换旧的即可。
+Cameo 每天检查一次 GitHub Releases，也可以在弹窗中点击“**检查更新…**”手动检查。有新版本时，菜单栏图标会出现一个琥珀色小圆点，这一行会变成**更新到 x.y.z**：点击后 Cameo 会下载新版本、校验其校验值、替换自身并重新打开。如果无法替换自身（例如不在“应用程序”文件夹中），则会改为打开发布页。**关于 Cameo** 会显示版本号以及项目链接。
+
+### 语言
+
+Cameo 支持 English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский 和 Italiano。默认跟随 Mac 的语言；如需切换，可在弹窗中使用**语言**，或前往“系统设置 › 通用 › 语言与地区 › 应用程序”。
 
 ### 从源码构建
 
