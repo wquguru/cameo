@@ -1,0 +1,49 @@
+name: intake
+
+# Website uploads (upload Worker → private cameo-uploads bucket) become submission issues.
+# A cheap Linux job looks for pending uploads; the macOS job (AVFoundation checks) runs only
+# when there are some.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: intake
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: auto
+
+jobs:
+  look:
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      pending: ${{ steps.count.outputs.pending }}
+    steps:
+      - id: count
+        run: |
+          n=$(aws s3api list-objects-v2 --bucket cameo-uploads --prefix pending/ \
+                --endpoint-url "https://${{ vars.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+                --query 'KeyCount' --output text)
+          echo "pending=$n" >> "$GITHUB_OUTPUT"
+          echo "$n pending upload(s)"
+
+  intake:
+    needs: look
+    if: needs.look.outputs.pending != '0'
+    runs-on: macos-15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open issues for new uploads
+        run: python3 scripts/character_intake.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

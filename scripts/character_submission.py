@@ -20,10 +20,12 @@ import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BUCKET = "cameo-characters"
+BUCKET = "cameo-characters"   # public, served at ORIGIN
+UPLOADS = "cameo-uploads"     # private: website uploads waiting for review
 ORIGIN = "https://cameo.wqu.guru"
 MARKER = "<!-- cameo-bot -->"
 ATTACHMENT = re.compile(r"https://github\.com/user-attachments/(?:assets|files)/[A-Za-z0-9._/-]+")
+UPLOADED = re.compile(r"\br2:submitted/[0-9a-f-]{36}\.mov\b")  # set by the intake workflow
 CATEGORIES = {"animal": "animal", "person": "person", "other": "other"}
 DOWNLOAD_LIMIT = 20 * 1024 * 1024  # generous; the check reports anything over 10 MB
 
@@ -43,7 +45,7 @@ def parse_form(body):
     name = fields.get("character name", "").splitlines()[0].strip() if fields.get("character name") else ""
     author = fields.get("credit as", "").splitlines()[0].strip() if fields.get("credit as") else ""
     category = CATEGORIES.get(fields.get("category", "").split("/")[0].strip().lower(), "")
-    video = ATTACHMENT.search(fields.get("video", ""))
+    video = UPLOADED.search(fields.get("video", "")) or ATTACHMENT.search(fields.get("video", ""))
     problems = []
     if not name:
         problems.append("Missing a character name. 缺少角色名。")
@@ -57,8 +59,31 @@ def parse_form(body):
             "video": video.group(0) if video else ""}, problems
 
 
+def r2_env():
+    for key in ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
+        if not os.environ.get(key):
+            sys.exit(f"{key} is not configured")
+    return dict(os.environ, AWS_ACCESS_KEY_ID=os.environ["R2_ACCESS_KEY_ID"],
+                AWS_SECRET_ACCESS_KEY=os.environ["R2_SECRET_ACCESS_KEY"], AWS_DEFAULT_REGION="auto")
+
+
+def endpoint():
+    return f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com"
+
+
+def s3(*args):
+    run("aws", "s3", *args, "--endpoint-url", endpoint(), "--only-show-errors", env=r2_env())
+
+
+def s3api(*args):
+    return run("aws", "s3api", *args, "--endpoint-url", endpoint(), capture=True, env=r2_env()).stdout
+
+
 def download(url, folder):
     path = Path(folder) / "submission.mov"
+    if url.startswith("r2:"):
+        s3("cp", f"s3://{UPLOADS}/{url[3:]}", str(path))
+        return path
     result = run("curl", "-fsSL", "--retry", "3", "--max-filesize", str(DOWNLOAD_LIMIT), "-o", str(path), url, check=False)
     return path if result.returncode == 0 and path.exists() else None
 
@@ -127,25 +152,21 @@ def slug(name, issue, taken):
 
 
 def publish(issue, form, path):
-    for key in ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
-        if not os.environ.get(key):
-            comment(issue, f"### ⚠️ Can't publish / 无法发布\n\n`{key}` is not configured for this repository.")
-            sys.exit(1)
     entries = json.loads((ROOT / "gallery/characters.json").read_text())
     character = slug(form["name"], issue, {e["id"] for e in entries})
     url = f"{ORIGIN}/characters/{character}.mov"
 
     run("swift", "scripts/gallery-entry.swift", str(path), character, form["name"], form["author"], url, form["category"])
 
-    env = dict(os.environ, AWS_ACCESS_KEY_ID=os.environ["R2_ACCESS_KEY_ID"],
-               AWS_SECRET_ACCESS_KEY=os.environ["R2_SECRET_ACCESS_KEY"], AWS_DEFAULT_REGION="auto")
-    run("aws", "s3", "cp", str(path), f"s3://{BUCKET}/characters/{character}.mov",
-        "--endpoint-url", f"https://{os.environ['R2_ACCOUNT_ID']}.r2.cloudflarestorage.com",
-        "--content-type", "video/quicktime", "--cache-control", "public, max-age=86400", "--only-show-errors", env=env)
+    s3("cp", str(path), f"s3://{BUCKET}/characters/{character}.mov",
+       "--content-type", "video/quicktime", "--cache-control", "public, max-age=86400")
     published = Path(tempfile.mkdtemp()) / "check.mov"
     run("curl", "-fsSL", "--retry", "5", "--retry-all-errors", "--retry-delay", "3", "-o", str(published), url)
     if hashlib.sha256(published.read_bytes()).digest() != hashlib.sha256(path.read_bytes()).digest():
         sys.exit(f"{url} does not match the submitted file")
+
+    if form["video"].startswith("r2:"):
+        s3("rm", f"s3://{UPLOADS}/{form['video'][3:]}")
 
     branch = f"character/{character}"
     run("git", "config", "user.name", "github-actions[bot]")
@@ -164,6 +185,8 @@ def publish(issue, form, path):
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
     issue = os.environ["ISSUE_NUMBER"]
+    if mode == "check" and UPLOADED.search(os.environ.get("ISSUE_BODY", "")):
+        return  # website uploads were already checked by the intake workflow
     reviewed = review(issue)
     if mode == "check":
         if reviewed:
