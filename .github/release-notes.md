@@ -6,4 +6,12 @@ Download **`Cameo-<version>-macOS-Universal.dmg`** from Assets below — macOS 1
 2. 第一次打开会被拦下：**系统设置 › 隐私与安全性 › 仍要打开**。On first launch: **System Settings › Privacy & Security › Open Anyway**.
 3. 菜单栏出现 Cameo 图标，Chaofei 开始在屏幕底部溜达。Chaofei starts wandering along the bottom of your screen.
 
-`checksums.txt` lists the SHA-256 of each download.
+### 校验 · Verify
+
+`checksums.txt` lists the SHA-256 of each download. In the folder you downloaded to:
+
+```bash
+shasum -a 256 -c checksums.txt --ignore-missing
+```
+
+Each file you have should print `OK`.
