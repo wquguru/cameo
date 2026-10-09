@@ -20,6 +20,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 lipo -create "${BINARIES[@]}" -output "$APP/Contents/MacOS/Cameo"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+# Strings tables, plus en.lproj so AppKit knows English is a language Cameo has.
+cp -R Resources/Localizations/*.lproj "$APP/Contents/Resources/"
 if [[ -n "${BUILD_NUMBER:-}" ]]; then
   /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 fi

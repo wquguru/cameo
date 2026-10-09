@@ -18,9 +18,9 @@ enum AboutPanel {
         let plain: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor, .paragraphStyle: centered,
         ]
-        let text = NSMutableAttributedString(string: "让角色站在你的桌面上。\n", attributes: plain)
-        let links = [("GitHub", repository), ("角色画廊", GalleryLink.gallery),
-                     ("反馈问题", repository.appendingPathComponent("issues/new"))]
+        let text = NSMutableAttributedString(string: L("Characters that live on your desktop.") + "\n", attributes: plain)
+        let links = [("GitHub", repository), (L("Gallery"), GalleryLink.gallery),
+                     (L("Report an Issue"), repository.appendingPathComponent("issues/new"))]
         for (i, (title, url)) in links.enumerated() {
             if i > 0 { text.append(NSAttributedString(string: "  ·  ", attributes: plain)) }
             var linked = plain
@@ -29,7 +29,7 @@ enum AboutPanel {
         }
         var secondary = plain
         secondary[.foregroundColor] = NSColor.secondaryLabelColor
-        text.append(NSAttributedString(string: "\n内置角色 Chaofei 以作者的猫为原型", attributes: secondary))
+        text.append(NSAttributedString(string: "\n" + L("Chaofei, the built-in cat, is modelled on the author’s cat"), attributes: secondary))
         return text
     }
 }

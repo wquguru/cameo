@@ -15,13 +15,13 @@ enum Updater {
     /// Reports download progress (0...1) on the way; returns only if installing failed.
     static func install(_ update: UpdateChecker.Update, progress: @escaping (Double) -> Void) async throws {
         guard let zipURL = update.zip, let checksumsURL = update.checksums else {
-            throw Failure("这个版本没有可安装的包")
+            throw Failure(L("This release has nothing to install"))
         }
         let app = Bundle.main.bundleURL
         let folder = app.deletingLastPathComponent()
         guard !app.path.contains("/AppTranslocation/"),
               FileManager.default.isWritableFile(atPath: folder.path) else {
-            throw Failure("Cameo 所在位置无法写入，请先把它移到“应用程序”文件夹")
+            throw Failure(L("Cameo’s folder isn’t writable; move it to Applications first"))
         }
 
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("CameoUpdate-\(UUID().uuidString)")
@@ -32,7 +32,7 @@ enum Updater {
             let (checksums, _) = try await URLSession.shared.data(from: checksumsURL)
             guard let expected = expectedHash(of: zip.lastPathComponent, in: checksums),
                   try await sha256(of: zip) == expected else {
-                throw Failure("下载的文件校验失败")
+                throw Failure(L("The download didn’t match its checksum"))
             }
 
             let unpacked = work.appendingPathComponent("unpacked")
@@ -41,7 +41,7 @@ enum Updater {
             let info = Bundle(url: newApp)?.infoDictionary
             guard info?["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier,
                   info?["CFBundleShortVersionString"] as? String == update.version else {
-                throw Failure("下载的包与新版本不符")
+                throw Failure(L("The download isn’t the expected version"))
             }
             try await run("/usr/bin/codesign", "--verify", "--deep", "--strict", newApp.path)
 
@@ -84,9 +84,9 @@ enum Updater {
         try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, Error>) in
             let task = URLSession.shared.downloadTask(with: url) { file, response, error in
                 if let status = (response as? HTTPURLResponse)?.statusCode, status != 200 {
-                    return done.resume(throwing: Failure("下载失败（HTTP \(status)）"))
+                    return done.resume(throwing: Failure(L("The download failed (HTTP %@)", String(status))))
                 }
-                guard let file else { return done.resume(throwing: error ?? Failure("下载失败")) }
+                guard let file else { return done.resume(throwing: error ?? Failure(L("The download failed"))) }
                 // The temporary file is deleted when this handler returns, so move it now.
                 do { try FileManager.default.moveItem(at: file, to: destination); done.resume() }
                 catch { done.resume(throwing: error) }
@@ -115,7 +115,7 @@ enum Updater {
         process.arguments = arguments
         try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, Error>) in
             process.terminationHandler = { p in
-                p.terminationStatus == 0 ? done.resume() : done.resume(throwing: Failure("安装包无效"))
+                p.terminationStatus == 0 ? done.resume() : done.resume(throwing: Failure(L("The update package is invalid")))
             }
             do { try process.run() } catch { done.resume(throwing: error) }
         }

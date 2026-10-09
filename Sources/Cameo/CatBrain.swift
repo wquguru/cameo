@@ -8,11 +8,11 @@ enum CatAction: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .walk: "行走"
-        case .sit: "蹲下"
-        case .prone: "趴下"
-        case .stand: "站立"
-        case .roll: "打滚"
+        case .walk: L("Walk")
+        case .sit: L("Sit")
+        case .prone: L("Lie")
+        case .stand: L("Stand")
+        case .roll: L("Roll")
         }
     }
 }

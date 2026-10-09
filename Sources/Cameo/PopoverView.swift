@@ -13,19 +13,19 @@ struct PopoverView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             separator
-            section("角色", link: ("浏览画廊", GalleryLink.gallery)) {
+            section(L("Characters"), link: (L("Gallery"), GalleryLink.gallery)) {
                 cards
                 if model.selected?.isBuiltIn == true {
                     catActions
                 }
                 if model.characters.count == 1 {
-                    Text("拖入带透明通道的 .mov（HEVC with Alpha 或 ProRes 4444）")
+                    Text(L("Drop in a .mov with alpha (HEVC with Alpha or ProRes 4444)"))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
             }
             separator
-            section("大小") { sizeSlider }
+            section(L("Size")) { sizeSlider }
             if let message = model.errorMessage {
                 separator
                 MenuRow(action: { model.errorMessage = nil }) {
@@ -34,14 +34,14 @@ struct PopoverView: View {
                         .foregroundStyle(.red)
                         .multilineTextAlignment(.leading)
                 }
-                .help("点按关闭")
+                .help(L("Click to dismiss"))
             }
             separator
             updateRow
             MenuRow(action: AboutPanel.show) {
                 HStack(spacing: 4) {
                     Color.clear.frame(width: 14, height: 1)
-                    Text("关于 Cameo")
+                    Text(L("About Cameo"))
                 }
             }
             separator
@@ -51,14 +51,15 @@ struct PopoverView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .opacity(model.launchAtLogin ? 1 : 0)
                         .frame(width: 14)
-                    Text("登录时启动")
+                    Text(L("Open at Login"))
                 }
             }
             .accessibilityAddTraits(model.launchAtLogin ? .isSelected : [])
+            languageRow
             MenuRow(action: { NSApp.terminate(nil) }) {
                 HStack(spacing: 4) {
                     Color.clear.frame(width: 14, height: 1)
-                    Text("退出 Cameo")
+                    Text(L("Quit Cameo"))
                     Spacer()
                     Text("⌘Q").font(.system(size: 12)).opacity(0.6)
                 }
@@ -86,7 +87,7 @@ struct PopoverView: View {
                 Text(status).font(.system(size: 11)).foregroundStyle(.secondary)
             }
             Spacer()
-            Toggle("显示角色", isOn: $model.visible)
+            Toggle(L("Show Character"), isOn: $model.visible)
                 .toggleStyle(.switch)
                 .labelsHidden()
         }
@@ -96,8 +97,8 @@ struct PopoverView: View {
     }
 
     private var status: String {
-        guard model.visible, let name = model.selected?.name else { return "已隐藏" }
-        return "显示中 · \(name)"
+        guard model.visible, let name = model.selected?.name else { return L("Hidden") }
+        return L("Showing · %@", name)
     }
 
     /// "检查更新…" with the current version; becomes the update itself once one is found,
@@ -107,11 +108,11 @@ struct PopoverView: View {
         if let update = model.update, let progress = model.installProgress {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text("正在下载 \(update.version)…")
+                    Text(L("Downloading %@…", update.version))
                     Spacer()
                     Text("\(Int(progress * 100))%").font(.system(size: 12)).foregroundStyle(.secondary).monospacedDigit()
                 }
-                ProgressView(value: progress).controlSize(.small).accessibilityLabel("下载进度")
+                ProgressView(value: progress).controlSize(.small).accessibilityLabel(L("Download progress"))
             }
             .padding(.leading, 32)
             .padding(.trailing, 14)
@@ -119,26 +120,26 @@ struct PopoverView: View {
         } else if let update = model.update, let failure = model.updateFailure {
             MenuRow(action: { model.updateFailure = nil }) {
                 VStack(alignment: .leading, spacing: 1) {
-                    Label("无法自动更新", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
-                    Text("\(failure)。已打开下载页").font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 18)
+                    Label(L("Couldn’t update automatically"), systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                    Text(L("%@. Opened the download page.", failure)).font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 18)
                 }
             }
-            .help("点按关闭 · \(update.url.absoluteString)")
+            .help(L("Click to dismiss") + " · " + update.url.absoluteString)
         } else if let update = model.update {
             MenuRow(action: model.installUpdate) {
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
                         Circle().fill(Theme.spotlight).frame(width: 6, height: 6).frame(width: 14)
-                        Text("更新到 \(update.version)")
+                        Text(L("Update to %@", update.version))
                     }
                     Text(update.size > 0
-                         ? "\(ByteCountFormatter.string(fromByteCount: Int64(update.size), countStyle: .file)) · 完成后自动重新打开"
-                         : "完成后自动重新打开")
+                         ? L("%@ · reopens when done", ByteCountFormatter.string(fromByteCount: Int64(update.size), countStyle: .file))
+                         : L("Reopens when done"))
                         .font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 18)
                 }
             }
             .contextMenu {
-                Button("查看更新说明") { NSWorkspace.shared.open(update.url) }
+                Button(L("Release Notes")) { NSWorkspace.shared.open(update.url) }
             }
         } else {
             MenuRow(action: model.checkForUpdates) {
@@ -162,12 +163,35 @@ struct PopoverView: View {
         }
     }
 
+    /// Language: a menu of the system language, English and 简体中文, like a pop-up in a menu.
+    private var languageRow: some View {
+        HStack(spacing: 4) {
+            Color.clear.frame(width: 14, height: 1)
+            Text(L("Language"))
+            Spacer()
+            Menu {
+                Picker(selection: $model.language) {
+                    ForEach(AppLanguage.allCases) { Text($0.label).tag($0) }
+                } label: { EmptyView() }
+                .pickerStyle(.inline)
+            } label: {
+                Text(model.language.label)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .accessibilityLabel(L("Language"))
+        }
+        .frame(minHeight: 22)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 2)
+    }
+
     private var checkLabel: String {
         switch model.updateCheck {
-        case .checking: "正在检查更新…"
-        case .upToDate: "已是最新版本"
-        case .failed: "无法连接 GitHub"
-        case .idle: "检查更新…"
+        case .checking: L("Checking for Updates…")
+        case .upToDate: L("Cameo is up to date")
+        case .failed: L("Couldn’t reach GitHub")
+        case .idle: L("Check for Updates…")
         }
     }
 
@@ -217,7 +241,7 @@ struct PopoverView: View {
                 .accessibilityLabel(character.name)
                 .contextMenu {
                     if !character.isBuiltIn {
-                        Button("删除“\(character.name)”", role: .destructive) { model.remove(character) }
+                        Button(L("Delete “%@”", character.name), role: .destructive) { model.remove(character) }
                     }
                 }
             }
@@ -230,23 +254,43 @@ struct PopoverView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("添加角色视频")
-                Text("添加").font(.system(size: 11)).foregroundStyle(.secondary)
+                .accessibilityLabel(L("Add a character video"))
+                Text(L("Add")).font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }
     }
 
-    /// What the built-in cat does: on its own (自由), or one action held until changed.
+    /// What the built-in cat does: on its own (Auto), or one action held until changed.
+    /// Drawn like a small segmented control, but with equal segments whose labels shrink to fit,
+    /// so longer translations never widen the popover (NSSegmentedControl won't compress).
     private var catActions: some View {
-        Picker("小银的动作", selection: $model.catAction) {
-            Text("自由").tag(CatAction?.none)
-            ForEach(CatAction.allCases) { action in
-                Text(action.label).tag(CatAction?.some(action))
+        let choices: [(CatAction?, String)] = [(nil, L("Auto"))] + CatAction.allCases.map { ($0, $0.label) }
+        return HStack(spacing: 2) {
+            ForEach(choices, id: \.1) { action, label in
+                let selected = model.catAction == action
+                Button { model.catAction = action } label: {
+                    Text(label)
+                        .font(.system(size: 12, weight: selected ? .medium : .regular))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .padding(.horizontal, 3)
+                        .frame(maxWidth: .infinity, minHeight: 22)
+                        .background {
+                            if selected {
+                                RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: .controlBackgroundColor))
+                                    .shadow(color: .black.opacity(0.14), radius: 1, y: 1)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .controlSize(.small)
+        .padding(2)
+        .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.06)))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(L("Chaofei’s action"))
     }
 
     private var sizeSlider: some View {
@@ -255,7 +299,7 @@ struct PopoverView: View {
             Slider(value: $model.scale, in: 0.2...2)
                 .controlSize(.small)
                 .padding(.bottom, 1)
-                .accessibilityLabel("角色大小")
+                .accessibilityLabel(L("Character size"))
                 .accessibilityValue("\(Int(model.scale * 100))%")
             FigureShape().fill(.secondary).frame(width: 13, height: 26)
         }

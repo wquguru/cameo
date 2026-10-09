@@ -23,7 +23,7 @@ enum Glyph {
             NSBezierPath(ovalIn: NSRect(x: rect.maxX - 5.5, y: rect.maxY - 5.5, width: 5, height: 5)).fill()
             return true
         }
-        image.accessibilityDescription = "Cameo（有可用更新）"
+        image.accessibilityDescription = L("Cameo (update available)")
         return image
     }
 

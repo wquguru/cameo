@@ -18,6 +18,10 @@ final class AppModel: ObservableObject {
     @Published var errorMessage: String?
     /// What the built-in cat should do; nil lets it wander on its own.
     @Published var catAction: CatAction?
+    /// The app's language; `.system` follows macOS (see `AppLanguage`).
+    @Published var language = AppLanguage.stored {
+        didSet { language.apply() }
+    }
     /// A newer release on GitHub, if the update checker found one.
     @Published private(set) var update: UpdateChecker.Update?
     /// What a "检查更新…" click is doing; returns to idle a few seconds after it finishes.
@@ -56,7 +60,7 @@ final class AppModel: ObservableObject {
             do {
                 insert(try await store.importVideo(from: url))
             } catch {
-                errorMessage = "无法添加“\(url.lastPathComponent)”：\(error.localizedDescription)"
+                errorMessage = L("Couldn’t add “%@”: %@", url.lastPathComponent, error.localizedDescription)
             }
         }
     }
@@ -73,7 +77,7 @@ final class AppModel: ObservableObject {
             defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
             insert(try await store.importVideo(from: file, origin: link.source))
         } catch {
-            errorMessage = "无法添加“\(link.name)”：\(error.localizedDescription)"
+            errorMessage = L("Couldn’t add “%@”: %@", link.name, error.localizedDescription)
         }
     }
 
@@ -96,7 +100,7 @@ final class AppModel: ObservableObject {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            errorMessage = "无法更改登录项：\(error.localizedDescription)"
+            errorMessage = L("Couldn’t change the login item: %@", error.localizedDescription)
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

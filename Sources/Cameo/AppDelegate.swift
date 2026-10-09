@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.behavior = .transient
 
         characterWindow = CharacterWindowController(model: model)
-        updateBadge = model.$update.sink { [weak self] update in
+        updateBadge = model.$update.combineLatest(model.$language).sink { [weak self] update, _ in
             self?.statusItem.button?.image = update == nil ? Glyph.template : Glyph.withBadge
         }
         model.startUpdateChecks()
@@ -72,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.quickTimeMovie]
         panel.allowsMultipleSelection = true
-        panel.message = "选择带透明通道的视频（HEVC with Alpha 或 ProRes 4444）"
+        panel.message = L("Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)")
         NSApp.activate()
         guard panel.runModal() == .OK else { return }
         Task {

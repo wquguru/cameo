@@ -19,10 +19,10 @@ enum ImportError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noVideo: "文件里没有视频轨道。"
-        case .noAlpha: "这个视频没有透明通道。请使用 HEVC with Alpha 或 ProRes 4444 编码的 .mov。"
-        case .download: "下载失败。"
-        case .tooLarge: "文件超过 200 MB。"
+        case .noVideo: L("The file has no video track.")
+        case .noAlpha: L("This video has no alpha channel. Use a .mov encoded as HEVC with Alpha or ProRes 4444.")
+        case .download: L("The download failed.")
+        case .tooLarge: L("The file is larger than 200 MB.")
         }
     }
 }
