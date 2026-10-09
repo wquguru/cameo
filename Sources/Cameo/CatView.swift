@@ -7,7 +7,7 @@ final class CatView: FigureView {
     /// Moves the window by `dx` points; returns true when blocked by a screen edge.
     var onMove: ((CGFloat) -> Bool)?
 
-    private static let tailOutline = CatArt.tail.copy(strokingWithWidth: 30, lineCap: .round, lineJoin: .round, miterLimit: 10)
+    private static let tailOutline = CatArt.tail.copy(strokingWithWidth: CatArt.tailWidth + 4, lineCap: .round, lineJoin: .round, miterLimit: 10)
     private var lastTime: CFTimeInterval?
     private var frame_: CatRig.Frame?
 
@@ -51,7 +51,7 @@ final class CatView: FigureView {
         guard let f = frame_ else { return false }
         if CatArt.body.contains(point, using: .winding, transform: f.body) { return true }
         if CatArt.head.contains(point, using: .winding, transform: f.head) { return true }
-        for t in f.legs.values where CatArt.leg.contains(point, using: .winding, transform: t) { return true }
+        for (leg, t) in f.legs where CatArt.legPath(leg).contains(point, using: .winding, transform: t) { return true }
         return Self.tailOutline.contains(point, using: .winding, transform: f.tail)
     }
 

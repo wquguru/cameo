@@ -15,7 +15,7 @@ struct CatPose {
     var frontLength: CGFloat = 1
 
     static let stand = CatPose()
-    static let sit = CatPose(tilt: -26, farHind: -56, nearHind: -62, farFront: 22, nearFront: 28, tail: -38, head: 22, headDrop: 0, frontLength: 1.7)
+    static let sit = CatPose(tilt: -26, farHind: -56, nearHind: -62, farFront: 22, nearFront: 28, tail: -38, head: 22, headDrop: 0, frontLength: 1.45)
     static let prone = CatPose(tilt: 0, farHind: -72, nearHind: -78, farFront: -86, nearFront: -90, tail: -85, head: 6, headDrop: 8)
     static let curl = CatPose(tilt: 0, farHind: -70, nearHind: -76, farFront: -62, nearFront: -68, tail: -110, head: 24, headDrop: 6)
     static let dangle = CatPose(tilt: -12, farHind: 6, nearHind: 18, farFront: 4, nearFront: 16, tail: -150, head: 14, headDrop: 0)
@@ -54,6 +54,8 @@ enum CatRig {
         var legs: [CatLeg: CGAffineTransform]
         var shadowCenter: CGPoint
         var eyeOpenness: CGFloat
+        /// View points per design unit.
+        var scale: CGFloat
     }
 
     private static func rotate(_ degrees: CGFloat, about p: CGPoint) -> CGAffineTransform {
@@ -69,7 +71,9 @@ enum CatRig {
         let tail = CGAffineTransform(rotationAngle: pose.tail * .pi / 180)
             .concatenating(CGAffineTransform(translationX: CatArt.tailRoot.x, y: CatArt.tailRoot.y))
             .concatenating(body)
-        let head = rotate(pose.head, about: CatArt.neck)
+        let neck = CatArt.neck.applying(CatArt.headPlacement)
+        let head = CatArt.headPlacement
+            .concatenating(rotate(pose.head, about: neck))
             .concatenating(CGAffineTransform(translationX: 0, y: pose.headDrop))
             .concatenating(body)
         var legs: [CatLeg: CGAffineTransform] = [:]
@@ -84,15 +88,15 @@ enum CatRig {
         return (body, tail, head, legs)
     }
 
-    private static let bodySamples = [(62, 206), (118, 258), (210, 258), (250, 204), (156, 154), (112, 152), (196, 154), (66, 232), (240, 236), (90, 252), (180, 258)]
+    private static let bodySamples = [(60, 210), (122, 264), (206, 264), (254, 208), (100, 150), (200, 150), (150, 147), (70, 240), (240, 244), (90, 258), (170, 264)]
         .map { CGPoint(x: $0.0, y: $0.1) }
     private static let headSamples: [CGPoint] = (0..<16).map { i in
         let a = CGFloat(i) * .pi / 8
-        return CGPoint(x: 236 + 86 * cos(a), y: 120 + 76 * sin(a))
-    } + [CGPoint(x: 216, y: 16), CGPoint(x: 300, y: 22)]
+        return CGPoint(x: 239 + 85 * cos(a), y: 122 + 74 * sin(a))
+    } + [CGPoint(x: 202, y: 42), CGPoint(x: 298, y: 44)]
     private static let tailSamples = [(0, 15), (-42, -84), (-18, -100), (-30, -50), (-50, -40), (-57, -84), (-27, -84), (-18, -115), (-45, -25), (-15, -15)]
         .map { CGPoint(x: $0.0, y: $0.1) }
-    private static let pawSamples = [CGPoint(x: 0, y: 50), CGPoint(x: -10, y: 46), CGPoint(x: 10, y: 46), CGPoint(x: -13, y: 20), CGPoint(x: 13, y: 20)]
+    private static let pawSamples = [CGPoint(x: 0, y: 66), CGPoint(x: -10, y: 62), CGPoint(x: 10, y: 62), CGPoint(x: -16, y: 20), CGPoint(x: 15, y: 20)]
 
     static func frame(pose: CatPose, spin: CGFloat, facingLeft: Bool, eyeOpenness: CGFloat, viewSize: CGSize) -> Frame {
         var p = parts(pose, spin: spin)
@@ -121,6 +125,6 @@ enum CatRig {
         p.head = p.head.concatenating(toView)
         for leg in CatLeg.allCases { p.legs[leg] = p.legs[leg]!.concatenating(toView) }
         return Frame(world: world, body: p.body, tail: p.tail, head: p.head, legs: p.legs,
-                     shadowCenter: CGPoint(x: canvas.width / 2, y: ground), eyeOpenness: eyeOpenness)
+                     shadowCenter: CGPoint(x: canvas.width / 2, y: ground), eyeOpenness: eyeOpenness, scale: s)
     }
 }

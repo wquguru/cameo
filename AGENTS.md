@@ -15,7 +15,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 - Source of truth: `design/` (Design canvas files: `Main`, `Popover`, `Logo`, `Icon` `.dc.html`, open in a browser as reference only).
 - Theme "stage spotlight": dark glass popover, accent spotlight amber `#FFB340`, stage `#161618`, figure ivory `#F5F1EA`. A selected character card is "lit" (beam + floor glow, ivory figure); unselected cards are dark with a grey figure.
-- Built-in cat: `design/Cats.dc.html` variant D (side view, sticker style). Art lives in `CatArt.swift` as SVG path data in design units; `CatRig` turns a `CatPose` into per-part transforms (auto-grounded, mirrored when walking left); `CatBrain` picks actions and animates poses.
+- Built-in cat: a semi-realistic silver tabby British Shorthair modelled on the owner's cat, side view (`design/cat-side.svg`; earlier cartoon explorations in `design/Cats.dc.html`). Art lives in `CatArt.swift` as SVG path data in design units; `CatRig` turns a `CatPose` into per-part transforms (auto-grounded, mirrored when walking left); `CatBrain` picks actions and animates poses.
 - Logo: a figure whose head pokes out of the top edge of a screen. The menu bar glyph is the template (monochrome) line version of it, drawn in code (`Glyph.swift`).
 
 ## Layout
