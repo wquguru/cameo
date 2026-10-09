@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# Builds release binaries and assembles build/Cameo.app.
+# Builds a universal (Apple silicon + Intel) build/Cameo.app.
+# ARCHS="arm64" scripts/build.sh builds one architecture only, for quicker local runs.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-swift build -c release --product Cameo
+ARCHS=${ARCHS:-"arm64 x86_64"}
+BINARIES=()
+for arch in $ARCHS; do
+  swift build -c release --product Cameo --triple "$arch-apple-macosx14.0"
+  BINARIES+=(".build/$arch-apple-macosx/release/Cameo")
+done
 swift build -c release --product CameoIcon
 BIN=$(swift build -c release --show-bin-path)
 
@@ -12,7 +18,7 @@ ICONSET=build/AppIcon.iconset
 rm -rf "$APP" "$ICONSET"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-cp "$BIN/Cameo" "$APP/Contents/MacOS/Cameo"
+lipo -create "${BINARIES[@]}" -output "$APP/Contents/MacOS/Cameo"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 if [[ -n "${BUILD_NUMBER:-}" ]]; then
   /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
@@ -21,4 +27,4 @@ fi
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 
 codesign --force --sign - "$APP"
-echo "Built $APP"
+echo "Built $APP ($(lipo -archs "$APP/Contents/MacOS/Cameo"))"

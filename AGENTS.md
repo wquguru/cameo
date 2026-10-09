@@ -24,7 +24,10 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 - `Sources/Cameo`: the app (AppKit + SwiftUI for the popover, AVFoundation for playback).
 - `Sources/CameoSample`: a CLI that writes a sample HEVC-alpha clip, used for manual testing.
 - `Sources/CameoIcon`: a CLI that renders the app icon PNGs (CoreGraphics), used by the build script.
-- `scripts/build.sh`: builds release binaries and assembles `build/Cameo.app` (Info.plist, icon, ad-hoc signature).
+- `scripts/build.sh`: builds a universal (arm64 + x86_64, via `--triple` builds and `lipo`) `build/Cameo.app` (Info.plist, icon, ad-hoc signature). `ARCHS=arm64` builds one architecture for quick local runs.
+- `scripts/package.sh`: the release artifacts `Cameo-<version>-macOS-Universal.dmg` / `.zip` and `checksums.txt`. The DMG background is drawn by the app (`Cameo --render-dmg-background out.png <scale>`, `DMGBackground.swift`), and `dmgbuild` (pip, in `build/.venv`, build-time only) lays out the window from `scripts/dmg-settings.py`; keep icon positions in both files in sync.
+- `gallery/`: static character gallery (GitHub Pages, `pages` workflow). `characters.json` lists entries; videos live on the `characters` release, which must never be marked latest. Publish with `scripts/gallery-add.sh`. Its "Add to Cameo" buttons are `cameo://add?url=<https .mov>&name=<name>` links (`GalleryLink.swift`).
+- `skills/cameo-character`: agent skill (installable with `npx skills add wquguru/cameo`) that turns green-screen or alpha clips into Cameo characters.
 
 ## Commands
 

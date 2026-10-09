@@ -15,4 +15,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Cameo
-          path: build/Cameo-*.zip
+          path: |
+            build/Cameo-*.dmg
+            build/Cameo-*.zip
+            build/checksums.txt

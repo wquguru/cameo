@@ -41,7 +41,7 @@ Cameo 把一段循环播放的透明视频变成一个悬浮在桌面上的角�
 
 ### 下载
 
-从 [Releases](https://github.com/wquguru/cameo/releases)（或最新一次 [CI 构建](https://github.com/wquguru/cameo/actions/workflows/build.yml)）下载 `Cameo-<version>.zip`，解压后将 `Cameo.app` 移到 `/Applications`。
+从 [Releases](https://github.com/wquguru/cameo/releases) 下载 **`Cameo-<version>-macOS-Universal.dmg`**：一个安装包同时支持 Apple 芯片和 Intel 芯片的 Mac（macOS 14 及以上）。打开后把 **Cameo** 拖进**应用程序**即可。旁边还有只含应用本身的 `.zip` 和 `checksums.txt`（SHA-256 校验值）。
 
 应用使用 ad-hoc 签名（未经公证）。首次启动会被 macOS 拦截：打开**系统设置 › 隐私与安全性**，点击**仍要打开**；或者运行 `xattr -dr com.apple.quarantine /Applications/Cameo.app`。
 
@@ -85,7 +85,7 @@ avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
 ```bash
 swift build               # 调试构建
 scripts/build.sh          # 发布版应用，输出到 build/Cameo.app
-scripts/package.sh        # 发布版压缩包，输出到 build/Cameo-<version>.zip
+scripts/package.sh        # 通用架构的 .dmg、.zip 和 checksums.txt，输出到 build/
 ```
 
 | 路径 | 用途 |
@@ -101,7 +101,7 @@ scripts/package.sh        # 发布版压缩包，输出到 build/Cameo-<version>
 scripts/release.sh 0.3.0   # 修改 Info.plist 版本号、提交、打 v0.3.0 标签并推送
 ```
 
-`release` 工作流会构建该标签对应的提交，校验标签与 `Info.plist` 一致，然后把 `Cameo-<version>.zip` 发布到 GitHub Releases。
+`release` 工作流会构建该标签对应的提交，校验标签与 `Info.plist` 一致，然后把 `.dmg`、`.zip` 和 `checksums.txt` 发布到 GitHub Releases。
 
 ## 参与贡献
 

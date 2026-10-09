@@ -41,7 +41,7 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 
 ### Download
 
-Grab `Cameo-<version>.zip` from [Releases](https://github.com/wquguru/cameo/releases) (or from the latest [CI run](https://github.com/wquguru/cameo/actions/workflows/build.yml)), unzip, and move `Cameo.app` to `/Applications`.
+Download **`Cameo-<version>-macOS-Universal.dmg`** from [Releases](https://github.com/wquguru/cameo/releases) — one installer for Apple silicon and Intel Macs running macOS 14 or later. Open it and drag **Cameo** into **Applications**. A `.zip` of the bare app and `checksums.txt` (SHA-256) sit next to it.
 
 The app is ad-hoc signed (not notarized). On first launch macOS blocks it: open **System Settings › Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Cameo.app`.
 
@@ -85,7 +85,7 @@ Need a test clip? `swift run CameoSample sample.mov` writes one.
 ```bash
 swift build               # debug build
 scripts/build.sh          # release app bundle in build/Cameo.app
-scripts/package.sh        # release zip in build/Cameo-<version>.zip
+scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
 ```
 
 | Path | Purpose |
@@ -101,7 +101,7 @@ scripts/package.sh        # release zip in build/Cameo-<version>.zip
 scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
 ```
 
-The `release` workflow builds the tagged commit, checks the tag matches `Info.plist`, and publishes `Cameo-<version>.zip` on GitHub Releases.
+The `release` workflow builds the tagged commit, checks the tag matches `Info.plist`, and publishes the `.dmg`, the `.zip` and `checksums.txt` on GitHub Releases.
 
 ## Contributing
 
