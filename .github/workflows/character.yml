@@ -1,0 +1,52 @@
+name: character
+
+# Character submissions (issues opened from the "Submit a character" form, label "character"):
+# every new or edited submission is checked and gets a reply; adding the "approved" label
+# (only maintainers can) uploads the video to R2 and opens a pull request for the gallery.
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+concurrency:
+  group: character-${{ github.event.issue.number }}
+
+jobs:
+  check:
+    if: >-
+      github.event.action != 'labeled' &&
+      github.event.issue.state == 'open' &&
+      contains(github.event.issue.labels.*.name, 'character')
+    runs-on: macos-15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the submission
+        run: python3 scripts/character_submission.py check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+  publish:
+    if: >-
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'approved' &&
+      contains(github.event.issue.labels.*.name, 'character')
+    runs-on: macos-15
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish the character
+        run: python3 scripts/character_submission.py publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

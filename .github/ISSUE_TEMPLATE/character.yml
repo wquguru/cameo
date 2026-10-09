@@ -21,11 +21,21 @@ body:
       description: Your X handle (e.g. @you) or a name. 你的 X 账号（如 @you）或名字。
     validations:
       required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category / 分类
+      options:
+        - Animal / 动物
+        - Person / 人物
+        - Other / 其他
+    validations:
+      required: true
   - type: textarea
     id: video
     attributes:
       label: Video / 视频
-      description: Drag your .mov here (HEVC with Alpha or ProRes 4444, a few seconds, loops cleanly, under 10 MB). 把 .mov 拖到这里（HEVC with Alpha 或 ProRes 4444，几秒、可无缝循环、小于 10 MB）。
+      description: "Drag your .mov here: HEVC with Alpha or ProRes 4444, 2–10 s, loops cleanly, at most 1080 px tall, under 10 MB. A bot checks it and replies. 把 .mov 拖到这里：HEVC with Alpha 或 ProRes 4444，2–10 秒、可无缝循环、高度不超过 1080 像素、小于 10 MB。机器人会自动检查并回复。"
     validations:
       required: true
   - type: checkboxes
