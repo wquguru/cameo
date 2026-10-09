@@ -25,6 +25,7 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 
 ## Features
 
+- **A cat comes built in** — 小银, a silver tabby drawn in code, wanders along the bottom of your screen: it walks, sits, lies down and dozes off, stands and rolls. Click it to make it roll, drag it to pick it up, or pin an action from the popover.
 - **Truly transparent** — only the visible pixels of the figure catch the mouse; everything else is click-through.
 - **Always on top** — floats above all windows on every Space.
 - **Native formats** — HEVC with Alpha and ProRes 4444 (`.mov`), decoded by AVFoundation. No FFmpeg, no bundled codecs.
