@@ -3,22 +3,14 @@ import AppKit
 import QuartzCore
 
 /// Plays a looping alpha video into its layer and answers "is there a figure under this point?".
-/// Frames are pulled through AVPlayerItemVideoOutput on a display link, so the frame rate can be capped
+/// Frames are pulled through AVPlayerItemVideoOutput on the display link, so the frame rate can be capped
 /// and the current frame's alpha can be sampled for click-through.
 @MainActor
-final class PlayerView: NSView {
-    var onDragEnded: (() -> Void)?
-
+final class PlayerView: FigureView {
     private let player = AVQueuePlayer()
     private var looper: AVPlayerLooper?
     private var itemObservation: NSKeyValueObservation?
-    private var link: CADisplayLink?
     private var frame_: CVPixelBuffer?
-    private var dragStart: (mouse: NSPoint, origin: NSPoint)?
-
-    var maxFrameRate: Float = 60 {
-        didSet { applyFrameRate() }
-    }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -28,7 +20,7 @@ final class PlayerView: NSView {
         layer?.isOpaque = false
         player.isMuted = true
         player.preventsDisplaySleepDuringVideoPlayback = false
-        itemObservation = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] player, _ in
+        itemObservation = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] _, _ in
             MainActor.assumeIsolated { self?.attachOutputs() }
         }
     }
@@ -46,9 +38,9 @@ final class PlayerView: NSView {
         attachOutputs()
     }
 
-    func setPlaying(_ playing: Bool) {
+    override func setPlaying(_ playing: Bool) {
         if playing { player.play() } else { player.pause() }
-        link?.isPaused = !playing
+        super.setPlaying(playing)
     }
 
     // MARK: Frames
@@ -67,22 +59,7 @@ final class PlayerView: NSView {
         player.currentItem?.outputs.first as? AVPlayerItemVideoOutput
     }
 
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        link?.invalidate()
-        link = nil
-        guard window != nil else { return }
-        let link = displayLink(target: self, selector: #selector(tick))
-        link.add(to: .main, forMode: .common)
-        self.link = link
-        applyFrameRate()
-    }
-
-    private func applyFrameRate() {
-        link?.preferredFrameRateRange = CAFrameRateRange(minimum: min(15, maxFrameRate), maximum: maxFrameRate, preferred: maxFrameRate)
-    }
-
-    @objc private func tick(_ link: CADisplayLink) {
+    override func step(_ link: CADisplayLink) {
         guard let output else { return }
         let time = output.itemTime(forHostTime: CACurrentMediaTime())
         guard output.hasNewPixelBuffer(forItemTime: time),
@@ -97,8 +74,7 @@ final class PlayerView: NSView {
 
     // MARK: Hit testing
 
-    /// True when the current frame has a visible pixel at `point` (view coordinates).
-    func hasFigure(at point: NSPoint) -> Bool {
+    override func hasFigure(at point: NSPoint) -> Bool {
         guard let buffer = frame_ else { return false }
         let w = CVPixelBufferGetWidth(buffer), h = CVPixelBufferGetHeight(buffer)
         let fit = AVMakeRect(aspectRatio: CGSize(width: w, height: h), insideRect: bounds)
@@ -113,29 +89,4 @@ final class PlayerView: NSView {
         let alpha = base.load(fromByteOffset: y * CVPixelBufferGetBytesPerRow(buffer) + x * 4 + 3, as: UInt8.self)
         return alpha > 24
     }
-
-    // MARK: Dragging
-
-    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-
-    override func mouseDown(with event: NSEvent) {
-        guard let window else { return }
-        dragStart = (NSEvent.mouseLocation, window.frame.origin)
-        NSCursor.closedHand.push()
-    }
-
-    override func mouseDragged(with event: NSEvent) {
-        guard let window, let start = dragStart else { return }
-        let now = NSEvent.mouseLocation
-        window.setFrameOrigin(NSPoint(x: start.origin.x + now.x - start.mouse.x, y: start.origin.y + now.y - start.mouse.y))
-    }
-
-    override func mouseUp(with event: NSEvent) {
-        guard dragStart != nil else { return }
-        dragStart = nil
-        NSCursor.pop()
-        onDragEnded?()
-    }
-
-    var isDragging: Bool { dragStart != nil }
 }
