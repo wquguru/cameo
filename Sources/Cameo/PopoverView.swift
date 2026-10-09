@@ -38,16 +38,20 @@ struct PopoverView: View {
             }
             if let update = model.update {
                 separator
-                MenuRow(action: { NSWorkspace.shared.open(update.url) }) {
+                MenuRow(action: { model.installUpdate() }) {
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 6) {
                             Circle().fill(Theme.spotlight).frame(width: 6, height: 6)
                             Text("新版本 \(update.version) 可用")
                         }
-                        Text("点击了解更多…").font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 12)
+                        Text(model.installingUpdate ? "正在下载并安装…" : "点击更新，完成后自动重新打开")
+                            .font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 12)
                     }
                 }
-                .help(update.url.absoluteString)
+                .disabled(model.installingUpdate)
+                .contextMenu {
+                    Button("查看更新说明") { NSWorkspace.shared.open(update.url) }
+                }
             }
             separator
             MenuRow(action: { model.setLaunchAtLogin(!model.launchAtLogin) }) {

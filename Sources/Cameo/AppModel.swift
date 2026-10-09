@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import ServiceManagement
 
 /// App state shared by the popover and the character window, persisted in UserDefaults.
@@ -20,6 +20,8 @@ final class AppModel: ObservableObject {
     @Published var catAction: CatAction?
     /// A newer release on GitHub, if the update checker found one.
     @Published var update: UpdateChecker.Update?
+    /// True while an update downloads and installs; Cameo quits and relaunches when it's done.
+    @Published private(set) var installingUpdate = false
 
     let store = CharacterStore()
     private let defaults = UserDefaults.standard
@@ -90,5 +92,20 @@ final class AppModel: ObservableObject {
             errorMessage = "无法更改登录项：\(error.localizedDescription)"
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    /// Installs the update in place; if that can't be done, explains why and opens the release page.
+    func installUpdate() {
+        guard let update, !installingUpdate else { return }
+        installingUpdate = true
+        Task {
+            do {
+                try await Updater.install(update)
+            } catch {
+                installingUpdate = false
+                errorMessage = "无法自动更新：\(error.localizedDescription)。已打开下载页。"
+                NSWorkspace.shared.open(update.url)
+            }
+        }
     }
 }

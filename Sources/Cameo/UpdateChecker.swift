@@ -6,10 +6,16 @@ import Foundation
 final class UpdateChecker {
     struct Update: Equatable {
         let version: String
+        /// The release page, the fallback when the update can't be installed in place.
         let url: URL
+        /// The app zip and its checksums, when the release has them.
+        let zip: URL?
+        let checksums: URL?
     }
 
-    static let latestRelease = URL(string: "https://api.github.com/repos/wquguru/cameo/releases/latest")!
+    /// `CAMEO_UPDATE_FEED` points at another release JSON (a file:// URL works), for testing.
+    static let latestRelease = ProcessInfo.processInfo.environment["CAMEO_UPDATE_FEED"].flatMap(URL.init(string:))
+        ?? URL(string: "https://api.github.com/repos/wquguru/cameo/releases/latest")!
     private let onUpdate: (Update?) -> Void
     private var timer: Timer?
 
@@ -28,12 +34,18 @@ final class UpdateChecker {
         var request = URLRequest(url: Self.latestRelease)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         guard let (data, response) = try? await URLSession.shared.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode == 200,
+              (response as? HTTPURLResponse)?.statusCode ?? 200 == 200,
               let release = try? JSONDecoder().decode(Release.self, from: data),
               let url = URL(string: release.html_url) else { return }
         let latest = release.tag_name.trimmingCharacters(in: CharacterSet(charactersIn: "v"))
         let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        onUpdate(Self.isNewer(latest, than: current) ? Update(version: latest, url: url) : nil)
+        let asset = { (match: (String) -> Bool) in
+            release.assets.first { match($0.name) }.flatMap { URL(string: $0.browser_download_url) }
+        }
+        let update = Update(version: latest, url: url,
+                            zip: asset { $0.hasPrefix("Cameo-") && $0.hasSuffix("-macOS-Universal.zip") },
+                            checksums: asset { $0 == "checksums.txt" })
+        onUpdate(Self.isNewer(latest, than: current) ? update : nil)
     }
 
     /// Compares dotted numeric versions: "0.10.0" is newer than "0.9.1".
@@ -50,5 +62,11 @@ final class UpdateChecker {
     private struct Release: Decodable {
         let tag_name: String
         let html_url: String
+        let assets: [Asset]
+    }
+
+    private struct Asset: Decodable {
+        let name: String
+        let browser_download_url: String
     }
 }
