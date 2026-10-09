@@ -13,8 +13,9 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 ## Design
 
-- Source of truth: `design/` (Design canvas files: `Main`, `Popover`, `Logo`, `Icon` `.dc.html`, open in a browser as reference only).
-- Theme "stage spotlight": dark glass popover, accent spotlight amber `#FFB340`, stage `#161618`, figure ivory `#F5F1EA`. A selected character card is "lit" (beam + floor glow, ivory figure); unselected cards are dark with a grey figure.
+- Source of truth: `design/` (Design canvas files: `Main`, `Popover`, `PopoverDark`, `Logo`, `Icon` `.dc.html`, open in a browser as reference only).
+- The popover looks like a native menu: system appearance (light/dark) and accent colour, 13 pt system text, full-width separators, grey section headers, menu rows highlighted on hover (`MenuRow`).
+- Theme "stage spotlight" lives only where the stage shows: accent spotlight amber `#FFB340`, stage `#161618`, figure ivory `#F5F1EA`. The selected character card is "lit" (dark stage, beam + floor glow, full-colour figure) in both appearances; unselected cards are system-grey tiles with a greyed figure. Amber also marks an available update (menu bar badge, dot in the popover).
 - Built-in cat: a semi-realistic silver tabby British Shorthair modelled on the owner's cat, side view (`design/cat-side.svg`; earlier cartoon explorations in `design/Cats.dc.html`). Art lives in `CatArt.swift` as SVG path data in design units; `CatRig` turns a `CatPose` into per-part transforms (auto-grounded, mirrored when walking left); `CatBrain` picks actions and animates poses.
 - Logo: a figure whose head pokes out of the top edge of a screen. The menu bar glyph is the template (monochrome) line version of it, drawn in code (`Glyph.swift`).
 
@@ -26,6 +27,8 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 - `Sources/CameoIcon`: a CLI that renders the app icon PNGs (CoreGraphics), used by the build script.
 - `scripts/build.sh`: builds a universal (arm64 + x86_64, via `--triple` builds and `lipo`) `build/Cameo.app` (Info.plist, icon, ad-hoc signature). `ARCHS=arm64` builds one architecture for quick local runs.
 - `scripts/package.sh`: the release artifacts `Cameo-<version>-macOS-Universal.dmg` / `.zip` and `checksums.txt`. The DMG background is drawn by the app (`Cameo --render-dmg-background out.png <scale>`, `DMGBackground.swift`), and the window layout is `Resources/dmg/DS_Store`, made by Finder via `scripts/dmg-template.sh` (Finder writes the macOS 26 `pBB0` background bookmark that third-party writers miss). The volume is always named `Cameo`. Change the window, icon positions or background path → rerun `scripts/dmg-template.sh` on a Mac and keep `DMGBackground.swift` in sync.
+- `gallery/`: static character gallery (GitHub Pages, `pages` workflow). `characters.json` lists entries; videos live on the `characters` release, which must never be marked latest. Publish with `scripts/gallery-add.sh`. Its "Add to Cameo" buttons are `cameo://add?url=<https .mov>&name=<name>` links (`GalleryLink.swift`).
+- `skills/cameo-character`: agent skill (installable with `npx skills add wquguru/cameo`) that turns green-screen or alpha clips into Cameo characters.
 
 ## Commands
 

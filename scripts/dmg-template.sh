@@ -8,7 +8,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 [[ -d build/Cameo.app && -f build/dmg/background.tiff ]] || { echo "run scripts/package.sh first" >&2; exit 1; }
-WORK=build/dmg-template
+# A neutral scratch path: Finder records the disk image path in the layout, so keep home folders out of it.
+WORK=/tmp/cameo-dmg-template
+[[ ! -e /Volumes/Cameo ]] || { echo "eject the volume named Cameo first" >&2; exit 1; }
 rm -rf "$WORK" && mkdir -p "$WORK/stage/.background"
 cp -R build/Cameo.app "$WORK/stage/"
 ln -s /Applications "$WORK/stage/Applications"

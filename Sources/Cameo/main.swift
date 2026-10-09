@@ -6,6 +6,15 @@ MainActor.assumeIsolated {
         PoseSheet.render(to: URL(fileURLWithPath: args[i + 1]))
         exit(0)
     }
+    if let i = args.firstIndex(of: "--render-cat-video"), i + 1 < args.count {
+        do {
+            try CatVideo.render(to: URL(fileURLWithPath: args[i + 1]))
+            exit(0)
+        } catch {
+            FileHandle.standardError.write(Data("\(error)\n".utf8))
+            exit(1)
+        }
+    }
     if let i = args.firstIndex(of: "--render-dmg-background"), i + 2 < args.count {
         do {
             try DMGBackground.render(to: URL(fileURLWithPath: args[i + 1]), scale: Int(args[i + 2]) ?? 1)
