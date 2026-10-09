@@ -23,7 +23,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         content.sizingOptions = .preferredContentSize
         popover.contentViewController = content
         popover.behavior = .transient
-        popover.appearance = NSAppearance(named: .darkAqua)
 
         characterWindow = CharacterWindowController(model: model)
         updateChecker = UpdateChecker { [weak self] update in
@@ -38,9 +37,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Opening a video with Cameo (Finder "Open With", or dropping it on the app icon) adds it.
+    /// Opening a video with Cameo (Finder "Open With", or dropping it on the app icon) adds it,
+    /// and so does a `cameo://add` link from the gallery.
     func application(_ application: NSApplication, open urls: [URL]) {
-        Task { await model.add(urls) }
+        let files = urls.filter(\.isFileURL)
+        if !files.isEmpty { Task { await model.add(files) } }
+        for link in urls.compactMap(GalleryLink.init) {
+            Task {
+                await model.add(link)
+                showPopover()
+            }
+        }
+    }
+
+    private func showPopover() {
+        guard statusItem != nil, !popover.isShown else { return }
+        togglePopover()
     }
 
     @objc private func togglePopover() {

@@ -45,15 +45,34 @@ final class AppModel: ObservableObject {
     func add(_ urls: [URL]) async {
         for url in urls {
             do {
-                let character = try await store.importVideo(from: url)
-                characters.append(character)
-                store.save(characters.filter { !$0.isBuiltIn })
-                selectedID = character.id
-                visible = true
+                insert(try await store.importVideo(from: url))
             } catch {
                 errorMessage = "无法添加“\(url.lastPathComponent)”：\(error.localizedDescription)"
             }
         }
+    }
+
+    /// Downloads and adds a gallery character; one that was added before is just selected.
+    func add(_ link: GalleryLink) async {
+        if let existing = characters.first(where: { $0.source == link.source }) {
+            selectedID = existing.id
+            visible = true
+            return
+        }
+        do {
+            let file = try await link.download()
+            defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+            insert(try await store.importVideo(from: file, origin: link.source))
+        } catch {
+            errorMessage = "无法添加“\(link.name)”：\(error.localizedDescription)"
+        }
+    }
+
+    private func insert(_ character: Character) {
+        characters.append(character)
+        store.save(characters.filter { !$0.isBuiltIn })
+        selectedID = character.id
+        visible = true
     }
 
     func remove(_ character: Character) {

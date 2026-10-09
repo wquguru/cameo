@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cameo Characters</title>
+<meta name="description" content="Free characters for Cameo, the macOS app that puts a transparent video on your desktop.">
+<link rel="icon" href="icon.png">
+<style>
+  :root {
+    --stage: #161618;
+    --card: #1E1E21;
+    --line: #2C2C30;
+    --ivory: #F5F1EA;
+    --muted: #9A968F;
+    --spotlight: #FFB340;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--stage);
+    color: var(--ivory);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+
+  header { padding-top: 56px; padding-bottom: 40px; text-align: center; }
+  header img { width: 88px; height: 88px; }
+  h1 { margin: 12px 0 6px; font-size: 32px; font-weight: 650; letter-spacing: -0.01em; }
+  .lede { margin: 0 auto; max-width: 520px; color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
+  .button {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 36px; padding: 0 16px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--card);
+    font-weight: 560; text-decoration: none; white-space: nowrap;
+  }
+  .button:hover { border-color: #45454B; }
+  .button.primary { background: var(--spotlight); border-color: var(--spotlight); color: #1A1305; }
+  .button.primary:hover { filter: brightness(1.06); }
+  .lang { position: absolute; top: 16px; right: 16px; background: none; border: 0; color: var(--muted); font: inherit; cursor: pointer; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding-bottom: 48px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .stage {
+    position: relative; aspect-ratio: 3 / 4;
+    background:
+      radial-gradient(60% 12% at 50% 94%, rgba(255, 179, 64, 0.22), transparent 70%),
+      radial-gradient(50% 75% at 50% 0%, rgba(255, 200, 100, 0.13), transparent 75%),
+      var(--stage);
+  }
+  .stage img { position: absolute; inset: 8% 8% 6%; width: 84%; height: 86%; object-fit: contain; object-position: bottom; }
+  .meta { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .name { font-weight: 620; }
+  .by { color: var(--muted); font-size: 13px; }
+  .by a { text-decoration: none; }
+  .by a:hover { text-decoration: underline; }
+  .row { display: flex; gap: 8px; margin-top: auto; }
+  .row .primary { flex: 1; }
+
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 48px 16px; border: 1px dashed var(--line); border-radius: 14px; }
+  footer { border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: 40px; color: var(--muted); font-size: 13px; text-align: center; }
+  footer p { margin: 4px 0; }
+</style>
+</head>
+<body>
+<button class="lang" id="lang" type="button"></button>
+<header class="wrap">
+  <img src="icon.png" alt="">
+  <h1 data-t="title"></h1>
+  <p class="lede" data-t="lede"></p>
+  <div class="actions">
+    <a class="button primary" href="https://github.com/wquguru/cameo/releases/latest" data-t="download"></a>
+    <a class="button" href="https://github.com/wquguru/cameo#make-a-character" data-t="make"></a>
+    <a class="button" href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="submit"></a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+</main>
+<footer class="wrap">
+  <p data-t="hint"></p>
+  <p data-t="license"></p>
+</footer>
+<script>
+  const strings = {
+    en: {
+      title: "Cameo Characters",
+      lede: "Free characters for Cameo, the macOS menu bar app that puts a transparent video on your desktop. Click “Add to Cameo” and it appears.",
+      download: "Download Cameo", make: "Make your own", submit: "Submit a character",
+      add: "Add to Cameo", by: "by", empty: "No characters yet. Be the first to submit one.",
+      hint: "“Add to Cameo” needs Cameo 0.3 or later. Older versions: download the .mov and drop it on the popover.",
+      license: "Characters are published by their authors under CC BY 4.0. Cameo is open source under Apache 2.0.",
+      switch: "中文",
+    },
+    zh: {
+      title: "Cameo 角色库",
+      lede: "免费的 Cameo 角色。Cameo 是一个 macOS 菜单栏应用，把透明视频放到你的桌面上。点「添加到 Cameo」即可出现。",
+      download: "下载 Cameo", make: "制作自己的角色", submit: "投稿角色",
+      add: "添加到 Cameo", by: "作者", empty: "还没有角色，来投稿第一个吧。",
+      hint: "「添加到 Cameo」需要 Cameo 0.3 或更高版本。旧版本请下载 .mov 后拖到弹窗上。",
+      license: "角色由作者以 CC BY 4.0 发布。Cameo 以 Apache 2.0 开源。",
+      switch: "English",
+    },
+  };
+  let lang = "en";
+  try { lang = localStorage.getItem("lang") || (navigator.language.startsWith("zh") ? "zh" : "en"); } catch {}
+  let characters = [];
+
+  function el(tag, attrs, ...children) {
+    const node = document.createElement(tag);
+    Object.assign(node, attrs);
+    node.append(...children);
+    return node;
+  }
+
+  function render() {
+    const t = strings[lang];
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    document.title = t.title;
+    document.querySelectorAll("[data-t]").forEach(node => { node.textContent = t[node.dataset.t]; });
+    document.getElementById("lang").textContent = t.switch;
+
+    const grid = document.getElementById("grid");
+    grid.replaceChildren();
+    if (!characters.length) {
+      grid.append(el("div", { className: "empty", textContent: t.empty }));
+      return;
+    }
+    for (const c of characters) {
+      const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
+      const author = c.authorURL ? el("a", { href: c.authorURL, target: "_blank", rel: "noopener", textContent: c.author }) : c.author;
+      const size = !c.bytes ? "" : c.bytes < 1e6 ? ` · ${Math.ceil(c.bytes / 1e3)} KB` : ` · ${(c.bytes / 1e6).toFixed(1)} MB`;
+      grid.append(el("article", { className: "card" },
+        el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" })),
+        el("div", { className: "meta" },
+          el("div", {},
+            el("div", { className: "name", textContent: c.name }),
+            el("div", { className: "by" }, `${t.by} `, author, size)),
+          el("div", { className: "row" },
+            el("a", { className: "button primary", href: add, textContent: t.add }),
+            el("a", { className: "button", href: c.video, textContent: ".mov" })))));
+    }
+  }
+
+  document.getElementById("lang").addEventListener("click", () => {
+    lang = lang === "en" ? "zh" : "en";
+    try { localStorage.setItem("lang", lang); } catch {}
+    render();
+  });
+
+  render();
+  fetch("characters.json", { cache: "no-cache" })
+    .then(r => r.json())
+    .then(list => { characters = list; render(); })
+    .catch(() => {});
+</script>
+</body>
+</html>

@@ -66,19 +66,31 @@ open build/Cameo.app
 
 Right-click a character card to delete it. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
 
-## Preparing a video
+## Characters
 
-Cameo expects a `.mov` with an alpha channel. To convert an existing clip:
+### Gallery
+
+Browse free characters at **[wquguru.github.io/cameo](https://wquguru.github.io/cameo/)** and click **Add to Cameo**: the app downloads the character and switches to it (via a `cameo://add?url=…` link).
+
+### Make a character
+
+A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). The easiest route is to have your coding agent do it with the bundled [`cameo-character`](skills/cameo-character/SKILL.md) skill:
 
 ```bash
-# FFmpeg, hardware HEVC with Alpha via VideoToolbox
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
+npx skills add wquguru/cameo --skill cameo-character
+```
 
+Or just tell your agent: *"Install the skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-character"*. Then ask it to make a character from a green-screen clip, or to write the prompt for generating one with an AI video tool. It keys out the background, checks the result and adds it to Cameo.
+
+By hand, for a clip that already has alpha:
+
+```bash
+ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
 # or Apple's built-in tool
 avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
 ```
 
-Need a test clip? `swift run CameoSample sample.mov` writes one.
+Made one you like? [Submit it to the gallery](https://github.com/wquguru/cameo/issues/new?template=character.yml).
 
 ## Development
 
@@ -86,6 +98,8 @@ Need a test clip? `swift run CameoSample sample.mov` writes one.
 swift build               # debug build
 scripts/build.sh          # release app bundle in build/Cameo.app
 scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
+swift run CameoSample sample.mov                       # a test clip with alpha
+scripts/gallery-add.sh in.mov <id> "<name>" "@author"  # publish a gallery character
 ```
 
 | Path | Purpose |
@@ -94,6 +108,8 @@ scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
 | `Sources/CameoSample` | CLI that writes a sample HEVC-alpha clip |
 | `Sources/CameoIcon` | CLI that renders the app icon |
 | `design/` | Design reference files (open in a browser) |
+| `gallery/` | Character gallery site, deployed to GitHub Pages |
+| `skills/cameo-character` | Agent skill for making characters |
 
 ### Releasing
 

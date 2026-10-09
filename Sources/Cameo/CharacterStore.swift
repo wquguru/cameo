@@ -5,6 +5,8 @@ struct Character: Codable, Identifiable, Equatable {
     let id: UUID
     let fileName: String
     let name: String
+    /// Where a gallery character was downloaded from, so adding it twice selects it instead.
+    var source: URL? = nil
 
     /// The cat drawn in code; always present, never stored or deleted.
     static let builtInCat = Character(id: UUID(uuidString: "00000000-0000-0000-0000-000000000CA7")!, fileName: "", name: "Chaofei")
@@ -13,12 +15,14 @@ struct Character: Codable, Identifiable, Equatable {
 }
 
 enum ImportError: LocalizedError {
-    case noVideo, noAlpha
+    case noVideo, noAlpha, download, tooLarge
 
     var errorDescription: String? {
         switch self {
         case .noVideo: "文件里没有视频轨道。"
         case .noAlpha: "这个视频没有透明通道。请使用 HEVC with Alpha 或 ProRes 4444 编码的 .mov。"
+        case .download: "下载失败。"
+        case .tooLarge: "文件超过 200 MB。"
         }
     }
 }
@@ -51,7 +55,7 @@ final class CharacterStore {
     }
 
     /// Validates that the file has a video track with alpha, then copies it in.
-    func importVideo(from source: URL) async throws -> Character {
+    func importVideo(from source: URL, origin: URL? = nil) async throws -> Character {
         let asset = AVURLAsset(url: source)
         guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw ImportError.noVideo }
         let formats = try await track.load(.formatDescriptions)
@@ -61,7 +65,7 @@ final class CharacterStore {
         let fileName = "\(id.uuidString).\(source.pathExtension.lowercased())"
         let destination = directory.appendingPathComponent(fileName)
         try await Task.detached { try FileManager.default.copyItem(at: source, to: destination) }.value
-        return Character(id: id, fileName: fileName, name: source.deletingPathExtension().lastPathComponent)
+        return Character(id: id, fileName: fileName, name: source.deletingPathExtension().lastPathComponent, source: origin)
     }
 
     func delete(_ character: Character) {

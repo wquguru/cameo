@@ -66,19 +66,31 @@ open build/Cameo.app
 
 右键点击角色卡片可删除。导入的视频会被复制到 `~/Library/Application Support/Cameo/Characters`。
 
-## 准备视频
+## 角色
 
-Cameo 需要带透明通道的 `.mov` 文件。转换现有视频：
+### 角色库
+
+在 **[wquguru.github.io/cameo](https://wquguru.github.io/cameo/)** 浏览免费角色，点击**添加到 Cameo**，应用会自动下载并切换到该角色（通过 `cameo://add?url=…` 链接）。
+
+### 制作角色
+
+一个角色就是一段带透明通道、可循环的 `.mov`（HEVC with Alpha 或 ProRes 4444）。最简单的方式是让你的编码 agent 用仓库自带的 [`cameo-character`](skills/cameo-character/SKILL.md) skill 来做：
 
 ```bash
-# FFmpeg，通过 VideoToolbox 硬件编码 HEVC with Alpha
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
+npx skills add wquguru/cameo --skill cameo-character
+```
 
+或者直接对 agent 说：*"安装这个 skill：https://github.com/wquguru/cameo/tree/main/skills/cameo-character"*。然后让它把一段绿幕视频做成角色，或者帮你写用 AI 视频工具生成角色的提示词。它会抠掉背景、校验结果并添加到 Cameo。
+
+手动转换已带透明通道的视频：
+
+```bash
+ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
 # 或使用 macOS 自带工具
 avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
 ```
 
-需要测试素材？运行 `swift run CameoSample sample.mov` 生成一段。
+做出了满意的角色？[投稿到角色库](https://github.com/wquguru/cameo/issues/new?template=character.yml)。
 
 ## 开发
 
@@ -86,6 +98,8 @@ avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
 swift build               # 调试构建
 scripts/build.sh          # 发布版应用，输出到 build/Cameo.app
 scripts/package.sh        # 通用架构的 .dmg、.zip 和 checksums.txt，输出到 build/
+swift run CameoSample sample.mov                       # 生成一段带透明通道的测试视频
+scripts/gallery-add.sh in.mov <id> "<name>" "@author"  # 发布一个角色到角色库
 ```
 
 | 路径 | 用途 |
@@ -94,6 +108,8 @@ scripts/package.sh        # 通用架构的 .dmg、.zip 和 checksums.txt，输�
 | `Sources/CameoSample` | 生成 HEVC 透明示例视频的命令行工具 |
 | `Sources/CameoIcon` | 渲染应用图标的命令行工具 |
 | `design/` | 设计参考文件（用浏览器打开） |
+| `gallery/` | 角色库网站，部署到 GitHub Pages |
+| `skills/cameo-character` | 制作角色的 agent skill |
 
 ### 发布
 
