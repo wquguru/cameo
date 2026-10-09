@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Cameo 弹窗 · 深色</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#4DA3FF}a:hover{color:#7AB8FF}
+</style>
+</helmet>
+<div style="width: 420px; height: 640px; box-sizing: border-box; padding: 28px 50px; background: #1F2630; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #F2F2F7; -webkit-font-smoothing: antialiased">
+<div style="width: 320px; box-sizing: border-box; padding: 6px 0; border-radius: 12px; background: rgba(40, 40, 44, 0.94); border: 0.5px solid rgba(255, 255, 255, 0.14); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 14px 8px">
+<div style="display: flex; flex-direction: column; gap: 1px">
+<div style="font-size: 13px; font-weight: 600">Cameo</div>
+<div style="font-size: 11px; color: #A1A1A6">显示中 · 小银</div>
+</div>
+<button aria-label="显示角色" aria-pressed="true" style="width: 38px; height: 22px; border-radius: 11px; border: 0; padding: 2px; background: {{accent}}; display: flex; justify-content: flex-end; cursor: pointer">
+<span style="width: 18px; height: 18px; border-radius: 9px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); display: block"></span>
+</button>
+</div>
+
+<div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin: 2px 14px 6px"></div>
+
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 11px; font-weight: 600; color: #A1A1A6">角色</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+<button aria-pressed="true" aria-label="小银" style="position: relative; width: 100%; height: 66px; border-radius: 9px; border: 1.5px solid #FFB340; background: #161618; overflow: hidden; padding: 0; cursor: pointer">
+<span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 210, 122, 0.42), rgba(255, 179, 64, 0) 85%); clip-path: polygon(38% 0, 62% 0, 92% 100%, 8% 100%); display: block"></span>
+<span style="position: absolute; left: 50%; bottom: 4px; width: 46px; height: 10px; margin-left: -23px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 200, 100, 0.7), rgba(255, 200, 100, 0)); display: block"></span>
+<svg viewBox="0 0 100 70" width="46" height="32" style="position: absolute; left: 50%; bottom: 8px; margin-left: -23px" aria-hidden="true">
+<path d="M22 44 Q6 38 10 20" fill="none" stroke="#F5F1EA" stroke-width="6" stroke-linecap="round"></path>
+<ellipse cx="46" cy="44" rx="26" ry="14" fill="#F5F1EA"></ellipse>
+<circle cx="72" cy="30" r="13" fill="#F5F1EA"></circle>
+<path d="M62 23 L64 10 L71 20 Z M76 19 L83 9 L85 23 Z" fill="#F5F1EA"></path>
+<rect x="28" y="50" width="7" height="16" rx="3" fill="#F5F1EA"></rect>
+<rect x="56" y="50" width="7" height="16" rx="3" fill="#F5F1EA"></rect>
+</svg>
+</button>
+<div style="font-size: 11px; font-weight: 500">小银</div>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+<button aria-pressed="false" aria-label="Wave" style="position: relative; width: 100%; height: 66px; border-radius: 9px; border: 0.5px solid rgba(255, 255, 255, 0.08); background: #222225; padding: 0; cursor: pointer">
+<svg viewBox="0 0 100 204" width="26" height="52" style="position: absolute; left: 50%; bottom: 7px; margin-left: -13px" aria-hidden="true">
+<path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#55555A"></path>
+</svg>
+</button>
+<div style="font-size: 11px; color: #A1A1A6">Wave</div>
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+<button aria-label="添加角色视频" style="width: 100%; height: 66px; border-radius: 9px; border: 1.5px dashed rgba(255, 255, 255, 0.22); background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="#A1A1A6" stroke-width="1.6" stroke-linecap="round"></path></svg>
+</button>
+<div style="font-size: 11px; color: #A1A1A6">添加</div>
+</div>
+
+</div>
+
+<div role="radiogroup" aria-label="小银的动作" style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; padding: 2px; border-radius: 7px; background: rgba(255, 255, 255, 0.07); margin-top: 2px">
+<button role="radio" aria-checked="true" style="height: 22px; border: 0; border-radius: 5px; background: #636366; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); font: inherit; font-size: 12px; font-weight: 500; color: #FFFFFF; cursor: pointer">自由</button>
+<button role="radio" aria-checked="false" style="height: 22px; border: 0; border-radius: 5px; background: transparent; font: inherit; font-size: 12px; color: #F2F2F7; cursor: pointer">行走</button>
+<button role="radio" aria-checked="false" style="height: 22px; border: 0; border-radius: 5px; background: transparent; font: inherit; font-size: 12px; color: #F2F2F7; cursor: pointer">蹲下</button>
+<button role="radio" aria-checked="false" style="height: 22px; border: 0; border-radius: 5px; background: transparent; font: inherit; font-size: 12px; color: #F2F2F7; cursor: pointer">趴下</button>
+<button role="radio" aria-checked="false" style="height: 22px; border: 0; border-radius: 5px; background: transparent; font: inherit; font-size: 12px; color: #F2F2F7; cursor: pointer">站立</button>
+<button role="radio" aria-checked="false" style="height: 22px; border: 0; border-radius: 5px; background: transparent; font: inherit; font-size: 12px; color: #F2F2F7; cursor: pointer">打滚</button>
+</div>
+</div>
+
+<div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin: 10px 14px 6px"></div>
+
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 6px">
+<label for="size-dark" style="font-size: 11px; font-weight: 600; color: #A1A1A6">大小</label>
+<div style="display: flex; align-items: flex-end; gap: 10px">
+<svg viewBox="0 0 100 204" width="8" height="16" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#8E8E93"></path></svg>
+<input id="size-dark" type="range" min="20" max="200" value="80" style="flex: 1; margin: 0 0 2px; accent-color: {{accent}}; color-scheme: dark">
+<svg viewBox="0 0 100 204" width="13" height="26" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#8E8E93"></path></svg>
+</div>
+</div>
+
+<div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin: 10px 14px 4px"></div>
+
+<div style="padding: 0 5px; display: flex; flex-direction: column">
+<a href="https://github.com/wquguru/cameo/releases/latest" style="display: flex; flex-direction: column; gap: 1px; padding: 4px 9px; border-radius: 6px; text-decoration: none; color: #F2F2F7">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 13px"><span style="width: 6px; height: 6px; border-radius: 3px; background: #FFB340; display: block"></span>新版本 0.3.0 可用</span>
+<span style="font-size: 11px; color: #A1A1A6; padding-left: 12px">点击了解更多…</span>
+</a>
+</div>
+
+<div style="height: 1px; background: rgba(255, 255, 255, 0.1); margin: 4px 14px"></div>
+
+<div style="padding: 0 5px; display: flex; flex-direction: column">
+<button aria-pressed="true" style="display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: #F2F2F7; text-align: left; cursor: pointer">
+<span style="width: 14px; font-size: 12px; font-weight: 600">✓</span>登录时启动
+</button>
+<button style="display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: #F2F2F7; text-align: left; cursor: pointer">
+<span style="width: 14px"></span><span style="flex: 1">退出 Cameo</span><span style="font-size: 12px; color: #8E8E93">⌘Q</span>
+</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0A84FF","options":["#0A84FF","#FFB340","#8E8E93"]},"$preview":{"width":420,"height":640}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#0A84FF' };
+}
+}
+</script>
+</body>
+</html>

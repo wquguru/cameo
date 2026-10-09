@@ -1,7 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// The menu bar popover: show switch, character cards, size, launch at login, quit.
+/// The menu bar popover: native menu look (system appearance, separators, menu rows) around one
+/// custom part, the character cards, where the selected card is lit like a stage.
 struct PopoverView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var thumbnails: Thumbnails
@@ -9,36 +10,72 @@ struct PopoverView: View {
     @State private var dropTargeted = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            if let update = model.update {
-                updateBanner(update)
-            }
+        VStack(alignment: .leading, spacing: 0) {
             header
-            cards
-            if model.selected?.isBuiltIn == true {
-                catActions
-            }
-            if model.characters.count == 1 {
-                Text("拖入带透明通道的 .mov（HEVC with Alpha 或 ProRes 4444）")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.secondary)
-                    .padding(.horizontal, 2)
-            }
-            sizeSlider
-            if let message = model.errorMessage {
-                Button { model.errorMessage = nil } label: {
-                    Text(message).font(.system(size: 11)).foregroundStyle(Theme.spotlight).multilineTextAlignment(.leading)
+            separator
+            section("角色") {
+                cards
+                if model.selected?.isBuiltIn == true {
+                    catActions
                 }
-                .buttonStyle(.plain)
+                if model.characters.count == 1 {
+                    Text("拖入带透明通道的 .mov（HEVC with Alpha 或 ProRes 4444）")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            separator
+            section("大小") { sizeSlider }
+            if let message = model.errorMessage {
+                separator
+                MenuRow(action: { model.errorMessage = nil }) {
+                    Label(message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.leading)
+                }
                 .help("点按关闭")
             }
-            footer
+            if let update = model.update {
+                separator
+                MenuRow(action: { NSWorkspace.shared.open(update.url) }) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 6) {
+                            Circle().fill(Theme.spotlight).frame(width: 6, height: 6)
+                            Text("新版本 \(update.version) 可用")
+                        }
+                        Text("点击了解更多…").font(.system(size: 11)).foregroundStyle(.secondary).padding(.leading, 12)
+                    }
+                }
+                .help(update.url.absoluteString)
+            }
+            separator
+            MenuRow(action: { model.setLaunchAtLogin(!model.launchAtLogin) }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .opacity(model.launchAtLogin ? 1 : 0)
+                        .frame(width: 14)
+                    Text("登录时启动")
+                }
+            }
+            .accessibilityAddTraits(model.launchAtLogin ? .isSelected : [])
+            MenuRow(action: { NSApp.terminate(nil) }) {
+                HStack(spacing: 4) {
+                    Color.clear.frame(width: 14, height: 1)
+                    Text("退出 Cameo")
+                    Spacer()
+                    Text("⌘Q").font(.system(size: 12)).opacity(0.6)
+                }
+            }
+            .keyboardShortcut("q")
         }
-        .padding(14)
-        .frame(width: 340)
+        .font(.system(size: 13))
+        .padding(.vertical, 6)
+        .frame(width: 320)
         .overlay {
             if dropTargeted {
-                RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.spotlight, lineWidth: 2).padding(4)
+                RoundedRectangle(cornerRadius: 10).strokeBorder(Color.accentColor, lineWidth: 2).padding(3)
             }
         }
         .dropDestination(for: URL.self) { urls, _ in
@@ -47,50 +84,56 @@ struct PopoverView: View {
         } isTargeted: { dropTargeted = $0 }
     }
 
-    private func updateBanner(_ update: UpdateChecker.Update) -> some View {
-        Button { NSWorkspace.shared.open(update.url) } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.down.circle.fill")
-                Text("新版本 \(update.version) 可用")
-                Spacer()
-                Text("下载").fontWeight(.semibold)
-            }
-            .font(.system(size: 12))
-            .foregroundStyle(Color.black.opacity(0.85))
-            .padding(.horizontal, 10)
-            .frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Theme.spotlight))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help(update.url.absoluteString)
-    }
-
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(nsImage: Glyph.image(size: 18, color: Theme.spotlightNS))
-            Text("Cameo").font(.system(size: 15, weight: .semibold))
+        HStack {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Cameo").fontWeight(.semibold)
+                Text(status).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
             Spacer()
             Toggle("显示角色", isOn: $model.visible)
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .tint(Theme.spotlight)
-                .controlSize(.small)
         }
-        .padding(.horizontal, 2)
+        .padding(.horizontal, 14)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
+    }
+
+    private var status: String {
+        guard model.visible, let name = model.selected?.name else { return "已隐藏" }
+        return "显示中 · \(name)"
+    }
+
+    private var separator: some View {
+        Divider().padding(.horizontal, 14).padding(.vertical, 6)
+    }
+
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+            content()
+        }
+        .padding(.horizontal, 14)
     }
 
     private var cards: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), alignment: .leading, spacing: 8) {
             ForEach(model.characters) { character in
-                CharacterCard(
-                    image: thumbnails.image(for: character, url: model.url(for: character)),
-                    lit: character.id == model.selectedID
-                ) {
-                    model.selectedID = character.id
-                    model.visible = true
+                let lit = character.id == model.selectedID
+                VStack(spacing: 4) {
+                    CharacterCard(image: thumbnails.image(for: character, url: model.url(for: character)), lit: lit) {
+                        model.selectedID = character.id
+                        model.visible = true
+                    }
+                    Text(character.name)
+                        .font(.system(size: 11, weight: lit ? .medium : .regular))
+                        .foregroundStyle(lit ? .primary : .secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
                 .help(character.name)
+                .accessibilityElement(children: .combine)
                 .accessibilityLabel(character.name)
                 .contextMenu {
                     if !character.isBuiltIn {
@@ -98,116 +141,102 @@ struct PopoverView: View {
                     }
                 }
             }
-            Button(action: onAdd) {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color.white.opacity(0.22), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
-                    .frame(height: 96)
-                    .overlay(Image(systemName: "plus").font(.system(size: 16, weight: .medium)).foregroundStyle(Theme.secondary))
-                    .contentShape(Rectangle())
+            VStack(spacing: 4) {
+                Button(action: onAdd) {
+                    RoundedRectangle(cornerRadius: 9)
+                        .strokeBorder(.tertiary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        .frame(height: CharacterCard.height)
+                        .overlay(Image(systemName: "plus").font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("添加角色视频")
+                Text("添加").font(.system(size: 11)).foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("添加角色视频")
         }
     }
 
     /// What the built-in cat does: on its own (自由), or one action held until changed.
     private var catActions: some View {
-        HStack(spacing: 4) {
-            actionChip("自由", selected: model.catAction == nil) { model.catAction = nil }
+        Picker("小银的动作", selection: $model.catAction) {
+            Text("自由").tag(CatAction?.none)
             ForEach(CatAction.allCases) { action in
-                actionChip(action.label, selected: model.catAction == action) { model.catAction = action }
+                Text(action.label).tag(CatAction?.some(action))
             }
         }
-        .padding(3)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.06)))
-    }
-
-    private func actionChip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 12, weight: selected ? .semibold : .regular))
-                .foregroundStyle(selected ? Color.black.opacity(0.85) : Color.white.opacity(0.9))
-                .frame(maxWidth: .infinity, minHeight: 26)
-                .background(RoundedRectangle(cornerRadius: 7).fill(selected ? Theme.spotlight : Color.clear))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.small)
     }
 
     private var sizeSlider: some View {
         HStack(alignment: .bottom, spacing: 10) {
-            FigureShape().fill(Theme.secondary).frame(width: 10, height: 20)
+            FigureShape().fill(.secondary).frame(width: 8, height: 16)
             Slider(value: $model.scale, in: 0.2...2)
-                .tint(Theme.spotlight)
                 .controlSize(.small)
-                .padding(.bottom, 2)
+                .padding(.bottom, 1)
                 .accessibilityLabel("角色大小")
                 .accessibilityValue("\(Int(model.scale * 100))%")
-            FigureShape().fill(Theme.secondary).frame(width: 16, height: 32)
+            FigureShape().fill(.secondary).frame(width: 13, height: 26)
         }
-        .padding(.horizontal, 4)
-    }
-
-    private var footer: some View {
-        VStack(spacing: 2) {
-            Divider().overlay(Color.white.opacity(0.12)).padding(.bottom, 4)
-            HStack {
-                Text("登录时启动")
-                Spacer()
-                Toggle("登录时启动", isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) }))
-                    .toggleStyle(.checkbox)
-                    .labelsHidden()
-                    .tint(Theme.spotlight)
-            }
-            .frame(height: 30)
-            .padding(.horizontal, 8)
-            Button { NSApp.terminate(nil) } label: {
-                HStack {
-                    Text("退出")
-                    Spacer()
-                    Text("⌘Q").foregroundStyle(Theme.secondary)
-                }
-                .frame(height: 30)
-                .padding(.horizontal, 8)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut("q")
-        }
-        .font(.system(size: 13))
     }
 }
 
-/// A character card. The selected one is "lit": spotlight beam, floor glow, full-colour figure.
+/// A full-width menu item: highlighted with the accent colour on hover, like an NSMenu item.
+private struct MenuRow<Content: View>: View {
+    let action: () -> Void
+    @ViewBuilder let content: Content
+    @State private var hovered = false
+
+    var body: some View {
+        Button(action: action) {
+            content
+                .frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 2)
+                .foregroundStyle(hovered ? Color.white : Color.primary)
+                .background(RoundedRectangle(cornerRadius: 5).fill(hovered ? Color.accentColor : .clear))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 5)
+        .onHover { hovered = $0 }
+    }
+}
+
+/// A character card. The selected one is "lit": a dark stage with spotlight beam, floor glow and
+/// full-colour figure, in light and dark mode alike. Others are plain system-grey tiles.
 private struct CharacterCard: View {
+    static let height: CGFloat = 66
+
     let image: NSImage?
     let lit: Bool
     let action: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottom) {
-                RoundedRectangle(cornerRadius: 12).fill(Theme.card)
+                RoundedRectangle(cornerRadius: 9).fill(lit ? Theme.stage : Color.primary.opacity(0.07))
                 BeamShape()
                     .fill(LinearGradient(
-                        colors: [Color(red: 1, green: 0.824, blue: 0.478).opacity(0.38), Theme.spotlight.opacity(0)],
+                        colors: [Color(red: 1, green: 0.824, blue: 0.478).opacity(0.42), Theme.spotlight.opacity(0)],
                         startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.85)))
                     .opacity(lit ? 1 : 0)
                 Ellipse()
-                    .fill(RadialGradient(colors: [Color(red: 1, green: 0.784, blue: 0.392).opacity(0.7), .clear], center: .center, startRadius: 0, endRadius: 30))
-                    .frame(width: 52, height: 12)
-                    .padding(.bottom, 6)
+                    .fill(RadialGradient(colors: [Color(red: 1, green: 0.784, blue: 0.392).opacity(0.7), .clear], center: .center, startRadius: 0, endRadius: 24))
+                    .frame(width: 44, height: 10)
+                    .padding(.bottom, 4)
                     .opacity(lit ? 1 : 0)
                 figure
-                    .frame(height: 76)
-                    .padding(.bottom, 10)
+                    .frame(height: 50)
+                    .padding(.bottom, 7)
             }
-            .frame(height: 96)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(height: Self.height)
+            .clipShape(RoundedRectangle(cornerRadius: 9))
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(lit ? Theme.spotlight : Color.white.opacity(0.08), lineWidth: lit ? 1.5 : 0.5))
+                RoundedRectangle(cornerRadius: 9)
+                    .strokeBorder(lit ? Theme.spotlight : Color.primary.opacity(0.1), lineWidth: lit ? 1.5 : 0.5))
             .animation(.easeOut(duration: 0.25), value: lit)
             .contentShape(Rectangle())
         }
@@ -215,16 +244,18 @@ private struct CharacterCard: View {
         .accessibilityAddTraits(lit ? .isSelected : [])
     }
 
+    /// Unlit figures are greyed: darker on a light tile, dimmer on a dark one.
+    private var dim: Color { Color(white: colorScheme == .dark ? 0.38 : 0.62) }
+
     @ViewBuilder private var figure: some View {
         if let image {
             Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .saturation(lit ? 1 : 0)
-                .brightness(lit ? 0 : -0.25)
-                .opacity(lit ? 1 : 0.6)
+                .colorMultiply(lit ? .white : dim)
         } else {
-            FigureShape().fill(lit ? Theme.figure : Theme.dimFigure).frame(width: 36)
+            FigureShape().fill(lit ? Theme.figure : dim).frame(width: 26)
         }
     }
 }
