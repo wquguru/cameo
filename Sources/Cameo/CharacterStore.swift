@@ -7,7 +7,7 @@ struct Character: Codable, Identifiable, Equatable {
     let name: String
 
     /// The cat drawn in code; always present, never stored or deleted.
-    static let builtInCat = Character(id: UUID(uuidString: "00000000-0000-0000-0000-000000000CA7")!, fileName: "", name: "小银")
+    static let builtInCat = Character(id: UUID(uuidString: "00000000-0000-0000-0000-000000000CA7")!, fileName: "", name: "Chaofei")
 
     var isBuiltIn: Bool { id == Self.builtInCat.id }
 }
