@@ -31,6 +31,7 @@ swift build                      # debug build
 scripts/build.sh                 # release .app in build/Cameo.app
 open build/Cameo.app
 swift run CameoSample out.mov    # write a sample HEVC-alpha clip
+CAMEO_OPEN_POPOVER=1 build/Cameo.app/Contents/MacOS/Cameo   # launch with the popover open
 ```
 
 Only Command Line Tools are required (no Xcode project). Do not add an `.xcodeproj`.
