@@ -16,12 +16,14 @@ final class AppModel: ObservableObject {
     }
     @Published private(set) var launchAtLogin: Bool
     @Published var errorMessage: String?
+    /// What the built-in cat should do; nil lets it wander on its own.
+    @Published var catAction: CatAction?
 
     let store = CharacterStore()
     private let defaults = UserDefaults.standard
 
     init() {
-        characters = store.load()
+        characters = [.builtInCat] + store.load()
         defaults.register(defaults: ["scale": 0.8, "visible": true])
         scale = defaults.double(forKey: "scale")
         visible = defaults.bool(forKey: "visible")
@@ -43,7 +45,7 @@ final class AppModel: ObservableObject {
             do {
                 let character = try await store.importVideo(from: url)
                 characters.append(character)
-                store.save(characters)
+                store.save(characters.filter { !$0.isBuiltIn })
                 selectedID = character.id
                 visible = true
             } catch {
@@ -53,9 +55,10 @@ final class AppModel: ObservableObject {
     }
 
     func remove(_ character: Character) {
+        guard !character.isBuiltIn else { return }
         characters.removeAll { $0.id == character.id }
         store.delete(character)
-        store.save(characters)
+        store.save(characters.filter { !$0.isBuiltIn })
         if selectedID == character.id { selectedID = characters.first?.id }
     }
 

@@ -3,22 +3,30 @@ import AppKit
 import Combine
 import IOKit.ps
 
-/// The transparent, always-on-top panel that shows the selected character.
-/// Its anchor is the figure's feet (bottom-centre), so resizing keeps it standing in place.
+/// The transparent, always-on-top panel that shows the selected character: a video in a
+/// `PlayerView`, or the built-in cat in a `CatView`. Its anchor is the figure's feet
+/// (bottom-centre), so resizing keeps it standing in place.
 @MainActor
 final class CharacterWindowController {
-    /// Height of the character at 100 % scale, in points.
+    /// Height of a video character at 100 % scale, in points.
     static let baseHeight: CGFloat = 400
+    /// The cat's canvas is drawn a little smaller than a video at the same scale.
+    static let catHeightFactor: CGFloat = 0.75
 
     private let model: AppModel
     private let panel: NSPanel
     private let playerView = PlayerView(frame: .zero)
+    private let catView = CatView(frame: .zero)
     private var aspect: CGFloat = 0.5
     private var loadedID: UUID?
     private var cancellables: Set<AnyCancellable> = []
     private var pollTimer: Timer?
     private var pollCount = 0
     private var screensAsleep = false
+
+    private var figureView: FigureView {
+        model.selected?.isBuiltIn == true ? catView : playerView
+    }
 
     init(model: AppModel) {
         self.model = model
@@ -31,8 +39,10 @@ final class CharacterWindowController {
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
-        panel.contentView = playerView
-        playerView.onDragEnded = { [weak self] in self?.saveAnchor() }
+        for view in [playerView, catView] as [FigureView] {
+            view.onDragEnded = { [weak self] in self?.saveAnchor() }
+        }
+        catView.onMove = { [weak self] dx in self?.moveCat(by: dx) ?? false }
 
         model.objectWillChange
             .receive(on: RunLoop.main)
@@ -45,6 +55,9 @@ final class CharacterWindowController {
             .store(in: &cancellables)
         center.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.layout() }
+            .store(in: &cancellables)
+        center.publisher(for: NSApplication.willTerminateNotification)
+            .sink { [weak self] _ in self?.saveAnchor() }
             .store(in: &cancellables)
         let workspace = NSWorkspace.shared.notificationCenter
         workspace.publisher(for: NSWorkspace.screensDidSleepNotification)
@@ -64,11 +77,20 @@ final class CharacterWindowController {
 
     private func update() {
         let character = model.selected
+        catView.brain.manual = model.catAction
         if character?.id != loadedID {
             loadedID = character?.id
-            let url = character.map(model.url(for:))
-            playerView.load(url)
-            if let url { Task { await loadAspect(of: url, id: character?.id) } }
+            if character?.isBuiltIn == true {
+                playerView.load(nil)
+                aspect = CatRig.canvas.width / CatRig.canvas.height
+            } else {
+                let url = character.map(model.url(for:))
+                playerView.load(url)
+                if let url { Task { await loadAspect(of: url, id: character?.id) } }
+            }
+            if panel.contentView !== figureView {
+                panel.contentView = figureView
+            }
         }
         layout()
         if model.visible && character != nil {
@@ -89,13 +111,15 @@ final class CharacterWindowController {
 
     private func updatePlayback() {
         let onScreen = panel.isVisible && panel.occlusionState.contains(.visible) && !screensAsleep
-        playerView.setPlaying(onScreen)
+        playerView.setPlaying(onScreen && figureView === playerView)
+        catView.setPlaying(onScreen && figureView === catView)
     }
 
     // MARK: Geometry
 
     private func layout() {
-        let height = Self.baseHeight * model.scale
+        let factor = model.selected?.isBuiltIn == true ? Self.catHeightFactor : 1
+        let height = Self.baseHeight * model.scale * factor
         let size = NSSize(width: (height * aspect).rounded(), height: height.rounded())
         let feet = anchor()
         panel.setFrame(NSRect(x: feet.x - size.width / 2, y: feet.y, width: size.width, height: size.height), display: true)
@@ -113,27 +137,47 @@ final class CharacterWindowController {
     }
 
     private func saveAnchor() {
+        guard panel.frame.width > 0 else { return }
         UserDefaults.standard.set([panel.frame.midX, panel.frame.minY], forKey: "anchor")
+    }
+
+    /// Walks the cat's window sideways, keeping it on its screen. Returns true at an edge.
+    private func moveCat(by dx: CGFloat) -> Bool {
+        let frame = panel.frame
+        guard let bounds = (panel.screen ?? NSScreen.main)?.visibleFrame else { return false }
+        // The cat occupies the middle of its canvas; let the empty sides hang off-screen.
+        let slack = frame.width * 0.22
+        let minX = bounds.minX - slack, maxX = bounds.maxX - frame.width + slack
+        var x = frame.minX + dx
+        var blocked = false
+        if x < minX { x = minX; blocked = dx < 0 }
+        if x > maxX { x = maxX; blocked = dx > 0 }
+        panel.setFrameOrigin(NSPoint(x: x, y: frame.minY))
+        return blocked
     }
 
     // MARK: Polling
 
-    /// Lets clicks through wherever the current frame is transparent, and caps the
-    /// frame rate on battery power.
+    /// Lets clicks through wherever nothing is drawn, caps the frame rate on battery power,
+    /// and remembers where a wandering cat ended up.
     private func poll() {
         guard panel.isVisible else { return }
-        if !playerView.isDragging {
+        let view = figureView
+        if !view.isDragging {
             let mouse = NSEvent.mouseLocation
             var hit = false
             if panel.frame.contains(mouse) {
-                let local = playerView.convert(panel.convertPoint(fromScreen: mouse), from: nil)
-                hit = playerView.hasFigure(at: local)
+                let local = view.convert(panel.convertPoint(fromScreen: mouse), from: nil)
+                hit = view.hasFigure(at: local)
             }
             if panel.ignoresMouseEvents == hit { panel.ignoresMouseEvents = !hit }
         }
         pollCount += 1
         if pollCount % 150 == 1 {
-            playerView.maxFrameRate = Self.onBattery() ? 30 : 60
+            let rate: Float = Self.onBattery() ? 30 : 60
+            playerView.maxFrameRate = rate
+            catView.maxFrameRate = rate
+            if view === catView { saveAnchor() }
         }
     }
 

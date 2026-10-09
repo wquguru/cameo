@@ -6,6 +6,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 - One menu bar popover, no other windows. Its contents: show/hide switch, character thumbnails (select / add), size slider, launch at login, quit.
 - One character = one looping video. There are no clips, manifests or per-character settings.
+- Exception: the built-in cat 小银 (`Character.builtInCat`), drawn in code and always first in the list. It wanders on its own (walk, sit, lie down, stand, roll), rolls when clicked, dangles while dragged, and the popover shows action chips (自由 + the five actions) only while it is selected.
 - Formats: HEVC with Alpha (.mov) and ProRes 4444 (.mov), both decoded natively by AVFoundation. No FFmpeg, WebM or packed alpha.
 - Behaviour that is not a setting: pixels with alpha go to the figure (drag to move), transparent pixels pass clicks through; always on top on every Space; playback pauses during full-screen apps, on battery it caps at 30 fps, and it pauses while the screen is locked or asleep.
 - When a feature request fits none of the above, push back before adding UI.
@@ -14,6 +15,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 - Source of truth: `design/` (Design canvas files: `Main`, `Popover`, `Logo`, `Icon` `.dc.html`, open in a browser as reference only).
 - Theme "stage spotlight": dark glass popover, accent spotlight amber `#FFB340`, stage `#161618`, figure ivory `#F5F1EA`. A selected character card is "lit" (beam + floor glow, ivory figure); unselected cards are dark with a grey figure.
+- Built-in cat: `design/Cats.dc.html` variant D (side view, sticker style). Art lives in `CatArt.swift` as SVG path data in design units; `CatRig` turns a `CatPose` into per-part transforms (auto-grounded, mirrored when walking left); `CatBrain` picks actions and animates poses.
 - Logo: a figure whose head pokes out of the top edge of a screen. The menu bar glyph is the template (monochrome) line version of it, drawn in code (`Glyph.swift`).
 
 ## Layout
@@ -32,6 +34,7 @@ scripts/build.sh                 # release .app in build/Cameo.app
 open build/Cameo.app
 swift run CameoSample out.mov    # write a sample HEVC-alpha clip
 CAMEO_OPEN_POPOVER=1 build/Cameo.app/Contents/MacOS/Cameo   # launch with the popover open
+.build/debug/Cameo --render-poses poses.png                  # contact sheet of the cat's poses
 ```
 
 Only Command Line Tools are required (no Xcode project). Do not add an `.xcodeproj`.

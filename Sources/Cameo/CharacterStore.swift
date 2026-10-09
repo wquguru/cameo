@@ -5,6 +5,11 @@ struct Character: Codable, Identifiable, Equatable {
     let id: UUID
     let fileName: String
     let name: String
+
+    /// The cat drawn in code; always present, never stored or deleted.
+    static let builtInCat = Character(id: UUID(uuidString: "00000000-0000-0000-0000-000000000CA7")!, fileName: "", name: "小银")
+
+    var isBuiltIn: Bool { id == Self.builtInCat.id }
 }
 
 enum ImportError: LocalizedError {

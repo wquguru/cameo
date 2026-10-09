@@ -7,6 +7,10 @@ final class Thumbnails: ObservableObject {
     @Published private(set) var images: [UUID: NSImage] = [:]
     private var pending: Set<UUID> = []
 
+    init() {
+        images[Character.builtInCat.id] = CatView.thumbnail(size: CGSize(width: 220, height: 190))
+    }
+
     func image(for character: Character, url: URL) -> NSImage? {
         if let image = images[character.id] { return image }
         guard !pending.contains(character.id) else { return nil }

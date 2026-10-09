@@ -12,7 +12,10 @@ struct PopoverView: View {
         VStack(alignment: .leading, spacing: 14) {
             header
             cards
-            if model.characters.isEmpty {
+            if model.selected?.isBuiltIn == true {
+                catActions
+            }
+            if model.characters.count == 1 {
                 Text("拖入带透明通道的 .mov（HEVC with Alpha 或 ProRes 4444）")
                     .font(.system(size: 11))
                     .foregroundStyle(Theme.secondary)
@@ -69,7 +72,9 @@ struct PopoverView: View {
                 .help(character.name)
                 .accessibilityLabel(character.name)
                 .contextMenu {
-                    Button("删除“\(character.name)”", role: .destructive) { model.remove(character) }
+                    if !character.isBuiltIn {
+                        Button("删除“\(character.name)”", role: .destructive) { model.remove(character) }
+                    }
                 }
             }
             Button(action: onAdd) {
@@ -82,6 +87,31 @@ struct PopoverView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("添加角色视频")
         }
+    }
+
+    /// What the built-in cat does: on its own (自由), or one action held until changed.
+    private var catActions: some View {
+        HStack(spacing: 4) {
+            actionChip("自由", selected: model.catAction == nil) { model.catAction = nil }
+            ForEach(CatAction.allCases) { action in
+                actionChip(action.label, selected: model.catAction == action) { model.catAction = action }
+            }
+        }
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.06)))
+    }
+
+    private func actionChip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 12, weight: selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Color.black.opacity(0.85) : Color.white.opacity(0.9))
+                .frame(maxWidth: .infinity, minHeight: 26)
+                .background(RoundedRectangle(cornerRadius: 7).fill(selected ? Theme.spotlight : Color.clear))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var sizeSlider: some View {
