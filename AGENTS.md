@@ -25,7 +25,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 - `Sources/CameoSample`: a CLI that writes a sample HEVC-alpha clip, used for manual testing.
 - `Sources/CameoIcon`: a CLI that renders the app icon PNGs (CoreGraphics), used by the build script.
 - `scripts/build.sh`: builds a universal (arm64 + x86_64, via `--triple` builds and `lipo`) `build/Cameo.app` (Info.plist, icon, ad-hoc signature). `ARCHS=arm64` builds one architecture for quick local runs.
-- `scripts/package.sh`: the release artifacts `Cameo-<version>-macOS-Universal.dmg` / `.zip` and `checksums.txt`. The DMG background is drawn by the app (`Cameo --render-dmg-background out.png <scale>`, `DMGBackground.swift`), and `dmgbuild` (pip, in `build/.venv`, build-time only) lays out the window from `scripts/dmg-settings.py`; keep icon positions in both files in sync.
+- `scripts/package.sh`: the release artifacts `Cameo-<version>-macOS-Universal.dmg` / `.zip` and `checksums.txt`. The DMG background is drawn by the app (`Cameo --render-dmg-background out.png <scale>`, `DMGBackground.swift`), and the window layout is `Resources/dmg/DS_Store`, made by Finder via `scripts/dmg-template.sh` (Finder writes the macOS 26 `pBB0` background bookmark that third-party writers miss). The volume is always named `Cameo`. Change the window, icon positions or background path → rerun `scripts/dmg-template.sh` on a Mac and keep `DMGBackground.swift` in sync.
 
 ## Commands
 

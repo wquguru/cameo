@@ -26,49 +26,50 @@ func figurePath() -> CGPath {
     return p
 }
 
-/// Draws the icon in a 512×512, y-down design space.
+/// Draws the icon in a 512×512, y-down design space. The body sits exactly on Apple's icon grid
+/// (824 of 1024, centred) with nothing outside it and no baked-in shadow: macOS 26 puts icons
+/// that stray from that shape into a grey frame.
 func drawIcon(_ ctx: CGContext) {
-    let square = CGRect(x: 50, y: 70, width: 412, height: 412)
-    let squircle = CGPath(roundedRect: square, cornerWidth: 94, cornerHeight: 94, transform: nil)
+    let square = CGRect(x: 50, y: 50, width: 412, height: 412)
+    let squircle = CGPath(roundedRect: square, cornerWidth: 92, cornerHeight: 92, transform: nil)
     let space = CGColorSpace(name: CGColorSpace.sRGB)!
 
-    ctx.saveGState()
-    ctx.setShadow(offset: CGSize(width: 0, height: 8), blur: 18, color: rgb(0x000000, 0.35))
     ctx.addPath(squircle)
     ctx.setFillColor(rgb(0x161618))
     ctx.fillPath()
-    ctx.restoreGState()
 
     ctx.saveGState()
     ctx.addPath(squircle)
     ctx.clip()
     // Spotlight beam.
     ctx.saveGState()
-    ctx.move(to: CGPoint(x: 206, y: 70))
-    for (x, y) in [(306, 70), (420, 482), (92, 482)] { ctx.addLine(to: CGPoint(x: x, y: y)) }
+    ctx.move(to: CGPoint(x: 206, y: 50))
+    for (x, y) in [(306, 50), (420, 462), (92, 462)] { ctx.addLine(to: CGPoint(x: x, y: y)) }
     ctx.closePath()
     ctx.clip()
     let beam = CGGradient(colorsSpace: space, colors: [rgb(0xFFD27A, 0.55), rgb(0xFFB340, 0)] as CFArray, locations: [0, 1])!
-    ctx.drawLinearGradient(beam, start: CGPoint(x: 256, y: 70), end: CGPoint(x: 256, y: 482), options: [])
+    ctx.drawLinearGradient(beam, start: CGPoint(x: 256, y: 50), end: CGPoint(x: 256, y: 462), options: [])
     ctx.restoreGState()
     // Floor glow.
     ctx.saveGState()
-    ctx.translateBy(x: 256, y: 400)
+    ctx.translateBy(x: 256, y: 420)
     ctx.scaleBy(x: 1, y: 30.0 / 150.0)
     let floor = CGGradient(colorsSpace: space, colors: [rgb(0xFFC864, 0.75), rgb(0xFFC864, 0)] as CFArray, locations: [0, 1])!
     ctx.drawRadialGradient(floor, startCenter: .zero, startRadius: 0, endCenter: .zero, endRadius: 150, options: [])
     ctx.restoreGState()
     ctx.restoreGState()
 
-    ctx.addPath(CGPath(roundedRect: square.insetBy(dx: 0.5, dy: 0.5), cornerWidth: 93.5, cornerHeight: 93.5, transform: nil))
+    ctx.addPath(CGPath(roundedRect: square.insetBy(dx: 0.5, dy: 0.5), cornerWidth: 91.5, cornerHeight: 91.5, transform: nil))
     ctx.setStrokeColor(rgb(0xFFFFFF, 0.08))
     ctx.setLineWidth(1)
     ctx.strokePath()
 
-    // The figure, head poking out above the top edge.
+    // The figure, standing in the spotlight on the floor glow.
     ctx.saveGState()
-    ctx.translateBy(x: 168, y: 36)
-    ctx.scaleBy(x: 1.76, y: 1.76)
+    ctx.addPath(squircle)
+    ctx.clip()
+    ctx.translateBy(x: 182, y: 104)
+    ctx.scaleBy(x: 1.48, y: 1.48)
     ctx.addPath(figurePath())
     ctx.setFillColor(rgb(0xF5F1EA))
     ctx.fillPath()

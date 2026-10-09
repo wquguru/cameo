@@ -20,14 +20,23 @@ rm -rf build/dmg && mkdir -p build/dmg
 "$APP/Contents/MacOS/Cameo" --render-dmg-background build/dmg/background@2x.png 2
 tiffutil -cathidpicheck build/dmg/background.png build/dmg/background@2x.png -out build/dmg/background.tiff 2>/dev/null
 
-# dmgbuild lays out the Finder window without scripting Finder, so it also works in CI.
-if [[ ! -x build/.venv/bin/dmgbuild ]]; then
-  python3 -m venv build/.venv
-  build/.venv/bin/pip install --quiet "dmgbuild>=1.6,<2"
-fi
-build/.venv/bin/dmgbuild -s scripts/dmg-settings.py \
-  -D app="$APP" -D background=build/dmg/background.tiff -D icon="$APP/Contents/Resources/AppIcon.icns" \
-  "Cameo $VERSION" "build/$NAME.dmg"
+# The window layout is a Finder-made .DS_Store kept in the repo (scripts/dmg-template.sh), so
+# packaging needs no Finder scripting and works in CI. The volume is always named "Cameo":
+# the layout's background bookmark refers to the volume by name.
+STAGE=build/dmg/stage
+MOUNT=build/dmg/mount
+rm -rf "$STAGE" "$MOUNT" build/dmg/rw.dmg
+mkdir -p "$STAGE/.background" "$MOUNT"
+cp -R "$APP" "$STAGE/"
+ln -s /Applications "$STAGE/Applications"
+cp build/dmg/background.tiff "$STAGE/.background/background.tiff"
+cp Resources/dmg/DS_Store "$STAGE/.DS_Store"
+cp "$APP/Contents/Resources/AppIcon.icns" "$STAGE/.VolumeIcon.icns"
+hdiutil create -quiet -srcfolder "$STAGE" -volname Cameo -fs HFS+ -format UDRW -ov build/dmg/rw.dmg
+hdiutil attach -quiet -readwrite -noverify -noautoopen -nobrowse -mountpoint "$MOUNT" build/dmg/rw.dmg
+SetFile -a C "$MOUNT"
+hdiutil detach -quiet "$MOUNT"
+hdiutil convert -quiet build/dmg/rw.dmg -format UDZO -imagekey zlib-level=9 -ov -o "build/$NAME.dmg"
 
 (cd build && shasum -a 256 "$NAME.dmg" "$NAME.zip" > checksums.txt)
 echo "Packaged build/$NAME.dmg, build/$NAME.zip, build/checksums.txt"
