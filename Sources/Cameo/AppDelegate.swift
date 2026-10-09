@@ -25,7 +25,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.appearance = NSAppearance(named: .darkAqua)
 
         characterWindow = CharacterWindowController(model: model)
-        if model.characters.isEmpty || ProcessInfo.processInfo.environment["CAMEO_OPEN_POPOVER"] != nil {
+        let firstLaunch = !UserDefaults.standard.bool(forKey: "launched")
+        UserDefaults.standard.set(true, forKey: "launched")
+        if firstLaunch || ProcessInfo.processInfo.environment["CAMEO_OPEN_POPOVER"] != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.togglePopover() }
         }
     }

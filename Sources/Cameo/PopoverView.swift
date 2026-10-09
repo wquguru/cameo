@@ -54,7 +54,6 @@ struct PopoverView: View {
                 .labelsHidden()
                 .tint(Theme.spotlight)
                 .controlSize(.small)
-                .disabled(model.characters.isEmpty)
         }
         .padding(.horizontal, 2)
     }

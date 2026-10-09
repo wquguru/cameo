@@ -10,7 +10,7 @@ class FigureView: NSView {
     var onDragChanged: ((Bool) -> Void)?
 
     private(set) var link: CADisplayLink?
-    private var dragStart: (mouse: NSPoint, origin: NSPoint)?
+    private var dragStart: (start: NSPoint, last: NSPoint)?
     private var moved = false
 
     var maxFrameRate: Float = 60 {
@@ -53,21 +53,23 @@ class FigureView: NSView {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
     override func mouseDown(with event: NSEvent) {
-        guard let window else { return }
-        dragStart = (NSEvent.mouseLocation, window.frame.origin)
+        guard window != nil else { return }
+        dragStart = (NSEvent.mouseLocation, NSEvent.mouseLocation)
         moved = false
         NSCursor.closedHand.push()
     }
 
     override func mouseDragged(with event: NSEvent) {
-        guard let window, let start = dragStart else { return }
+        guard let window, let drag = dragStart else { return }
         let now = NSEvent.mouseLocation
-        let dx = now.x - start.mouse.x, dy = now.y - start.mouse.y
-        if !moved && hypot(dx, dy) > 3 {
+        if !moved && hypot(now.x - drag.start.x, now.y - drag.start.y) > 3 {
             moved = true
             onDragChanged?(true)
         }
-        window.setFrameOrigin(NSPoint(x: start.origin.x + dx, y: start.origin.y + dy))
+        // Move by the delta since the last event, so the window may also move on its own (a walking cat).
+        let origin = window.frame.origin
+        window.setFrameOrigin(NSPoint(x: origin.x + now.x - drag.last.x, y: origin.y + now.y - drag.last.y))
+        dragStart = (drag.start, now)
     }
 
     override func mouseUp(with event: NSEvent) {

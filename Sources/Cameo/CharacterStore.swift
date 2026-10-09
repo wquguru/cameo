@@ -59,7 +59,8 @@ final class CharacterStore {
 
         let id = UUID()
         let fileName = "\(id.uuidString).\(source.pathExtension.lowercased())"
-        try FileManager.default.copyItem(at: source, to: directory.appendingPathComponent(fileName))
+        let destination = directory.appendingPathComponent(fileName)
+        try await Task.detached { try FileManager.default.copyItem(at: source, to: destination) }.value
         return Character(id: id, fileName: fileName, name: source.deletingPathExtension().lastPathComponent)
     }
 
@@ -69,7 +70,11 @@ final class CharacterStore {
 
     nonisolated static func hasAlpha(_ format: CMFormatDescription) -> Bool {
         let codec = CMFormatDescriptionGetMediaSubType(format)
-        if codec == kCMVideoCodecType_AppleProRes4444 || codec == kCMVideoCodecType_AppleProRes4444XQ { return true }
+        if codec == kCMVideoCodecType_AppleProRes4444 || codec == kCMVideoCodecType_AppleProRes4444XQ {
+            // ProRes 4444 may be opaque; a 32-bit depth means it carries alpha.
+            let depth = CMFormatDescriptionGetExtension(format, extensionKey: kCMFormatDescriptionExtension_Depth) as? Int
+            return depth.map { $0 == 32 } ?? true
+        }
         let flag = CMFormatDescriptionGetExtension(format, extensionKey: kCMFormatDescriptionExtension_ContainsAlphaChannel)
         return (flag as? Bool) == true
     }

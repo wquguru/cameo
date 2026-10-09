@@ -43,5 +43,5 @@ Only Command Line Tools are required (no Xcode project). Do not add an `.xcodepr
 
 - Keep files small and single-purpose; match existing naming and comment density.
 - Main-thread UI code is `@MainActor`; no third-party dependencies.
-- User data lives in `~/Library/Application Support/Cameo/Characters` (imported videos are copied there) and `UserDefaults` (`selectedID`, `scale`, `visible`, `origin`).
+- User data lives in `~/Library/Application Support/Cameo/Characters` (imported videos are copied there) and `UserDefaults` (`selectedID`, `scale`, `visible`, `anchor`, `launched`).
 - Commit in coherent batches with a short imperative subject.

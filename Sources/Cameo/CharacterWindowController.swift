@@ -45,7 +45,7 @@ final class CharacterWindowController {
         catView.onMove = { [weak self] dx in self?.moveCat(by: dx) ?? false }
 
         model.objectWillChange
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.update() }
             .store(in: &cancellables)
 
