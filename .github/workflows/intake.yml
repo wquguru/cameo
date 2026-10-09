@@ -27,7 +27,7 @@ jobs:
         run: |
           n=$(aws s3api list-objects-v2 --bucket cameo-uploads --prefix pending/ \
                 --endpoint-url "https://${{ vars.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
-                --query 'KeyCount' --output text)
+                --query 'length(Contents || `[]`)' --output text)
           echo "pending=$n" >> "$GITHUB_OUTPUT"
           echo "$n pending upload(s)"
 

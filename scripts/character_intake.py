@@ -20,13 +20,15 @@ LABELS = {"animal": "Animal / 动物", "person": "Person / 人物", "other": "Ot
 KEY = re.compile(r"^pending/([0-9a-f-]{36})\.mov$")
 
 
-def issue_body(name, author, category, ref):
+def issue_body(name, author, category, ref, uploader):
     return (f"### Character name / 角色名\n\n{name}\n\n"
             f"### Credit as / 署名\n\n{author}\n\n"
             f"### Category / 分类\n\n{LABELS[category]}\n\n"
             f"### Video / 视频\n\n{ref}\n\n"
             "### Rights / 权利\n\n- [X] Confirmed by the uploader on the gallery website. 上传者已在网站上确认。\n\n"
-            "_Submitted through the gallery website. 通过角色库网站投稿。_")
+            "_Submitted through the gallery website. 通过角色库网站投稿。_\n\n"
+            f"<sub>Uploader / 上传者: `{uploader or 'unknown'}` (anonymous; ban with "
+            "`wrangler kv key put --namespace-id c7ab0970f2e147e28e69924342cfc672 --remote ban:<id> 1`)</sub>")
 
 
 def main():
@@ -41,6 +43,7 @@ def main():
         name = urllib.parse.unquote(meta.get("name", "")).strip()[:60]
         author = urllib.parse.unquote(meta.get("author", "")).strip()[:60]
         category = meta.get("category", "")
+        uploader = re.sub(r"[^0-9a-f]", "", meta.get("uploader", ""))[:64]
         path = Path(tempfile.mkdtemp()) / "upload.mov"
         s3("cp", f"s3://{UPLOADS}/{key}", str(path))
         facts = check_video(path)
@@ -51,7 +54,7 @@ def main():
         submitted = f"submitted/{upload}.mov"
         s3("mv", f"s3://{UPLOADS}/{key}", f"s3://{UPLOADS}/{submitted}")
         url = run("gh", "issue", "create", "--title", f"[Character] {name}", "--label", "character",
-                  "--body", issue_body(name, author, category, f"r2:{submitted}"), capture=True).stdout.strip()
+                  "--body", issue_body(name, author, category, f"r2:{submitted}", uploader), capture=True).stdout.strip()
         issue = url.rstrip("/").rsplit("/", 1)[-1]
         comment(issue, "### ✅ Looks good / 检查通过\n\n"
                        f"**{name}** by {author} · {category}\n\n" + report_table(facts) +

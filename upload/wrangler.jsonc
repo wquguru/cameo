@@ -1,5 +1,6 @@
 // Cameo character upload Worker (see upload/src/index.js). Deploy: cd upload && npx wrangler deploy
 // Secrets (wrangler secret put): TURNSTILE_SECRET, IP_SALT.
+// Ban an uploader: npx wrangler kv key put --namespace-id c7ab0970f2e147e28e69924342cfc672 --remote "ban:<uploader id from the issue>" 1
 {
   "name": "cameo-upload",
   "main": "src/index.js",
@@ -8,11 +9,19 @@
   "routes": [{ "pattern": "cameo-upload.wqu.guru", "custom_domain": true }],
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "cameo-uploads" }],
   "kv_namespaces": [{ "binding": "LIMITS", "id": "c7ab0970f2e147e28e69924342cfc672" }],
+  // Per-IP burst guard, checked before anything else.
+  "ratelimits": [{ "name": "BURST", "namespace_id": "4401", "simple": { "limit": 5, "period": 60 } }],
   "vars": {
+    // "false" pauses all uploads (redeploy, or change it in the dashboard).
+    "UPLOADS_OPEN": "true",
     "ALLOWED_ORIGINS": "https://wquguru.github.io",
-    "MAX_BYTES": "31457280",
-    "DAILY_PER_IP": "3",
-    "DAILY_TOTAL": "200"
+    "TURNSTILE_HOSTNAME": "wquguru.github.io",
+    "MAX_BYTES": "20971520",
+    "DAILY_PER_IP": "2",
+    "DAILY_TOTAL": "50",
+    // At most this much may wait for review (pending/ + submitted/).
+    "QUEUE_MAX_FILES": "100",
+    "QUEUE_MAX_BYTES": "1073741824"
   },
   "observability": { "enabled": true }
 }
