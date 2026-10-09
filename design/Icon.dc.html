@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cameo app icon</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: {{size}}px; height: {{size}}px">
+  <svg width="100%" height="100%" viewBox="0 0 512 512" role="img" aria-label="Cameo 图标">
+    <defs>
+      <clipPath id="cameoSquircle"><rect x="50" y="70" width="412" height="412" rx="94"></rect></clipPath>
+      <linearGradient id="cameoBeam" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffd27a" stop-opacity="0.55"></stop>
+        <stop offset="1" stop-color="#ffb340" stop-opacity="0"></stop>
+      </linearGradient>
+      <radialGradient id="cameoFloor" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffc864" stop-opacity="0.75"></stop>
+        <stop offset="1" stop-color="#ffc864" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <rect x="50" y="70" width="412" height="412" rx="94" fill="#161618"></rect>
+    <g clip-path="url(#cameoSquircle)">
+      <polygon points="206,70 306,70 420,482 92,482" fill="url(#cameoBeam)"></polygon>
+      <ellipse cx="256" cy="400" rx="150" ry="30" fill="url(#cameoFloor)"></ellipse>
+    </g>
+    <rect x="50.5" y="70.5" width="411" height="411" rx="93.5" fill="none" stroke="rgba(255,255,255,0.08)"></rect>
+    <g transform="translate(168,36) scale(1.76)" fill="#f5f1ea">
+      <circle cx="50" cy="22" r="17"></circle>
+      <path d="M50 43c-17 0-27 10-29 27l-7 58h13l5 72h12l4-60h4l4 60h12l5-72h13l-7-58c-2-17-12-27-29-27z"></path>
+    </g>
+  </svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"size":{"editor":"int","default":512,"min":16,"max":1024},"$preview":{"width":512,"height":512}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { size: this.props.size ?? 512 };
+  }
+}
+</script>
+</body>
+</html>
