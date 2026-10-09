@@ -1,0 +1,18 @@
+// Cameo character upload Worker (see upload/src/index.js). Deploy: cd upload && npx wrangler deploy
+// Secrets (wrangler secret put): TURNSTILE_SECRET, IP_SALT.
+{
+  "name": "cameo-upload",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "routes": [{ "pattern": "cameo-upload.wqu.guru", "custom_domain": true }],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "cameo-uploads" }],
+  "kv_namespaces": [{ "binding": "LIMITS", "id": "c7ab0970f2e147e28e69924342cfc672" }],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://wquguru.github.io",
+    "MAX_BYTES": "31457280",
+    "DAILY_PER_IP": "3",
+    "DAILY_TOTAL": "200"
+  },
+  "observability": { "enabled": true }
+}
