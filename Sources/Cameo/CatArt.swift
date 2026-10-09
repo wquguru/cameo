@@ -79,30 +79,33 @@ enum CatArt {
     static let headPlacement = CGAffineTransform(translationX: -222, y: -172)
         .concatenating(CGAffineTransform(scaleX: 0.82, y: 0.82))
         .concatenating(CGAffineTransform(translationX: 230, y: 176))
-    static let backEar = SVGPath.parse("M188 74 C186 58 192 46 202 42 C214 50 222 60 226 66 Z")
-    static let frontEar = SVGPath.parse("M262 60 C272 48 286 42 298 44 C302 56 302 70 298 82 Z")
-    static let innerEar = SVGPath.parse("M271 61 C278 53 287 49 294 50 C296 59 295 68 293 76 Z")
-    static let head = SVGPath.parse("M232 50 C290 48 324 86 324 126 C324 156 308 182 280 192 C262 198 238 199 218 194 C182 186 156 164 154 130 C152 88 182 52 232 50 Z")
-    static let muzzle = SVGPath.parse("M240 150 C252 132 290 130 306 148 C314 160 310 180 292 186 C276 192 252 190 242 178 C236 170 236 158 240 150 Z")
+    // The face looks at the viewer (the body stays in profile), so it is symmetric about x = 240.
+    static let backEar = SVGPath.parse("M168 92 C164 70 170 52 180 44 C196 50 208 60 214 66 Z")
+    static let frontEar = SVGPath.parse("M312 92 C316 70 310 52 300 44 C284 50 272 60 266 66 Z")
+    static let innerEars = SVGPath.parse("M176 82 C174 68 178 58 184 53 C194 58 202 64 206 68 Z M304 82 C306 68 302 58 296 53 C286 58 278 64 274 68 Z")
+    static let head = SVGPath.parse("M240 52 C292 52 326 88 326 128 C326 166 290 192 240 192 C190 192 154 166 154 128 C154 88 188 52 240 52 Z")
+    static let headCenter = CGPoint(x: 240, y: 122)
+    static let muzzle = SVGPath.parse("M240 140 C226 136 212 142 210 154 C208 166 220 174 232 172 C236 171 238 169 240 166 C242 169 244 171 248 172 C260 174 272 166 270 154 C268 142 254 136 240 140 Z")
     static let faceStripes: [(CGPath, CGFloat)] = [
-        (SVGPath.parse("M246 56 C248 66 250 76 254 86"), 3.5), (SVGPath.parse("M234 56 C236 68 240 80 244 90"), 3),
-        (SVGPath.parse("M258 58 C260 66 262 74 264 82"), 3), (SVGPath.parse("M222 60 C224 70 228 80 232 88"), 2.5),
-        (SVGPath.parse("M268 60 C270 68 272 74 274 80"), 2.5), (SVGPath.parse("M210 132 C198 134 186 132 174 126"), 3),
-        (SVGPath.parse("M212 146 C200 150 188 150 176 146"), 2.5), (SVGPath.parse("M300 134 C306 136 312 136 318 132"), 2),
+        (SVGPath.parse("M240 58 L240 84"), 3.5),
+        (SVGPath.parse("M228 60 C229 70 231 78 233 86 M252 60 C251 70 249 78 247 86"), 3),
+        (SVGPath.parse("M216 64 C218 72 221 80 224 86 M264 64 C262 72 259 80 256 86"), 2.5),
+        (SVGPath.parse("M184 130 C176 132 168 132 160 128 M296 130 C304 132 312 132 320 128"), 2.5),
+        (SVGPath.parse("M186 144 C178 148 170 148 162 146 M294 144 C302 148 310 148 318 146"), 2.5),
+        (SVGPath.parse("M192 120 C187 123 181 125 175 125 M288 120 C293 123 299 125 305 125"), 2),
     ]
-    static let nosePath = SVGPath.parse("M290 144 C297 140 306 140 311 144 C309 151 304 155 301 156 C297 154 292 150 290 144 Z")
-    static let noseHighlight = SVGPath.parse("M296 143 C300 142 304 142 306 143")
-    static let mouth = SVGPath.parse("M301 156 L301 163 M290 167 C295 170 299 168 301 163 C303 168 307 170 312 166")
-    static let whiskerDots = [CGPoint(x: 290, y: 160), CGPoint(x: 286, y: 164), CGPoint(x: 292, y: 166), CGPoint(x: 312, y: 160)]
-    static let whiskers = SVGPath.parse("M288 162 C262 158 236 160 214 168 M288 166 C264 166 240 172 222 182 M314 160 C330 156 344 156 356 160 M314 164 C330 164 344 168 354 174")
+    static let nosePath = SVGPath.parse("M232 140 C236 137 244 137 248 140 C247 146 242 150 240 151 C238 150 233 146 232 140 Z")
+    static let noseHighlight = SVGPath.parse("M236 140 C238 139 242 139 244 140")
+    static let mouth = SVGPath.parse("M240 151 L240 158 M230 162 C235 165 238 163 240 158 C242 163 245 165 250 162")
+    static let whiskerDots = [(224, 154), (220, 160), (226, 163), (256, 154), (260, 160), (254, 163)].map { CGPoint(x: $0.0, y: $0.1) }
+    static let whiskers = SVGPath.parse("M222 156 C200 150 180 150 158 154 M222 162 C200 162 180 166 162 174 M258 156 C280 150 300 150 322 154 M258 162 C280 162 300 166 318 174")
 
     struct Eye {
         let center: CGPoint, rx: CGFloat, ry: CGFloat, pupil: CGSize, line: CGFloat, highlight: CGFloat
     }
-    static let eyes = [
-        Eye(center: CGPoint(x: 232, y: 116), rx: 14, ry: 16, pupil: CGSize(width: 6, height: 9), line: 2.6, highlight: 3.6),
-        Eye(center: CGPoint(x: 284, y: 118), rx: 17, ry: 18, pupil: CGSize(width: 7, height: 10), line: 2.8, highlight: 4.2),
-    ]
+    static let eyes = [CGPoint(x: 210, y: 116), CGPoint(x: 270, y: 116)].map {
+        Eye(center: $0, rx: 17, ry: 18, pupil: CGSize(width: 7, height: 10), line: 2.8, highlight: 4.2)
+    }
 
     // MARK: Drawing
 
@@ -151,12 +154,12 @@ enum CatArt {
         with(ctx, frame.head) {
             fill(ctx, backEar, backEarFur); stroke(ctx, backEar, edge, 1.5)
             fill(ctx, frontEar, frontEarFur); stroke(ctx, frontEar, edge, 1.5)
-            fillGradient(ctx, innerEar, innerEarGradient, from: CGPoint(x: 0, y: 49), to: CGPoint(x: 0, y: 76))
+            fillGradient(ctx, innerEars, innerEarGradient, from: CGPoint(x: 0, y: 53), to: CGPoint(x: 0, y: 82))
             ctx.saveGState()
             ctx.addPath(head)
             ctx.clip()
-            ctx.drawRadialGradient(headGradient, startCenter: CGPoint(x: 263, y: 142), startRadius: 0,
-                                   endCenter: CGPoint(x: 263, y: 142), endRadius: 120, options: [.drawsAfterEndLocation])
+            ctx.drawRadialGradient(headGradient, startCenter: CGPoint(x: 240, y: 146), startRadius: 0,
+                                   endCenter: CGPoint(x: 240, y: 146), endRadius: 112, options: [.drawsAfterEndLocation])
             ctx.restoreGState()
             stroke(ctx, head, edge, 1.5)
             fill(ctx, muzzle, muzzleFur)
@@ -211,7 +214,7 @@ enum CatArt {
         ctx.setLineWidth(eye.line)
         ctx.strokePath()
         ctx.setFillColor(pupil)
-        ctx.fillEllipse(in: CGRect(x: 2 - eye.pupil.width, y: -eye.pupil.height, width: eye.pupil.width * 2, height: eye.pupil.height * 2))
+        ctx.fillEllipse(in: CGRect(x: -eye.pupil.width, y: -eye.pupil.height, width: eye.pupil.width * 2, height: eye.pupil.height * 2))
         ctx.setFillColor(white)
         let r = eye.highlight
         ctx.fillEllipse(in: CGRect(x: -eye.rx * 0.3 - r, y: -eye.ry * 0.38 - r, width: r * 2, height: r * 2))

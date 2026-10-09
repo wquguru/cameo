@@ -92,8 +92,8 @@ enum CatRig {
         .map { CGPoint(x: $0.0, y: $0.1) }
     private static let headSamples: [CGPoint] = (0..<16).map { i in
         let a = CGFloat(i) * .pi / 8
-        return CGPoint(x: 239 + 85 * cos(a), y: 122 + 74 * sin(a))
-    } + [CGPoint(x: 202, y: 42), CGPoint(x: 298, y: 44)]
+        return CGPoint(x: 240 + 86 * cos(a), y: 122 + 70 * sin(a))
+    } + [CGPoint(x: 180, y: 44), CGPoint(x: 300, y: 44)]
     private static let tailSamples = [(0, 15), (-42, -84), (-18, -100), (-30, -50), (-50, -40), (-57, -84), (-27, -84), (-18, -115), (-45, -25), (-15, -15)]
         .map { CGPoint(x: $0.0, y: $0.1) }
     private static let pawSamples = [CGPoint(x: 0, y: 66), CGPoint(x: -10, y: 62), CGPoint(x: 10, y: 62), CGPoint(x: -16, y: 20), CGPoint(x: 15, y: 20)]
