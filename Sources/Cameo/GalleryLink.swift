@@ -1,9 +1,12 @@
 import Foundation
 
 /// A `cameo://add?url=<https .mov>&name=<name>` link, as used by the character gallery.
+/// Any web page can open such a link, so only videos from the gallery's own asset host are
+/// accepted; anything else is ignored.
 struct GalleryLink {
     static let maxBytes = 200_000_000
     static let gallery = URL(string: "https://wquguru.github.io/cameo/")!
+    static let assetHost = "cameo.wqu.guru"
 
     let source: URL
     let name: String
@@ -12,7 +15,9 @@ struct GalleryLink {
         guard url.scheme == "cameo", url.host == "add",
               let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
               let value = items.first(where: { $0.name == "url" })?.value,
-              let source = URL(string: value), source.scheme == "https" else { return nil }
+              let source = URL(string: value), source.scheme == "https",
+              source.host?.lowercased() == Self.assetHost, source.port == nil,
+              source.path.hasPrefix("/characters/"), source.pathExtension.lowercased() == "mov" else { return nil }
         self.source = source
         let raw = items.first { $0.name == "name" }?.value ?? source.deletingPathExtension().lastPathComponent
         let name = raw.components(separatedBy: CharacterSet(charactersIn: "/:")).joined(separator: "-")
