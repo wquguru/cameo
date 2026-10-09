@@ -6,7 +6,7 @@ Cameo is a minimal, open-source macOS menu bar app that puts a character video w
 
 - One menu bar popover, no other windows. Its contents: show/hide switch, character thumbnails (select / add), size slider, launch at login, quit.
 - One character = one looping video. There are no clips, manifests or per-character settings.
-- Exception: the built-in cat 小银 (`Character.builtInCat`), drawn in code and always first in the list. It wanders on its own (walk, sit, lie down, stand, roll), rolls when clicked, dangles while dragged, and the popover shows action chips (自由 + the five actions) only while it is selected.
+- Exception: the built-in cat Chaofei (`Character.builtInCat`), drawn in code and always first in the list. It wanders on its own (walk, sit, lie down, stand, roll), rolls when clicked, dangles while dragged, and the popover shows action chips (自由 + the five actions) only while it is selected.
 - Formats: HEVC with Alpha (.mov) and ProRes 4444 (.mov), both decoded natively by AVFoundation. No FFmpeg, WebM or packed alpha.
 - Behaviour that is not a setting: pixels with alpha go to the figure (drag to move), transparent pixels pass clicks through; always on top on every Space; playback pauses during full-screen apps, on battery it caps at 30 fps, and it pauses while the screen is locked or asleep.
 - When a feature request fits none of the above, push back before adding UI.
@@ -36,6 +36,8 @@ swift run CameoSample out.mov    # write a sample HEVC-alpha clip
 CAMEO_OPEN_POPOVER=1 build/Cameo.app/Contents/MacOS/Cameo   # launch with the popover open
 .build/debug/Cameo --render-poses poses.png                  # contact sheet of the cat's poses
 ```
+
+Release: `scripts/release.sh <x.y.z>` (clean `main` only) bumps `Resources/Info.plist`, commits, tags `v<x.y.z>` and pushes; `.github/workflows/release.yml` builds and publishes the zip to GitHub Releases. `UpdateChecker` polls `releases/latest` daily and shows a popover banner plus an amber dot on the menu bar icon; it stays silent while the repository is private (the API returns 404).
 
 Only Command Line Tools are required (no Xcode project). Do not add an `.xcodeproj`.
 

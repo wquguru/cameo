@@ -18,6 +18,8 @@ final class AppModel: ObservableObject {
     @Published var errorMessage: String?
     /// What the built-in cat should do; nil lets it wander on its own.
     @Published var catAction: CatAction?
+    /// A newer release on GitHub, if the update checker found one.
+    @Published var update: UpdateChecker.Update?
 
     let store = CharacterStore()
     private let defaults = UserDefaults.standard

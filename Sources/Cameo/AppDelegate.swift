@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
     private var characterWindow: CharacterWindowController!
+    private var updateChecker: UpdateChecker!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -25,6 +26,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.appearance = NSAppearance(named: .darkAqua)
 
         characterWindow = CharacterWindowController(model: model)
+        updateChecker = UpdateChecker { [weak self] update in
+            self?.model.update = update
+            self?.statusItem.button?.image = update == nil ? Glyph.template : Glyph.withBadge
+        }
+        updateChecker.start()
         let firstLaunch = !UserDefaults.standard.bool(forKey: "launched")
         UserDefaults.standard.set(true, forKey: "launched")
         if firstLaunch || ProcessInfo.processInfo.environment["CAMEO_OPEN_POPOVER"] != nil {

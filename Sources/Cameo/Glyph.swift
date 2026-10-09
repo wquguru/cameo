@@ -11,6 +11,22 @@ enum Glyph {
         return image
     }
 
+    /// The menu bar glyph with an amber dot, shown while an update is available.
+    static var withBadge: NSImage {
+        let glyph = template
+        let image = NSImage(size: glyph.size, flipped: false) { rect in
+            NSColor.labelColor.set()
+            glyph.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+            NSColor.labelColor.setFill()
+            rect.fill(using: .sourceIn)
+            NSColor(red: 1, green: 0.702, blue: 0.251, alpha: 1).setFill()
+            NSBezierPath(ovalIn: NSRect(x: rect.maxX - 5.5, y: rect.maxY - 5.5, width: 5, height: 5)).fill()
+            return true
+        }
+        image.accessibilityDescription = "Cameo（有可用更新）"
+        return image
+    }
+
     static func image(size: CGFloat, color: NSColor) -> NSImage {
         NSImage(size: NSSize(width: size, height: size), flipped: true) { rect in
             let s = rect.width / 16

@@ -25,7 +25,7 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 
 ## Features
 
-- **A cat comes built in** — 小银, a silver tabby drawn in code, wanders along the bottom of your screen: it walks, sits, lies down and dozes off, stands and rolls. Click it to make it roll, drag it to pick it up, or pin an action from the popover.
+- **A cat comes built in** — Chaofei, a silver tabby British Shorthair drawn in code after the author's own cat, wanders along the bottom of your screen: it walks, sits, lies down and dozes off, stands and rolls. Click it to make it roll, drag it to pick it up, or pin an action from the popover.
 - **Truly transparent** — only the visible pixels of the figure catch the mouse; everything else is click-through.
 - **Always on top** — floats above all windows on every Space.
 - **Native formats** — HEVC with Alpha and ProRes 4444 (`.mov`), decoded by AVFoundation. No FFmpeg, no bundled codecs.
@@ -43,7 +43,11 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 
 Grab `Cameo-<version>.zip` from [Releases](https://github.com/wquguru/cameo/releases) (or from the latest [CI run](https://github.com/wquguru/cameo/actions/workflows/build.yml)), unzip, and move `Cameo.app` to `/Applications`.
 
-The app is ad-hoc signed, so on first launch right-click it and choose **Open**.
+The app is ad-hoc signed (not notarized). On first launch macOS blocks it: open **System Settings › Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Cameo.app`.
+
+### Updates
+
+Cameo checks GitHub Releases once a day. When a newer version is out, the menu bar icon gets an amber dot and the popover shows a **Download** banner that opens the release page; replace `Cameo.app` with the new one.
 
 ### Build from source
 
@@ -90,6 +94,14 @@ scripts/package.sh        # release zip in build/Cameo-<version>.zip
 | `Sources/CameoSample` | CLI that writes a sample HEVC-alpha clip |
 | `Sources/CameoIcon` | CLI that renders the app icon |
 | `design/` | Design reference files (open in a browser) |
+
+### Releasing
+
+```bash
+scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
+```
+
+The `release` workflow builds the tagged commit, checks the tag matches `Info.plist`, and publishes `Cameo-<version>.zip` on GitHub Releases.
 
 ## Contributing
 

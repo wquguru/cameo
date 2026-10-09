@@ -25,7 +25,7 @@ Cameo 把一段循环播放的透明视频变成一个悬浮在桌面上的角�
 
 ## 特性
 
-- **内置一只猫**：银色虎斑猫「小银」由代码绘制，会沿着屏幕底部自己溜达：行走、蹲下、趴下（还会打瞌睡）、站立、打滚。点它会打滚，拖动时会被拎起来，也可以在菜单栏弹窗里指定动作。
+- **内置一只猫**：银色虎斑英短 Chaofei（照着作者家的猫画的）由代码绘制，会沿着屏幕底部自己溜达：行走、蹲下、趴下（还会打瞌睡）、站立、打滚。点它会打滚，拖动时会被拎起来，也可以在菜单栏弹窗里指定动作。
 - **真正透明**：只有角色的可见像素响应鼠标，其余区域全部点击穿透。
 - **始终置顶**：悬浮在所有窗口之上，跨所有桌面空间。
 - **原生格式**：支持 HEVC with Alpha 与 ProRes 4444（`.mov`），由 AVFoundation 解码，无需 FFmpeg，不内置编解码器。
@@ -43,7 +43,11 @@ Cameo 把一段循环播放的透明视频变成一个悬浮在桌面上的角�
 
 从 [Releases](https://github.com/wquguru/cameo/releases)（或最新一次 [CI 构建](https://github.com/wquguru/cameo/actions/workflows/build.yml)）下载 `Cameo-<version>.zip`，解压后将 `Cameo.app` 移到 `/Applications`。
 
-应用使用 ad-hoc 签名，首次启动时请右键点击并选择**打开**。
+应用使用 ad-hoc 签名（未经公证）。首次启动会被 macOS 拦截：打开**系统设置 › 隐私与安全性**，点击**仍要打开**；或者运行 `xattr -dr com.apple.quarantine /Applications/Cameo.app`。
+
+### 更新
+
+Cameo 每天检查一次 GitHub Releases。有新版本时，菜单栏图标会出现一个琥珀色小圆点，弹窗顶部显示**下载**提示，点击打开发布页，用新的 `Cameo.app` 替换旧的即可。
 
 ### 从源码构建
 
@@ -90,6 +94,14 @@ scripts/package.sh        # 发布版压缩包，输出到 build/Cameo-<version>
 | `Sources/CameoSample` | 生成 HEVC 透明示例视频的命令行工具 |
 | `Sources/CameoIcon` | 渲染应用图标的命令行工具 |
 | `design/` | 设计参考文件（用浏览器打开） |
+
+### 发布
+
+```bash
+scripts/release.sh 0.3.0   # 修改 Info.plist 版本号、提交、打 v0.3.0 标签并推送
+```
+
+`release` 工作流会构建该标签对应的提交，校验标签与 `Info.plist` 一致，然后把 `Cameo-<version>.zip` 发布到 GitHub Releases。
 
 ## 参与贡献
 

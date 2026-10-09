@@ -10,6 +10,9 @@ struct PopoverView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if let update = model.update {
+                updateBanner(update)
+            }
             header
             cards
             if model.selected?.isBuiltIn == true {
@@ -42,6 +45,25 @@ struct PopoverView: View {
             Task { await model.add(urls) }
             return true
         } isTargeted: { dropTargeted = $0 }
+    }
+
+    private func updateBanner(_ update: UpdateChecker.Update) -> some View {
+        Button { NSWorkspace.shared.open(update.url) } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.down.circle.fill")
+                Text("新版本 \(update.version) 可用")
+                Spacer()
+                Text("下载").fontWeight(.semibold)
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(Color.black.opacity(0.85))
+            .padding(.horizontal, 10)
+            .frame(height: 30)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Theme.spotlight))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(update.url.absoluteString)
     }
 
     private var header: some View {
