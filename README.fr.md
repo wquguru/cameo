@@ -28,7 +28,7 @@ Cameo lit en boucle une vidéo dotée d’une couche alpha sous la forme d’un 
 - **Toujours au premier plan** — flotte au-dessus de toutes les fenêtres, dans chaque Space.
 - **Formats natifs** — HEVC with Alpha et ProRes 4444 (`.mov`), décodés par AVFoundation. Pas de FFmpeg, aucun codec embarqué.
 - **Économe en ressources** — se met en pause lorsqu’une app en plein écran le masque ou pendant la suspension de l’écran, et se limite à 30 ips sur batterie.
-- **Minimaliste** — une seule fenêtre contextuelle dans la barre des menus : afficher/masquer, personnages, taille, ouverture à la connexion. Pas de fenêtre de réglages, aucune dépendance.
+- **Minimaliste** — une fenêtre contextuelle dans la barre des menus et une bibliothèque de personnages toute simple. Aucun réglage, aucune dépendance.
 
 ## Configuration requise
 
@@ -43,13 +43,9 @@ Téléchargez **`Cameo-<version>-macOS-Universal.dmg`** depuis [Releases](https:
 
 L’app a une signature ad hoc (elle n’est pas notariée). Au premier lancement, macOS la bloque : ouvrez **Réglages Système › Confidentialité et sécurité** et cliquez sur **Ouvrir quand même**, ou exécutez `xattr -dr com.apple.quarantine /Applications/Cameo.app`.
 
-### Mises à jour
+### Mises à jour et langues
 
-Cameo consulte GitHub Releases une fois par jour, ou lorsque vous cliquez sur **Rechercher les mises à jour…** dans la fenêtre contextuelle. Lorsqu’une version plus récente est disponible, l’icône de la barre des menus affiche un point ambre et cette ligne devient **Mettre à jour vers x.y.z** : cliquez dessus et Cameo télécharge la version, vérifie sa somme de contrôle, se remplace lui-même et se rouvre. S’il ne peut pas se remplacer (par exemple lorsqu’il ne se trouve pas dans Applications), il ouvre plutôt la page de la version. **À propos de Cameo** affiche la version et renvoie vers le projet.
-
-### Langues
-
-Cameo parle English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский et Italiano. Il suit la langue de votre Mac ; pour en choisir une autre, utilisez **Langue** dans la fenêtre contextuelle, ou Réglages Système › Général › Langue et région › Applications.
+Cameo recherche les mises à jour chaque jour et se met à jour lui-même depuis la fenêtre contextuelle. Il parle 11 langues et suit celle de votre Mac ; pour en choisir une autre, utilisez **Langue** dans la fenêtre contextuelle.
 
 ### Compiler depuis les sources
 
@@ -66,7 +62,7 @@ open build/Cameo.app
 2. Ajoutez une vidéo avec **+**, en la déposant sur la fenêtre contextuelle, ou via **Ouvrir avec → Cameo** dans le Finder.
 3. Choisissez un personnage et faites-le glisser où vous le souhaitez.
 
-Cliquez avec le bouton droit sur la carte d’un personnage pour le supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`.
+Au-delà de quelques personnages, ouvrez la bibliothèque pour les rechercher, les renommer ou les supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`.
 
 ## Personnages
 
@@ -84,46 +80,21 @@ npx skills add wquguru/cameo --skill cameo-character
 
 Ou dites simplement à votre agent : *« Installe la skill qui se trouve à https://github.com/wquguru/cameo/tree/main/skills/cameo-character »*. Demandez-lui ensuite de créer un personnage à partir d’un clip sur fond vert, ou de rédiger le prompt pour en générer un avec un outil vidéo d’IA. Il détoure l’arrière-plan, vérifie le résultat et l’ajoute à Cameo.
 
-À la main, pour un clip qui possède déjà une couche alpha :
-
-```bash
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
-# or Apple's built-in tool
-avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
-```
-
-Vous en avez créé un qui vous plaît ? [Proposez-le pour la galerie](https://github.com/wquguru/cameo/issues/new?template=character.yml).
+Vous en avez créé un qui vous plaît ? [Envoyez-le à la galerie](https://wquguru.github.io/cameo/#submit) pour qu’il soit examiné.
 
 ## Développement
 
 ```bash
-swift build               # debug build
-scripts/build.sh          # release app bundle in build/Cameo.app
-scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
-swift run CameoSample sample.mov                       # a test clip with alpha
-scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # publish a gallery character
+swift build                        # debug build
+scripts/build.sh                   # release app bundle in build/Cameo.app
+swift run CameoSample sample.mov   # a test clip with alpha
 ```
 
-| Chemin | Rôle |
-| --- | --- |
-| `Sources/Cameo` | L’app (AppKit, fenêtre contextuelle SwiftUI, lecture AVFoundation) |
-| `Sources/CameoSample` | CLI qui génère un clip d’exemple HEVC avec alpha |
-| `Sources/CameoIcon` | CLI qui produit l’icône de l’app |
-| `design/` | Fichiers de référence de design (à ouvrir dans un navigateur) |
-| `gallery/` | Site de la galerie de personnages, déployé sur GitHub Pages |
-| `skills/cameo-character` | Skill d’agent pour créer des personnages |
-
-### Publier une version
-
-```bash
-scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
-```
-
-Le workflow `release` compile le commit tagué, vérifie que le tag correspond à `Info.plist`, puis publie le `.dmg`, le `.zip` et `checksums.txt` sur GitHub Releases.
+Consultez [AGENTS.md](AGENTS.md) pour l’organisation du projet, l’empaquetage et les versions.
 
 ## Contribuer
 
-Les issues et pull requests sont les bienvenues. Cameo est volontairement réduit à l’essentiel : merci d’ouvrir une issue pour discuter de toute nouvelle fonctionnalité avant d’ajouter de l’interface. Consultez [AGENTS.md](AGENTS.md) pour le périmètre et les conventions.
+Les issues et pull requests sont les bienvenues. Cameo est volontairement réduit à l’essentiel : merci d’ouvrir une issue pour discuter de toute nouvelle fonctionnalité avant d’ajouter de l’interface.
 
 ## Licence
 

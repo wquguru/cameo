@@ -28,7 +28,7 @@ Cameo는 알파 채널이 있는 반복 재생 동영상을 모든 윈도우와 
 - **항상 위에** — 모든 스페이스에서 모든 윈도우 위에 떠 있습니다.
 - **네이티브 포맷** — HEVC with Alpha와 ProRes 4444(`.mov`)를 AVFoundation으로 디코딩합니다. FFmpeg도, 번들 코덱도 필요 없습니다.
 - **가벼운 리소스 사용** — 전체 화면 앱에 가려지거나 화면이 잠자기 상태일 때 일시 정지하며, 배터리 사용 시 30fps로 제한합니다.
-- **미니멀** — 메뉴 막대 팝오버 하나뿐입니다. 보기/가리기, 캐릭터, 크기, 로그인 시 실행. 설정 윈도우도, 의존성도 없습니다.
+- **미니멀** — 메뉴 막대 팝오버와 단순한 캐릭터 라이브러리뿐입니다. 설정도, 의존성도 없습니다.
 
 ## 요구 사항
 
@@ -43,13 +43,9 @@ Cameo는 알파 채널이 있는 반복 재생 동영상을 모든 윈도우와 
 
 이 앱은 ad-hoc 서명되어 있습니다(공증되지 않음). 처음 실행할 때 macOS가 차단하므로 **시스템 설정 › 개인정보 보호 및 보안**을 열고 **그래도 열기**를 클릭하거나, `xattr -dr com.apple.quarantine /Applications/Cameo.app`을 실행하십시오.
 
-### 업데이트
+### 업데이트와 언어
 
-Cameo는 하루에 한 번, 또는 팝오버에서 **업데이트 확인…** 항목을 클릭할 때 GitHub Releases를 확인합니다. 새 버전이 나오면 메뉴 막대 아이콘에 호박색 점이 표시되고 해당 행이 **x.y.z(으)로 업데이트**로 바뀝니다. 클릭하면 Cameo가 릴리스를 다운로드하고, 체크섬을 확인한 뒤, 자신을 교체하고 다시 엽니다. 자신을 교체할 수 없는 경우(예: 응용 프로그램 폴더에 있지 않을 때)에는 대신 릴리스 페이지를 엽니다. **Cameo에 관하여**에서는 버전을 확인하고 프로젝트 링크로 이동할 수 있습니다.
-
-### 언어
-
-Cameo는 English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский, Italiano를 지원합니다. Mac의 언어를 따르며, 다른 언어를 고르려면 팝오버의 **언어**를 사용하거나 시스템 설정 › 일반 › 언어 및 지역 › 응용 프로그램에서 설정하십시오.
+Cameo는 매일 업데이트를 확인하고 팝오버에서 스스로 업데이트합니다. 11개 언어를 지원하며 Mac의 언어를 따릅니다. 다른 언어를 고르려면 팝오버의 **언어**를 사용하십시오.
 
 ### 소스에서 빌드
 
@@ -66,7 +62,7 @@ open build/Cameo.app
 2. **+** 버튼으로 동영상을 추가하거나, 팝오버에 동영상을 드롭하거나, Finder에서 **다음으로 열기 → Cameo**를 선택합니다.
 3. 캐릭터를 고르고 원하는 곳으로 드래그합니다.
 
-캐릭터 카드를 오른쪽 클릭하면 삭제할 수 있습니다. 가져온 동영상은 `~/Library/Application Support/Cameo/Characters`에 복사됩니다.
+캐릭터가 많아지면 라이브러리를 열어 검색하거나, 이름을 변경하거나, 제거할 수 있습니다. 가져온 동영상은 `~/Library/Application Support/Cameo/Characters`에 복사됩니다.
 
 ## 캐릭터
 
@@ -84,46 +80,21 @@ npx skills add wquguru/cameo --skill cameo-character
 
 또는 에이전트에게 *"https://github.com/wquguru/cameo/tree/main/skills/cameo-character 에 있는 스킬을 설치해 줘"*라고 말하기만 하면 됩니다. 그런 다음 그린 스크린 영상으로 캐릭터를 만들어 달라고 하거나, AI 동영상 도구로 캐릭터를 생성할 프롬프트를 써 달라고 요청하십시오. 에이전트가 배경을 제거하고 결과를 확인한 뒤 Cameo에 추가합니다.
 
-이미 알파가 있는 영상을 직접 변환하려면:
-
-```bash
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
-# or Apple's built-in tool
-avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
-```
-
-마음에 드는 캐릭터를 만들었다면 [갤러리에 제출](https://github.com/wquguru/cameo/issues/new?template=character.yml)해 주세요.
+마음에 드는 캐릭터를 만들었다면 [갤러리에 업로드](https://wquguru.github.io/cameo/#submit)해 검토를 받아 보세요.
 
 ## 개발
 
 ```bash
-swift build               # debug build
-scripts/build.sh          # release app bundle in build/Cameo.app
-scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
-swift run CameoSample sample.mov                       # a test clip with alpha
-scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # publish a gallery character
+swift build                        # debug build
+scripts/build.sh                   # release app bundle in build/Cameo.app
+swift run CameoSample sample.mov   # a test clip with alpha
 ```
 
-| 경로 | 용도 |
-| --- | --- |
-| `Sources/Cameo` | 앱 본체(AppKit, SwiftUI 팝오버, AVFoundation 재생) |
-| `Sources/CameoSample` | HEVC 알파 샘플 영상을 만드는 CLI |
-| `Sources/CameoIcon` | 앱 아이콘을 렌더링하는 CLI |
-| `design/` | 디자인 참고 파일(브라우저에서 열기) |
-| `gallery/` | 캐릭터 갤러리 사이트, GitHub Pages에 배포 |
-| `skills/cameo-character` | 캐릭터 제작용 에이전트 스킬 |
-
-### 릴리스
-
-```bash
-scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
-```
-
-`release` 워크플로는 태그가 붙은 커밋을 빌드하고, 태그가 `Info.plist`와 일치하는지 확인한 뒤, `.dmg`, `.zip`, `checksums.txt`를 GitHub Releases에 게시합니다.
+프로젝트 구조, 패키징, 릴리스는 [AGENTS.md](AGENTS.md)를 참고하십시오.
 
 ## 기여하기
 
-이슈와 풀 리퀘스트를 환영합니다. Cameo는 의도적으로 작게 유지하고 있으므로, UI를 추가하기 전에 먼저 이슈를 열어 새 기능을 논의해 주세요. 범위와 규칙은 [AGENTS.md](AGENTS.md)를 참고하십시오.
+이슈와 풀 리퀘스트를 환영합니다. Cameo는 의도적으로 작게 유지하고 있으므로, UI를 추가하기 전에 먼저 이슈를 열어 새 기능을 논의해 주세요.
 
 ## 라이선스
 

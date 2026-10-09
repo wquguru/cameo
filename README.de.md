@@ -28,7 +28,7 @@ Cameo spielt ein Video mit Alphakanal in Endlosschleife als frei schwebende Figu
 - **Immer im Vordergrund** — schwebt in jedem Space über allen Fenstern.
 - **Native Formate** — HEVC with Alpha und ProRes 4444 (`.mov`), dekodiert von AVFoundation. Kein FFmpeg, keine mitgelieferten Codecs.
 - **Ressourcenschonend** — pausiert, wenn eine Vollbild-App sie verdeckt oder der Bildschirm im Ruhezustand ist, und begrenzt im Batteriebetrieb auf 30 fps.
-- **Minimal** — ein einziges Menüleisten-Popover: Einblenden/Ausblenden, Figuren, Größe, Beim Anmelden öffnen. Keine Einstellungsfenster, keine Abhängigkeiten.
+- **Minimal** — ein Menüleisten-Popover und eine schlichte Figurenbibliothek. Keine Einstellungen, keine Abhängigkeiten.
 
 ## Voraussetzungen
 
@@ -43,13 +43,9 @@ Lade **`Cameo-<version>-macOS-Universal.dmg`** von [Releases](https://github.com
 
 Die App ist ad-hoc signiert (nicht notarisiert). Beim ersten Start blockiert macOS sie: Öffne **Systemeinstellungen › Datenschutz & Sicherheit** und klicke auf **Dennoch öffnen**, oder führe `xattr -dr com.apple.quarantine /Applications/Cameo.app` aus.
 
-### Updates
+### Updates und Sprachen
 
-Cameo prüft einmal täglich GitHub Releases, oder wenn du im Popover auf **Nach Updates suchen …** klickst. Ist eine neuere Version verfügbar, bekommt das Menüleistensymbol einen bernsteinfarbenen Punkt, und diese Zeile wird zu **Auf x.y.z aktualisieren**: Klick darauf, und Cameo lädt das Release herunter, prüft seine Prüfsumme, ersetzt sich selbst und öffnet sich erneut. Kann es sich nicht selbst ersetzen (zum Beispiel, wenn es nicht im Ordner „Programme“ liegt), öffnet es stattdessen die Release-Seite. **Über Cameo** zeigt die Version und verlinkt auf das Projekt.
-
-### Sprachen
-
-Cameo spricht English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский und Italiano. Es folgt der Sprache deines Mac; um eine andere zu wählen, nutze **Sprache** im Popover oder Systemeinstellungen › Allgemein › Sprache & Region › Programme.
+Cameo sucht täglich nach Updates und aktualisiert sich selbst über das Popover. Es spricht 11 Sprachen und folgt der Sprache deines Mac; eine andere wählst du unter **Sprache** im Popover.
 
 ### Aus dem Quellcode kompilieren
 
@@ -66,7 +62,7 @@ open build/Cameo.app
 2. Füge ein Video mit **+** hinzu, leg es auf dem Popover ab oder wähle im Finder **Öffnen mit → Cameo**.
 3. Wähle eine Figur und zieh sie an die gewünschte Stelle.
 
-Klicke mit der rechten Maustaste auf die Karte einer Figur, um sie zu löschen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert.
+Sobald du mehr als eine Handvoll Figuren hast, öffne die Bibliothek, um sie zu suchen, umzubenennen oder zu entfernen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert.
 
 ## Figuren
 
@@ -84,46 +80,21 @@ npx skills add wquguru/cameo --skill cameo-character
 
 Oder sag deinem Agent einfach: *„Installiere den Skill unter https://github.com/wquguru/cameo/tree/main/skills/cameo-character“*. Bitte ihn dann, aus einem Greenscreen-Clip eine Figur zu machen oder den Prompt zu schreiben, um eine mit einem KI-Videotool zu generieren. Er stellt den Hintergrund frei, prüft das Ergebnis und fügt die Figur zu Cameo hinzu.
 
-Von Hand, für einen Clip, der bereits einen Alphakanal hat:
-
-```bash
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
-# or Apple's built-in tool
-avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
-```
-
-Eine gelungene Figur erstellt? [Reiche sie für die Galerie ein](https://github.com/wquguru/cameo/issues/new?template=character.yml).
+Eine gelungene Figur erstellt? [Lade sie in die Galerie hoch](https://wquguru.github.io/cameo/#submit), damit wir sie prüfen können.
 
 ## Entwicklung
 
 ```bash
-swift build               # debug build
-scripts/build.sh          # release app bundle in build/Cameo.app
-scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
-swift run CameoSample sample.mov                       # a test clip with alpha
-scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # publish a gallery character
+swift build                        # debug build
+scripts/build.sh                   # release app bundle in build/Cameo.app
+swift run CameoSample sample.mov   # a test clip with alpha
 ```
 
-| Pfad | Zweck |
-| --- | --- |
-| `Sources/Cameo` | Die App (AppKit, SwiftUI-Popover, Wiedergabe mit AVFoundation) |
-| `Sources/CameoSample` | CLI, das einen HEVC-Alpha-Beispielclip schreibt |
-| `Sources/CameoIcon` | CLI, das das App-Symbol rendert |
-| `design/` | Design-Referenzdateien (im Browser öffnen) |
-| `gallery/` | Website der Figurengalerie, auf GitHub Pages bereitgestellt |
-| `skills/cameo-character` | Agent-Skill zum Erstellen von Figuren |
-
-### Releases veröffentlichen
-
-```bash
-scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
-```
-
-Der `release`-Workflow kompiliert den getaggten Commit, prüft, ob der Tag zu `Info.plist` passt, und veröffentlicht die `.dmg`, das `.zip` und `checksums.txt` auf GitHub Releases.
+Projektstruktur, Packaging und Releases findest du in [AGENTS.md](AGENTS.md).
 
 ## Mitwirken
 
-Issues und Pull Requests sind willkommen. Cameo ist bewusst klein gehalten, daher eröffne bitte zuerst ein Issue, um neue Funktionen zu besprechen, bevor du UI hinzufügst. Umfang und Konventionen findest du in [AGENTS.md](AGENTS.md).
+Issues und Pull Requests sind willkommen. Cameo ist bewusst klein gehalten, daher eröffne bitte zuerst ein Issue, um neue Funktionen zu besprechen, bevor du UI hinzufügst.
 
 ## Lizenz
 

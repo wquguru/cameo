@@ -28,7 +28,7 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 - **Always on top** — floats above all windows on every Space.
 - **Native formats** — HEVC with Alpha and ProRes 4444 (`.mov`), decoded by AVFoundation. No FFmpeg, no bundled codecs.
 - **Light on resources** — pauses when hidden by a full-screen app or while the screen sleeps, and caps at 30 fps on battery.
-- **Minimal** — one menu bar popover: show/hide, characters, size, launch at login. No settings windows, no dependencies.
+- **Minimal** — a menu bar popover and a plain character library. No settings, no dependencies.
 
 ## Requirements
 
@@ -43,13 +43,9 @@ Download **`Cameo-<version>-macOS-Universal.dmg`** from [Releases](https://githu
 
 The app is ad-hoc signed (not notarized). On first launch macOS blocks it: open **System Settings › Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Cameo.app`.
 
-### Updates
+### Updates and languages
 
-Cameo checks GitHub Releases once a day, or when you click **Check for Updates…** in the popover. When a newer version is out, the menu bar icon gets an amber dot and that row turns into **Update to x.y.z**: click it and Cameo downloads the release, verifies its checksum, replaces itself and reopens. If it can't replace itself (for example when it isn't in Applications), it opens the release page instead. **About Cameo** shows the version and links to the project.
-
-### Languages
-
-Cameo speaks English, 简体中文, 繁體中文, 日本語, 한국어, Español, Français, Deutsch, Português (Brasil), Русский and Italiano. It follows your Mac's language; to pick another, use **Language** in the popover, or System Settings › General › Language & Region › Applications.
+Cameo checks for updates daily and updates itself from the popover. It speaks 11 languages and follows your Mac's; pick another under **Language** in the popover.
 
 ### Build from source
 
@@ -66,7 +62,7 @@ open build/Cameo.app
 2. Add a video with **+**, by dropping it onto the popover, or via **Open With → Cameo** in Finder.
 3. Pick a character and drag the figure wherever you like.
 
-Right-click a character card to delete it. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
+With more than a handful of characters, open the library to search, rename or remove them. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
 
 ## Characters
 
@@ -84,46 +80,21 @@ npx skills add wquguru/cameo --skill cameo-character
 
 Or just tell your agent: *"Install the skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-character"*. Then ask it to make a character from a green-screen clip, or to write the prompt for generating one with an AI video tool. It keys out the background, checks the result and adds it to Cameo.
 
-By hand, for a clip that already has alpha:
-
-```bash
-ffmpeg -i in.mov -c:v hevc_videotoolbox -alpha_quality 0.75 -pix_fmt bgra -tag:v hvc1 -b:v 6M out.mov
-# or Apple's built-in tool
-avconvert -s in.mov -o out.mov -p PresetHEVCHighestQualityWithAlpha
-```
-
-Made one you like? [Submit it to the gallery](https://github.com/wquguru/cameo/issues/new?template=character.yml).
+Made one you like? [Upload it to the gallery](https://wquguru.github.io/cameo/#submit) for review.
 
 ## Development
 
 ```bash
-swift build               # debug build
-scripts/build.sh          # release app bundle in build/Cameo.app
-scripts/package.sh        # universal .dmg, .zip and checksums.txt in build/
-swift run CameoSample sample.mov                       # a test clip with alpha
-scripts/gallery-add.sh in.mov <id> "<name>" "@author" animal  # publish a gallery character
+swift build                        # debug build
+scripts/build.sh                   # release app bundle in build/Cameo.app
+swift run CameoSample sample.mov   # a test clip with alpha
 ```
 
-| Path | Purpose |
-| --- | --- |
-| `Sources/Cameo` | The app (AppKit, SwiftUI popover, AVFoundation playback) |
-| `Sources/CameoSample` | CLI that writes a sample HEVC-alpha clip |
-| `Sources/CameoIcon` | CLI that renders the app icon |
-| `design/` | Design reference files (open in a browser) |
-| `gallery/` | Character gallery site, deployed to GitHub Pages |
-| `skills/cameo-character` | Agent skill for making characters |
-
-### Releasing
-
-```bash
-scripts/release.sh 0.3.0   # bumps Info.plist, commits, tags v0.3.0 and pushes
-```
-
-The `release` workflow builds the tagged commit, checks the tag matches `Info.plist`, and publishes the `.dmg`, the `.zip` and `checksums.txt` on GitHub Releases.
+See [AGENTS.md](AGENTS.md) for the project layout, packaging and releases.
 
 ## Contributing
 
-Issues and pull requests are welcome. Cameo is deliberately small, so please open an issue to discuss new features before adding UI. See [AGENTS.md](AGENTS.md) for scope and conventions.
+Issues and pull requests are welcome. Cameo is deliberately small, so please open an issue to discuss new features before adding UI.
 
 ## License
 

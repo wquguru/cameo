@@ -46,7 +46,7 @@ CAMEO_OPEN_LIBRARY=1 CAMEO_DATA_DIR=/tmp/lib build/Cameo.app/Contents/MacOS/Came
 build/Cameo.app/Contents/MacOS/Cameo -AppleLanguages '(ja)'  # try another language for one run
 ```
 
-Release: `scripts/release.sh <x.y.z>` (clean `main` only) bumps `Resources/Info.plist`, commits, tags `v<x.y.z>` and pushes; `.github/workflows/release.yml` builds and publishes the zip to GitHub Releases. `UpdateChecker` polls `releases/latest` daily (and on "检查更新…") and marks a newer release with an amber dot on the menu bar icon; it stays silent while the repository is private (the API returns 404). Clicking the update row runs `Updater`: download the release zip, verify it against `checksums.txt`, swap the bundle after quitting and relaunch; it falls back to the release page when the app can't be replaced. `CAMEO_UPDATE_FEED=file:///…/release.json` points both at a local fake release for testing.
+Release: `scripts/release.sh <x.y.z>` (clean `main` only) bumps `Resources/Info.plist`, commits, tags `v<x.y.z>` and pushes; `.github/workflows/release.yml` builds the tag, checks it matches `Info.plist` and publishes the `.dmg`, `.zip` and `checksums.txt` to GitHub Releases. `UpdateChecker` polls `releases/latest` daily (and on "检查更新…") and marks a newer release with an amber dot on the menu bar icon; it stays silent while the repository is private (the API returns 404). Clicking the update row runs `Updater`: download the release zip, verify it against `checksums.txt`, swap the bundle after quitting and relaunch; it falls back to the release page when the app can't be replaced. `CAMEO_UPDATE_FEED=file:///…/release.json` points both at a local fake release for testing.
 
 Only Command Line Tools are required (no Xcode project). Do not add an `.xcodeproj`.
 
