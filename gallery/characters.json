@@ -5,6 +5,18 @@
     "bytes" : 304194,
     "category" : "animal",
     "duration" : 4,
+    "id" : "chaofei-test",
+    "license" : "CC BY 4.0",
+    "name" : "Chaofei test",
+    "poster" : "posters/chaofei-test.png",
+    "video" : "https://cameo.wqu.guru/characters/chaofei-test.mov"
+  },
+  {
+    "author" : "@wquguru",
+    "authorURL" : "https://x.com/wquguru",
+    "bytes" : 304194,
+    "category" : "animal",
+    "duration" : 4,
     "id" : "chaofei",
     "license" : "CC BY 4.0",
     "name" : "Chaofei",
