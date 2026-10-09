@@ -157,6 +157,31 @@
   .flow strong { display: block; font-size: 15px; }
   .flow span { font-size: 14px; color: #5A5A5F; }
 
+  .flow { margin-top: 20px; }
+  .upload { background: #FFFFFF; border-radius: 20px; box-shadow: 0 0 0 1px var(--line); padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .drop { position: relative; border: 2px dashed #E3DED5; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; cursor: pointer; transition: border-color .2s ease, background-color .2s ease; }
+  .drop:hover, .drop.over { border-color: var(--amber); background: #FFFBF4; }
+  .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--hero); color: #B26A00; display: flex; align-items: center; justify-content: center; }
+  .drop strong { font-size: 15px; word-break: break-all; }
+  .drop span { font-size: 13px; color: var(--muted); }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .facts span { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; background: #EAF6EC; color: #1E6B2E; }
+  .facts span.bad { background: #FDECEC; color: #A3261D; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .fields label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .fields input, .fields select { height: 42px; padding: 0 12px; border: 1px solid #DDD9D2; border-radius: 10px; font: inherit; font-weight: 400; color: var(--ink); background: #FFFFFF; }
+  .fields input:focus, .fields select:focus { outline: 2px solid var(--amber); outline-offset: 1px; border-color: transparent; }
+  .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); cursor: pointer; }
+  .agree input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: #E89A1E; flex: none; }
+  .upload .btn-dark:disabled { background: #C7C7CC; cursor: not-allowed; }
+  .progress { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .2s ease; }
+  .status { margin: 0; font-size: 14px; line-height: 1.5; min-height: 1px; }
+  .status.ok { color: #1E6B2E; }
+  .status.err { color: #A3261D; }
+  .alt { margin: 0; font-size: 13px; color: var(--muted); }
+
   /* Add-to-Cameo dialog */
   dialog { border: 0; border-radius: 20px; padding: 28px; width: min(420px, calc(100vw - 32px)); box-shadow: 0 30px 80px rgba(0,0,0,.25); color: var(--ink); }
   dialog::backdrop { background: rgba(29,29,31,.35); backdrop-filter: blur(2px); }
@@ -246,17 +271,42 @@
         <li data-t="req3"></li>
         <li data-t="req4"></li>
       </ul>
-      <div class="submit-cta">
-        <a class="btn btn-dark" href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="subButton"></a>
-        <small data-t="subNote"></small>
-      </div>
+      <ol class="flow">
+        <li><strong data-t="flow1"></strong><span data-t="flow1b"></span> <a href="https://github.com/wquguru/cameo#make-a-character" data-t="flowGuide"></a></li>
+        <li><strong data-t="flow2"></strong><span data-t="flow2b"></span></li>
+        <li><strong data-t="flow4"></strong><span data-t="flow4b"></span></li>
+      </ol>
     </div>
-    <ol class="flow">
-      <li><strong data-t="flow1"></strong><span data-t="flow1b"></span> <a href="https://github.com/wquguru/cameo#make-a-character" data-t="flowGuide"></a></li>
-      <li><strong data-t="flow2"></strong><span data-t="flow2b"></span></li>
-      <li><strong data-t="flow3"></strong><span data-t="flow3b"></span></li>
-      <li><strong data-t="flow4"></strong><span data-t="flow4b"></span></li>
-    </ol>
+
+    <form class="upload" id="upload" novalidate>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept=".mov,video/quicktime">
+        <span class="drop-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V3M5 6l3-3 3 3M3 13h10"/></svg>
+        </span>
+        <strong id="drop-title" data-t="dropTitle"></strong>
+        <span id="drop-hint" data-t="dropHint"></span>
+      </label>
+      <div class="facts" id="facts" hidden></div>
+      <div class="fields">
+        <label><span data-t="fName"></span><input id="f-name" maxlength="60" required autocomplete="off"></label>
+        <label><span data-t="fAuthor"></span><input id="f-author" maxlength="60" required placeholder="@you" autocomplete="off"></label>
+        <label><span data-t="fCategory"></span>
+          <select id="f-category" required>
+            <option value="animal" data-t="animalOne"></option>
+            <option value="person" data-t="personOne"></option>
+            <option value="other" data-t="other"></option>
+          </select>
+        </label>
+      </div>
+      <label class="agree"><input type="checkbox" id="f-own"><span data-t="agreeOwn"></span></label>
+      <label class="agree"><input type="checkbox" id="f-license"><span data-t="agreeLicense"></span></label>
+      <div id="captcha"></div>
+      <button class="btn btn-dark" type="submit" id="send" disabled data-t="send"></button>
+      <div class="progress" id="progress" hidden><i id="bar"></i></div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <p class="alt"><span data-t="altText"></span> <a href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="altLink"></a></p>
+    </form>
   </section>
 
   <section class="steps" aria-label="How it works">
@@ -280,7 +330,9 @@
   </div>
 </footer>
 
-<script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script type="module">
+  import { inspectFile, problems } from "./mov.js";
   const strings = {
     en: {
       navCharacters: "Characters", navMake: "Make your own", navSubmit: "Submit", navDownload: "Download for Mac",
@@ -303,7 +355,7 @@
       subLede: "Made something that would look good on a desktop? Send it in and it can appear here with your name on it.",
       req1: "A .mov in HEVC with Alpha or ProRes 4444, with a transparent background",
       req2: "2 to 10 seconds that loop without a visible jump",
-      req3: "At most 1080 px tall and under 10 MB",
+      req3: "At most 1080 px tall; under 30 MB here (10 MB through GitHub)",
       req4: "Made by you, or you hold the rights; it is published under CC BY 4.0",
       subButton: "Open the submission form", subNote: "Needs a free GitHub account.",
       flow1: "Make it", flow1b: "Film on a green screen or start from an animation, then export with transparency.", flowGuide: "Guide",
@@ -314,6 +366,20 @@
       sentTitle: "Sent to Cameo", sentBody: "The character is downloading. Find it in the Cameo menu bar popover.",
       missTitle: "Cameo didn't open", missBody: "Install Cameo 0.3 or later and click Add to Cameo again, or download the .mov and drop it on Cameo's popover.",
       getApp: "Download Cameo", getMov: "Download .mov", close: "Close",
+      animalOne: "Animal", personOne: "Person",
+      dropTitle: "Choose a .mov or drop it here", dropHint: "Up to 30 MB. It's checked right here before uploading.",
+      fName: "Character name", fAuthor: "Credit as", fCategory: "Category",
+      agreeOwn: "I made this character (drawn, filmed or AI-generated by me) and it uses no one else's IP.",
+      agreeLicense: "I agree to publish it under CC BY 4.0.",
+      send: "Upload for review", uploading: "Uploading…",
+      altText: "Prefer GitHub?", altLink: "Use the submission form ›",
+      ok: "transparent", seconds: "s",
+      pNo_alpha: "no transparent background", pLength: "should be 2–10 s", pHeight: "taller than 1080 px", pToo_large: "over 30 MB", pNot_mov: "not a QuickTime .mov",
+      done: "Thanks! It's in the review queue. Once approved it appears here with your credit.",
+      eCaptcha: "The robot check failed or expired. Please try again.", eLimit_you: "You've reached today's upload limit. Please try again tomorrow.",
+      eLimit_all: "Uploads are paused for today. Please try again tomorrow.", eToo_large: "The file is over 30 MB.",
+      eInvalid: "The video doesn't meet the requirements:", eFields: "Please fill in every field and tick both boxes.",
+      eNetwork: "The upload didn't go through. Check your connection and try again.",
     },
     zh: {
       navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
@@ -336,7 +402,7 @@
       subLede: "做了一个放在桌面上会很好看的角色？投稿后，它会署上你的名字出现在这里。",
       req1: "HEVC with Alpha 或 ProRes 4444 编码的 .mov，背景透明",
       req2: "2 到 10 秒，循环时没有明显跳变",
-      req3: "高度不超过 1080 像素，文件小于 10 MB",
+      req3: "高度不超过 1080 像素；在这里上传小于 30 MB（GitHub 表单为 10 MB）",
       req4: "由你创作或你拥有版权；将以 CC BY 4.0 发布",
       subButton: "打开投稿表单", subNote: "需要一个免费的 GitHub 账号。",
       flow1: "制作", flow1b: "用绿幕拍摄或从动画开始，导出为带透明通道的视频。", flowGuide: "制作指南",
@@ -347,6 +413,20 @@
       sentTitle: "已发送到 Cameo", sentBody: "角色正在下载，稍后在 Cameo 的菜单栏弹窗里就能看到。",
       missTitle: "Cameo 没有打开", missBody: "请安装 Cameo 0.3 或更高版本后再点一次「添加到 Cameo」；也可以下载 .mov，拖到 Cameo 的弹窗上。",
       getApp: "下载 Cameo", getMov: "下载 .mov", close: "关闭",
+      animalOne: "动物", personOne: "人物",
+      dropTitle: "选择或拖入一个 .mov 文件", dropHint: "最大 30 MB，上传前会先在这里检查。",
+      fName: "角色名", fAuthor: "署名", fCategory: "分类",
+      agreeOwn: "角色由我本人制作（手绘、拍摄或 AI 生成），不含他人 IP。",
+      agreeLicense: "我同意以 CC BY 4.0 发布。",
+      send: "上传并提交审核", uploading: "正在上传…",
+      altText: "习惯用 GitHub？", altLink: "使用投稿表单 ›",
+      ok: "透明背景", seconds: "秒",
+      pNo_alpha: "没有透明背景", pLength: "时长应为 2–10 秒", pHeight: "高度超过 1080 像素", pToo_large: "超过 30 MB", pNot_mov: "不是 QuickTime .mov",
+      done: "谢谢！已进入审核队列，通过后会署上你的名字出现在这里。",
+      eCaptcha: "人机验证失败或已过期，请重试。", eLimit_you: "你今天的上传次数已用完，请明天再试。",
+      eLimit_all: "今天的上传已暂停，请明天再试。", eToo_large: "文件超过 30 MB。",
+      eInvalid: "视频不符合要求：", eFields: "请填写所有信息并勾选两项确认。",
+      eNetwork: "上传没有成功，请检查网络后重试。",
     },
   };
   const categories = ["animal", "person", "other"];
@@ -427,6 +507,7 @@
     document.title = lang === "zh" ? "Cameo 角色库" : "Cameo Characters";
     document.querySelectorAll("[data-t]").forEach(node => { node.textContent = t[node.dataset.t]; });
     document.getElementById("lang").textContent = t.switch;
+    if (typeof chosenName !== "undefined" && chosenName) document.getElementById("drop-title").textContent = chosenName;
 
     // Tabs: All plus each category that has characters.
     const present = categories.filter(k => characters.some(c => c.category === k));
@@ -465,11 +546,120 @@
     render();
   });
 
+  // Upload form: the file is checked here first (same rules as the server), then sent as the
+  // raw request body to the upload Worker, with the fields in headers.
+  const ENDPOINT = "https://cameo-upload.wqu.guru/submit";
+  const MAX_BYTES = 30 * 1024 * 1024;
+  const testKey = location.hostname === "localhost" && new URLSearchParams(location.search).has("testkey");
+  const SITEKEY = testKey ? "1x00000000000000000000AA" : "0x4AAAAAAFSZ5BiyrjAjn7a0";
+  const $ = id => document.getElementById(id);
+  const cap = code => code.charAt(0).toUpperCase() + code.slice(1);
+  let chosen = null, chosenName = "", token = "";
+
+  function showFacts(chips) {
+    $("facts").hidden = !chips.length;
+    $("facts").replaceChildren(...chips.map(([text, bad]) => el("span", { className: bad ? "bad" : "", textContent: text })));
+  }
+
+  async function choose(file) {
+    const t = strings[lang];
+    chosen = null;
+    chosenName = file.name;
+    $("drop-title").textContent = file.name;
+    status("");
+    let found = [], info = null;
+    if (!/\.mov$/i.test(file.name)) found = ["not_mov"];
+    else if (file.size > MAX_BYTES) found = ["too_large"];
+    else {
+      try {
+        info = inspectFile(new Uint8Array(await file.arrayBuffer()));
+        found = problems(info, file.size);
+      } catch { found = ["not_mov"]; }
+    }
+    const chips = found.map(code => [t["p" + cap(code)], true]);
+    if (!found.length) {
+      chips.push([`✓ ${t.ok}`], [`${info.duration} ${t.seconds}`], [`${info.width} × ${info.height}`], [size(file.size)]);
+      chosen = file;
+    }
+    showFacts(chips);
+    update();
+  }
+
+  function update() {
+    $("send").disabled = !(chosen && token && $("f-name").value.trim() && $("f-author").value.trim()
+      && $("f-own").checked && $("f-license").checked);
+  }
+
+  function status(text, kind) {
+    $("status").textContent = text;
+    $("status").className = "status" + (kind ? " " + kind : "");
+  }
+
+  $("file").addEventListener("change", e => { if (e.target.files[0]) choose(e.target.files[0]); });
+  ["dragenter", "dragover"].forEach(type => $("drop").addEventListener(type, () => $("drop").classList.add("over")));
+  ["dragleave", "drop"].forEach(type => $("drop").addEventListener(type, () => $("drop").classList.remove("over")));
+  ["f-name", "f-author", "f-category", "f-own", "f-license"].forEach(id => $(id).addEventListener("input", update));
+  ["f-own", "f-license"].forEach(id => $(id).addEventListener("change", update));
+
+  function renderCaptcha() {
+    // The widget's script defines window.turnstile; the container must not use that id.
+    if (typeof window.turnstile?.render !== "function") return setTimeout(renderCaptcha, 300);
+    window.turnstile.render("#captcha", {
+      sitekey: SITEKEY, language: lang === "zh" ? "zh-cn" : "en",
+      callback: value => { token = value; update(); },
+      "expired-callback": () => { token = ""; update(); },
+      "error-callback": () => { token = ""; update(); },
+    });
+  }
+  $("upload").addEventListener("submit", event => {
+    event.preventDefault();
+    const t = strings[lang];
+    if ($("send").disabled) return status(t.eFields, "err");
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", ENDPOINT);
+    xhr.setRequestHeader("Content-Type", "video/quicktime");
+    xhr.setRequestHeader("X-Turnstile", token);
+    xhr.setRequestHeader("X-Name", encodeURIComponent($("f-name").value.trim()));
+    xhr.setRequestHeader("X-Author", encodeURIComponent($("f-author").value.trim()));
+    xhr.setRequestHeader("X-Category", $("f-category").value);
+    xhr.setRequestHeader("X-Rights", "yes");
+    xhr.upload.onprogress = e => { if (e.lengthComputable) $("bar").style.width = `${Math.round(e.loaded / e.total * 100)}%`; };
+    const finish = () => {
+      $("progress").hidden = true;
+      $("bar").style.width = "0";
+      token = "";
+      if (typeof window.turnstile?.reset === "function") window.turnstile.reset("#captcha");
+      update();
+    };
+    xhr.onload = () => {
+      let body = {};
+      try { body = JSON.parse(xhr.responseText); } catch {}
+      if (xhr.status === 200 && body.ok) {
+        status(t.done, "ok");
+        $("upload").reset();
+        chosen = null; chosenName = "";
+        $("drop-title").textContent = t.dropTitle;
+        showFacts([]);
+      } else if (body.error === "invalid") {
+        status(`${t.eInvalid} ${(body.problems || []).map(p => t["p" + cap(p)] || p).join(", ")}`, "err");
+      } else {
+        status(t["e" + cap(body.error || "network")] || t.eNetwork, "err");
+      }
+      finish();
+    };
+    xhr.onerror = () => { status(t.eNetwork, "err"); finish(); };
+    $("send").disabled = true;
+    $("progress").hidden = false;
+    status(t.uploading);
+    xhr.send(chosen);
+  });
+
   render();
   fetch("characters.json", { cache: "no-cache" })
     .then(r => r.json())
     .then(list => { characters = list; render(); })
     .catch(() => {});
+  renderCaptcha();
 </script>
 </body>
 </html>
