@@ -11,7 +11,6 @@ final class PlayerView: NSView {
 
     private let player = AVQueuePlayer()
     private var looper: AVPlayerLooper?
-    private var output: AVPlayerItemVideoOutput?
     private var itemObservation: NSKeyValueObservation?
     private var link: CADisplayLink?
     private var frame_: CVPixelBuffer?
@@ -30,7 +29,7 @@ final class PlayerView: NSView {
         player.isMuted = true
         player.preventsDisplaySleepDuringVideoPlayback = false
         itemObservation = player.observe(\.currentItem, options: [.initial, .new]) { [weak self] player, _ in
-            MainActor.assumeIsolated { self?.attachOutput(to: player.currentItem) }
+            MainActor.assumeIsolated { self?.attachOutputs() }
         }
     }
 
@@ -44,6 +43,7 @@ final class PlayerView: NSView {
         layer?.contents = nil
         guard let url else { return }
         looper = AVPlayerLooper(player: player, templateItem: AVPlayerItem(url: url))
+        attachOutputs()
     }
 
     func setPlaying(_ playing: Bool) {
@@ -53,14 +53,18 @@ final class PlayerView: NSView {
 
     // MARK: Frames
 
-    private func attachOutput(to item: AVPlayerItem?) {
-        guard let item else { return }
-        let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferIOSurfacePropertiesKey as String: [String: Any](),
-        ])
-        item.add(output)
-        self.output = output
+    /// Each looped replica item needs its own output; attaching ahead of time keeps the loop seamless.
+    private func attachOutputs() {
+        for item in player.items() where item.outputs.isEmpty {
+            item.add(AVPlayerItemVideoOutput(pixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferIOSurfacePropertiesKey as String: [String: Any](),
+            ]))
+        }
+    }
+
+    private var output: AVPlayerItemVideoOutput? {
+        player.currentItem?.outputs.first as? AVPlayerItemVideoOutput
     }
 
     override func viewDidMoveToWindow() {

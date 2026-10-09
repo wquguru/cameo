@@ -14,6 +14,10 @@ scripts/build.sh
 open build/Cameo.app
 ```
 
+Use: click the figure-in-a-screen icon in the menu bar, add a video with `+` (or drop it onto the popover, or "Open With → Cameo" in Finder), pick a character, drag the figure anywhere. Right-click a card to delete it.
+
+Release zip: `scripts/package.sh` → `build/Cameo-<version>.zip` (ad-hoc signed; on first launch right-click → Open).
+
 ## Make a compatible video
 
 ```bash
