@@ -45,6 +45,13 @@
   img { display: block; }
   .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
   .icon { width: 1em; height: 1em; flex: none; }
+  /* Links off the site open in a new tab (see externalLinks); text links show an arrow for it. */
+  a[target="_blank"]:not(.btn)::after {
+    content: ""; display: inline-block; width: .62em; height: .62em; margin-left: .3em; vertical-align: .08em;
+    background: currentColor; opacity: .55;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M3 1.5h5.5V7M8.5 1.5 1.5 8.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
 
   /* Buttons */
   .btn {
@@ -279,7 +286,7 @@
       navCharacters: "Characters", navMake: "Make your own", navSubmit: "Submit", navDownload: "Download for Mac",
       title: "Free characters for your Mac desktop",
       lede: "Pick one, click Add to Cameo, and it lives on top of your windows. Transparent, click-through and light on battery.",
-      download: "Download for macOS", make: "Make your own ›",
+      download: "Download for macOS", make: "Make your own",
       requirements: "macOS 14+ · Apple silicon & Intel · Free and open source",
       all: "All", animal: "Animals", person: "People", other: "Other",
       count: n => n === 1 ? "1 character" : `${n} characters`,
@@ -299,7 +306,7 @@
       req3: "At most 1080 px tall and under 10 MB",
       req4: "Made by you, or you hold the rights; it is published under CC BY 4.0",
       subButton: "Open the submission form", subNote: "Needs a free GitHub account.",
-      flow1: "Make it", flow1b: "Film on a green screen or start from an animation, then export with transparency.", flowGuide: "Guide ›",
+      flow1: "Make it", flow1b: "Film on a green screen or start from an animation, then export with transparency.", flowGuide: "Guide",
       flow2: "Try it in Cameo", flow2b: "Drop the .mov on Cameo's menu bar popover and check it loops cleanly.",
       flow3: "Submit", flow3b: "Fill in the form, attach the .mov and say how to credit you.",
       flow4: "Review", flow4b: "Each submission is checked by hand; once approved it appears here.",
@@ -312,7 +319,7 @@
       navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
       title: "给你的 Mac 桌面，添一位免费角色",
       lede: "挑一个，点「添加到 Cameo」，它就会待在你的窗口上面。背景透明、点击穿透，也很省电。",
-      download: "下载 macOS 版", make: "制作自己的角色 ›",
+      download: "下载 macOS 版", make: "制作自己的角色",
       requirements: "macOS 14 及以上 · Apple 芯片与 Intel 通用 · 免费开源",
       all: "全部", animal: "动物", person: "人物", other: "其他",
       count: n => `共 ${n} 个角色`,
@@ -332,7 +339,7 @@
       req3: "高度不超过 1080 像素，文件小于 10 MB",
       req4: "由你创作或你拥有版权；将以 CC BY 4.0 发布",
       subButton: "打开投稿表单", subNote: "需要一个免费的 GitHub 账号。",
-      flow1: "制作", flow1b: "用绿幕拍摄或从动画开始，导出为带透明通道的视频。", flowGuide: "制作指南 ›",
+      flow1: "制作", flow1b: "用绿幕拍摄或从动画开始，导出为带透明通道的视频。", flowGuide: "制作指南",
       flow2: "在 Cameo 里试试", flow2b: "把 .mov 拖到 Cameo 的菜单栏弹窗上，看看循环是否自然。",
       flow3: "提交", flow3b: "填写表单，附上 .mov，并写明署名方式。",
       flow4: "审核", flow4b: "每个投稿都会人工检查，通过后就会出现在这里。",
@@ -364,7 +371,7 @@
 
   function card(c, t) {
     const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
-    const author = c.authorURL ? el("a", { href: c.authorURL, target: "_blank", rel: "noopener", textContent: c.author }) : c.author;
+    const author = c.authorURL ? el("a", { href: c.authorURL, textContent: c.author }) : c.author;
     const facts = [c.duration ? `${Math.round(c.duration)} s` : "", size(c.bytes)].filter(Boolean).join(" · ");
     const stage = el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" }));
     if (c.category && t[c.category]) stage.append(el("span", { className: "chip tl", textContent: t[c.category] }));
@@ -389,6 +396,7 @@
         document.getElementById("opening-body").textContent = body;
         document.getElementById("opening-spinner").hidden = !spinning;
         document.getElementById("opening-actions").replaceChildren(...actions);
+        externalLinks();
       };
       const close = el("button", { className: "btn btn-soft btn-sm", type: "button", textContent: t.close });
       close.addEventListener("click", () => dialog.close());
@@ -439,6 +447,16 @@
       el("span", { textContent: t.submitBody }),
       el("em", { textContent: t.submitLink }));
     document.getElementById("grid").replaceChildren(...shown.map(c => card(c, t)), submit);
+    externalLinks();
+  }
+
+  /** Opens links to other sites in a new tab, so the gallery stays open behind them. */
+  function externalLinks() {
+    document.querySelectorAll('a[href^="http"]').forEach(a => {
+      if (new URL(a.href).host === location.host) return;
+      a.target = "_blank";
+      a.rel = "noopener";
+    });
   }
 
   document.getElementById("lang").addEventListener("click", () => {
