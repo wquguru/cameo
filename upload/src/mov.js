@@ -73,7 +73,7 @@ export function inspectMoov(bytes) {
 export function problems(info, bytes) {
   const list = [];
   if (info.depth !== 32) list.push("no_alpha");
-  if (info.duration < 2 || info.duration > 10) list.push("length");
+  if (!(info.duration > 0) || info.duration > 10) list.push("length");
   if (info.height > 1080) list.push("height");
   if (bytes > 20 * 1024 * 1024) list.push("too_large");
   return list;

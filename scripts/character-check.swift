@@ -15,7 +15,8 @@ struct Report: Encodable {
     var problems: [String] = []
 }
 
-let limits = (minSeconds: 2.0, maxSeconds: 10.0, maxHeight: 1080, maxBytes: 10 * 1024 * 1024)
+// maxBytes matches website uploads; the GitHub form has its own 10 MB attachment limit.
+let limits = (maxSeconds: 10.0, maxHeight: 1080, maxBytes: 20 * 1024 * 1024)
 
 guard CommandLine.arguments.count == 2 else {
     print("usage: swift scripts/character-check.swift <video.mov>")
@@ -47,14 +48,14 @@ report.duration = ((try? await asset.load(.duration)).map(CMTimeGetSeconds) ?? 0
 if !report.alpha {
     report.problems.append("No transparent background (needs HEVC with Alpha or ProRes 4444). 没有透明背景（需要 HEVC with Alpha 或 ProRes 4444）。")
 }
-if report.duration < limits.minSeconds || report.duration > limits.maxSeconds {
-    report.problems.append("Length is \(report.duration) s; it should be 2–10 s. 时长 \(report.duration) 秒，应为 2–10 秒。")
+if report.duration <= 0 || report.duration > limits.maxSeconds {
+    report.problems.append("Length is \(report.duration) s; at most 10 s. 时长 \(report.duration) 秒，最长 10 秒。")
 }
 if report.height > limits.maxHeight {
     report.problems.append("Height is \(report.height) px; at most 1080. 高度 \(report.height) 像素，最多 1080。")
 }
 if report.bytes > limits.maxBytes {
-    report.problems.append("File is \(report.bytes / 1024 / 1024) MB; under 10 MB please. 文件 \(report.bytes / 1024 / 1024) MB，需小于 10 MB。")
+    report.problems.append("File is \(report.bytes / 1024 / 1024) MB; under 20 MB please. 文件 \(report.bytes / 1024 / 1024) MB，需小于 20 MB。")
 }
 report.ok = report.problems.isEmpty
 print(String(data: try! JSONEncoder().encode(report), encoding: .utf8)!)

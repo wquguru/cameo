@@ -35,7 +35,7 @@ body:
     id: video
     attributes:
       label: Video / 视频
-      description: "Drag your .mov here: HEVC with Alpha or ProRes 4444, 2–10 s, loops cleanly, at most 1080 px tall, under 10 MB. A bot checks it and replies. 把 .mov 拖到这里：HEVC with Alpha 或 ProRes 4444，2–10 秒、可无缝循环、高度不超过 1080 像素、小于 10 MB。机器人会自动检查并回复。"
+      description: "Drag your .mov here: HEVC with Alpha or ProRes 4444, up to 10 s, loops cleanly, at most 1080 px tall, under 10 MB. A bot checks it and replies. 把 .mov 拖到这里：HEVC with Alpha 或 ProRes 4444，最长 10 秒、可无缝循环、高度不超过 1080 像素、小于 10 MB。机器人会自动检查并回复。"
     validations:
       required: true
   - type: checkboxes
