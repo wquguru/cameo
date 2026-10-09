@@ -582,7 +582,13 @@
         found = problems(info, file.size);
       } catch { found = ["not_mov"]; }
     }
-    const chips = found.map(code => [t["p" + cap(code)], true]);
+    // Show the measured value next to each problem, so a wrong verdict is easy to spot.
+    const measured = {
+      length: info && `${info.duration} ${t.seconds}`,
+      height: info && `${info.height} px`,
+      too_large: size(file.size),
+    };
+    const chips = found.map(code => [measured[code] ? `${t["p" + cap(code)]} (${measured[code]})` : t["p" + cap(code)], true]);
     if (!found.length) {
       chips.push([`✓ ${t.ok}`], [`${info.duration} ${t.seconds}`], [`${info.width} × ${info.height}`], [size(file.size)]);
       chosen = file;

@@ -23,6 +23,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # Pages lets browsers cache files for 10 minutes; version the checker the page imports
+      # so a new page never runs with an old mov.js.
+      - name: Version the page's scripts
+        run: sed -i "s|from \"./mov.js\"|from \"./mov.js?v=${GITHUB_SHA::12}\"|" gallery/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: gallery
