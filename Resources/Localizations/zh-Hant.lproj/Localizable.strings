@@ -94,3 +94,5 @@
 "Zoom In" = "放大";
 "Zoom Out" = "縮小";
 "Actual Size" = "實際大小";
+
+"This folder is not a valid character package (manifest.json and clips)." = "此資料夾不是有效的角色包（需要 manifest.json 和片段）。";

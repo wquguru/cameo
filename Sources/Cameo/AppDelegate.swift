@@ -173,7 +173,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     /// From the library: a sheet on its window, and the library shows the result.
     private func chooseVideos(in window: NSWindow) {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.quickTimeMovie]
+        panel.allowedContentTypes = [.quickTimeMovie, .folder]
+        panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.message = L("Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)")
         panel.beginSheetModal(for: window) { [weak self] response in
@@ -185,7 +186,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private func chooseVideos() {
         popover.performClose(nil)
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.quickTimeMovie]
+        panel.allowedContentTypes = [.quickTimeMovie, .folder]
+        panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.message = L("Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)")
         NSApp.activate()

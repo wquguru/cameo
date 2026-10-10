@@ -1,4 +1,5 @@
 import AppKit
+import CameoShow
 import ServiceManagement
 
 /// App state shared by the popover and the character window, persisted in UserDefaults.
@@ -74,6 +75,15 @@ final class AppModel: ObservableObject {
         hideHintSeen = defaults.bool(forKey: "hideHintSeen")
         launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = defaults.string(forKey: "selectedID").flatMap(UUID.init(uuidString:))
+        // CAMEO_PACKAGE=/path/to/package shows that folder without importing it.
+        if let path = ProcessInfo.processInfo.environment["CAMEO_PACKAGE"],
+           let manifest = try? PackageLoader.manifest(in: URL(fileURLWithPath: path)) {
+            let dev = Character(id: UUID(), fileName: URL(fileURLWithPath: path).standardizedFileURL.path,
+                                name: manifest.name.isEmpty ? "Package" : manifest.name, package: true)
+            characters.append(dev)
+            selectedID = dev.id
+            return
+        }
         selectedID = characters.contains { $0.id == saved } ? saved : characters.first?.id
     }
 
@@ -94,7 +104,15 @@ final class AppModel: ObservableObject {
         defaults.set(lastUsed, forKey: "lastUsed")
     }
 
+    private var persisted: [Character] { characters.filter { !$0.isBuiltIn && !$0.isTransient } }
+
+    /// What tiles and thumbnails play: the video, or a package's idle clip.
     func url(for character: Character) -> URL {
+        store.previewURL(for: character)
+    }
+
+    /// The folder of a package character.
+    func packageFolder(for character: Character) -> URL {
         store.url(for: character)
     }
 
@@ -104,7 +122,7 @@ final class AppModel: ObservableObject {
             importing.append(pending)
             defer { importing.removeAll { $0.id == pending.id } }
             do {
-                insert(try await store.importVideo(from: url))
+                insert(try await CharacterStore.isPackageFolder(url) ? store.importPackage(from: url) : store.importVideo(from: url))
             } catch {
                 errorMessage = L("Couldn’t add “%@”: %@", url.lastPathComponent, error.localizedDescription)
             }
@@ -132,7 +150,7 @@ final class AppModel: ObservableObject {
 
     private func insert(_ character: Character) {
         characters.append(character)
-        store.save(characters.filter { !$0.isBuiltIn })
+        store.save(persisted)
         selectedID = character.id
         visible = true
     }
@@ -141,7 +159,7 @@ final class AppModel: ObservableObject {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !character.isBuiltIn, !name.isEmpty, let i = characters.firstIndex(where: { $0.id == character.id }) else { return }
         characters[i].name = name
-        store.save(characters.filter { !$0.isBuiltIn })
+        store.save(persisted)
     }
 
     /// Moves the character's video to the Trash; `undoTrash` puts it back while `trashed` is set.
@@ -152,7 +170,7 @@ final class AppModel: ObservableObject {
             return
         }
         characters.remove(at: index)
-        store.save(characters.filter { !$0.isBuiltIn })
+        store.save(persisted)
         if selectedID == character.id { selectedID = recent.first?.id }
         let item = Trashed(character: character, index: index, file: file)
         trashed = item
@@ -167,7 +185,7 @@ final class AppModel: ObservableObject {
         trashed = nil
         guard store.restore(item.character, from: item.file) else { return }
         characters.insert(item.character, at: min(item.index, characters.count))
-        store.save(characters.filter { !$0.isBuiltIn })
+        store.save(persisted)
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {

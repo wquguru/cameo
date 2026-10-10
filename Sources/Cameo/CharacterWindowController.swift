@@ -1,5 +1,6 @@
 import AVFoundation
 import AppKit
+import CameoShow
 import Combine
 import IOKit.ps
 
@@ -17,6 +18,7 @@ final class CharacterWindowController {
     private let panel: NSPanel
     private let playerView = PlayerView(frame: .zero)
     private let catView = CatView(frame: .zero)
+    private let packageView = PackageView(frame: .zero)
     private var aspect: CGFloat = 0.5
     /// Where the figure was put (dragged, walked, restored). The window may stand elsewhere while
     /// this doesn't fit on screen, so growing and shrinking it back returns it to the same spot.
@@ -30,7 +32,8 @@ final class CharacterWindowController {
     var onSecondaryClick: ((NSView) -> Void)?
 
     private var figureView: FigureView {
-        model.selected?.isBuiltIn == true ? catView : playerView
+        if model.selected?.isBuiltIn == true { return catView }
+        return model.selected?.isPackage == true ? packageView : playerView
     }
 
     init(model: AppModel) {
@@ -44,13 +47,16 @@ final class CharacterWindowController {
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
-        for view in [playerView, catView] as [FigureView] {
+        for view in [playerView, catView, packageView] as [FigureView] {
             view.onDragEnded = { [weak self] in self?.dropped() }
             view.onSecondaryClick = { [weak self, weak view] in
                 if let view { self?.onSecondaryClick?(view) }
             }
         }
         catView.onMove = { [weak self] dx in self?.moveCat(by: dx) ?? false }
+        packageView.position = { [weak self] in self?.walkPosition() }
+        packageView.onMove = { [weak self] dx in self?.movePackage(by: dx) }
+        packageView.onStart = { [weak self] x in self?.enter(at: x) }
 
         model.objectWillChange
             .receive(on: DispatchQueue.main)
@@ -88,9 +94,12 @@ final class CharacterWindowController {
         catView.brain.manual = model.catAction
         if character?.id != loadedID {
             loadedID = character?.id
+            playerView.load(nil)
+            packageView.load(nil)
             if character?.isBuiltIn == true {
-                playerView.load(nil)
                 aspect = CatRig.canvas.width / CatRig.canvas.height
+            } else if let character, character.isPackage {
+                Task { await loadPackage(character) }
             } else {
                 let url = character.map(model.url(for:))
                 playerView.load(url)
@@ -109,6 +118,21 @@ final class CharacterWindowController {
         updatePlayback()
     }
 
+    private func loadPackage(_ character: Character) async {
+        do {
+            let package = try await PackageLoader.load(model.packageFolder(for: character))
+            guard character.id == loadedID else { return }
+            aspect = CGFloat(package.manifest.width) / CGFloat(package.manifest.height)
+            // Stand on the bottom of the screen the figure is on, like the cat.
+            let screen = (panel.screen ?? NSScreen.main ?? NSScreen.screens[0]).visibleFrame
+            feet = NSPoint(x: shownFeet.x, y: screen.minY)
+            layout()
+            packageView.load(package)
+        } catch {
+            model.errorMessage = L("Couldn’t add “%@”: %@", character.name, error.localizedDescription)
+        }
+    }
+
     private func loadAspect(of url: URL, id: UUID?) async {
         guard let track = try? await AVURLAsset(url: url).loadTracks(withMediaType: .video).first,
               let size = try? await track.load(.naturalSize), size.height > 0,
@@ -121,6 +145,7 @@ final class CharacterWindowController {
         let onScreen = panel.isVisible && panel.occlusionState.contains(.visible) && !screensAsleep
         playerView.setPlaying(onScreen && figureView === playerView)
         catView.setPlaying(onScreen && figureView === catView)
+        packageView.setPlaying(onScreen && figureView === packageView)
     }
 
     // MARK: Geometry
@@ -194,6 +219,27 @@ final class CharacterWindowController {
         return blocked
     }
 
+    /// Where a package's feet are and how far they may walk (the empty sides of the canvas may
+    /// hang off-screen).
+    private func walkPosition() -> (x: CGFloat, bounds: ClosedRange<CGFloat>)? {
+        guard let visible = (panel.screen ?? NSScreen.main)?.visibleFrame else { return nil }
+        let slack = panel.frame.width * 0.15
+        return (panel.frame.midX, (visible.minX + slack)...(visible.maxX - slack))
+    }
+
+    private func movePackage(by dx: CGFloat) {
+        let origin = panel.frame.origin
+        panel.setFrameOrigin(NSPoint(x: origin.x + dx, y: origin.y))
+        feet?.x = shownFeet.x
+    }
+
+    /// The show starts with the figure walking in from a screen edge.
+    private func enter(at x: CGFloat) {
+        let size = panel.frame.size
+        panel.setFrameOrigin(NSPoint(x: x - size.width / 2, y: panel.frame.minY))
+        feet?.x = shownFeet.x
+    }
+
     // MARK: Polling
 
     /// Lets clicks through wherever nothing is drawn, caps the frame rate on battery power,
@@ -214,8 +260,9 @@ final class CharacterWindowController {
         if pollCount % 150 == 1 {
             let rate: Float = Self.onBattery() ? 30 : 60
             playerView.maxFrameRate = rate
+            packageView.maxFrameRate = rate
             catView.maxFrameRate = rate
-            if view === catView { saveAnchor() }
+            if view === catView || view === packageView { saveAnchor() }
         }
     }
 

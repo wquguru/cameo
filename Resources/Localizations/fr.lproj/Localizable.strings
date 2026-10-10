@@ -94,3 +94,5 @@
 "Zoom In" = "Zoom avant";
 "Zoom Out" = "Zoom arrière";
 "Actual Size" = "Taille réelle";
+
+"This folder is not a valid character package (manifest.json and clips)." = "Ce dossier n’est pas un paquet de personnage valide (manifest.json et clips).";

@@ -1,4 +1,5 @@
 import AVFoundation
+import CameoShow
 import Foundation
 
 struct Character: Codable, Identifiable, Equatable {
@@ -7,21 +8,27 @@ struct Character: Codable, Identifiable, Equatable {
     var name: String
     /// Where a gallery character was downloaded from, so adding it twice selects it instead.
     var source: URL? = nil
+    /// A package folder (manifest.json + clips) instead of a single video.
+    var package: Bool? = nil
 
     /// The cat drawn in code; always present, never stored or deleted.
     static let builtInCat = Character(id: UUID(uuidString: "00000000-0000-0000-0000-000000000CA7")!, fileName: "", name: "Chaofei")
 
     var isBuiltIn: Bool { id == Self.builtInCat.id }
+    var isPackage: Bool { package == true }
+    /// A package shown straight from where it is (`CAMEO_PACKAGE`); never saved to the library.
+    var isTransient: Bool { fileName.hasPrefix("/") }
 }
 
 enum ImportError: LocalizedError {
-    case noVideo, noAlpha, download, tooLarge
+    case noVideo, noAlpha, download, tooLarge, badPackage
 
     var errorDescription: String? {
         switch self {
         case .noVideo: L("The file has no video track.")
         case .noAlpha: L("This video has no alpha channel. Use a .mov encoded as HEVC with Alpha or ProRes 4444.")
         case .download: L("The download failed.")
+        case .badPackage: L("This folder is not a valid character package (manifest.json and clips).")
         case .tooLarge: L("The file is larger than 200 MB.")
         }
     }
@@ -41,8 +48,42 @@ final class CharacterStore {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
+    private var previews: [UUID: URL] = [:]
+
+    /// A character's file or folder.
     func url(for character: Character) -> URL {
-        directory.appendingPathComponent(character.fileName)
+        character.isTransient ? URL(fileURLWithPath: character.fileName, isDirectory: true)
+            : directory.appendingPathComponent(character.fileName)
+    }
+
+    /// A video to show in tiles and thumbnails: the file itself, or a package's idle clip.
+    func previewURL(for character: Character) -> URL {
+        guard character.isPackage else { return url(for: character) }
+        if let cached = previews[character.id] { return cached }
+        let folder = url(for: character)
+        let clips = (try? PackageLoader.manifest(in: folder))?.clips ?? []
+        let clip = clips.first { $0.kind == .idle } ?? clips.first
+        let preview = folder.appendingPathComponent(clip?.file ?? "")
+        previews[character.id] = preview
+        return preview
+    }
+
+    static func isPackageFolder(_ url: URL) -> Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+
+    /// Validates a package folder (manifest and every clip file), then copies it in.
+    func importPackage(from folder: URL) async throws -> Character {
+        let manifest: PackageManifest
+        do { manifest = try PackageLoader.manifest(in: folder) } catch { throw ImportError.badPackage }
+        guard manifest.clips.allSatisfy({ FileManager.default.fileExists(atPath: folder.appendingPathComponent($0.file).path) })
+        else { throw ImportError.badPackage }
+        let id = UUID()
+        let destination = directory.appendingPathComponent(id.uuidString, isDirectory: true)
+        try await Task.detached { try FileManager.default.copyItem(at: folder, to: destination) }.value
+        let name = manifest.name.isEmpty ? folder.lastPathComponent : manifest.name
+        return Character(id: id, fileName: id.uuidString, name: name, package: true)
     }
 
     func load() -> [Character] {

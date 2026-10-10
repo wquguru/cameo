@@ -94,3 +94,5 @@
 "Zoom In" = "Увеличить";
 "Zoom Out" = "Уменьшить";
 "Actual Size" = "Фактический размер";
+
+"This folder is not a valid character package (manifest.json and clips)." = "Эта папка не является корректным пакетом персонажа (manifest.json и клипы).";

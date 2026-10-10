@@ -94,3 +94,5 @@
 "Zoom In" = "拡大";
 "Zoom Out" = "縮小";
 "Actual Size" = "実際のサイズ";
+
+"This folder is not a valid character package (manifest.json and clips)." = "このフォルダは有効なキャラクターパッケージではありません（manifest.json とクリップが必要です）。";
