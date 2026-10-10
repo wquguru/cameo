@@ -13,14 +13,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var library: LibraryWindowController!
     private var updateBadge: AnyCancellable?
     private var dockIcon: AnyCancellable?
-    /// An invisible point under the menu bar to show the popover from when the status item can't
-    /// be relied on (it may be hidden behind the notch of a crowded menu bar).
     /// The view the popover is showing from.
     private weak var popoverAnchor: NSView?
     private var lastClose: Date?
     /// Closes the popover on a click in another app. `.transient` alone misses these when Cameo
     /// never became the active app (activation is only a request since macOS 14).
     private var outsideClicks: Any?
+    /// An invisible window to show the popover from: a point under the menu bar when the status
+    /// item can't be relied on (it may be hidden behind the notch of a crowded menu bar), or the
+    /// figure's frame when it was right-clicked.
     private let screenAnchor = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 1, height: 1),
                                        styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
 
@@ -48,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             if self.popoverAnchor === view && (self.popover.isShown || justClosed) {
                 self.popover.performClose(nil)
             } else {
-                self.showPopover(relativeTo: view.bounds, of: view, edge: .maxY)
+                self.showPopover(beside: view)
             }
         }
         screenAnchor.backgroundColor = .clear
@@ -97,7 +98,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main
         else { return false }
         let frame = screen.visibleFrame
-        screenAnchor.setFrameOrigin(NSPoint(x: frame.midX, y: frame.maxY - 1))
+        if popover.isShown { popover.close() }
+        screenAnchor.setFrame(NSRect(x: frame.midX, y: frame.maxY - 1, width: 1, height: 1), display: false)
         screenAnchor.orderFrontRegardless()
         if let view = screenAnchor.contentView {
             showPopover(relativeTo: view.bounds, of: view, edge: .minY)
@@ -126,6 +128,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         } else {
             showPopover(relativeTo: button.bounds, of: button, edge: .minY)
         }
+    }
+
+    /// Shows the popover above the figure, from a still copy of its frame: a popover pointing at
+    /// the figure itself would follow it as it resizes or walks, moving the size slider or the
+    /// cat's action chips out from under the pointer (and flipping sides once it no longer fits).
+    private func showPopover(beside figure: NSView) {
+        guard let window = figure.window, let view = screenAnchor.contentView else { return }
+        if popover.isShown { popover.close() }
+        screenAnchor.setFrame(window.convertToScreen(figure.convert(figure.bounds, to: nil)), display: false)
+        screenAnchor.orderFrontRegardless()
+        showPopover(relativeTo: view.bounds, of: view, edge: .maxY)
+        popoverAnchor = figure
     }
 
     /// Shows the popover pointing at `rect` in `view`, moving it there if it is open elsewhere.

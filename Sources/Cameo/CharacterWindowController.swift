@@ -18,6 +18,9 @@ final class CharacterWindowController {
     private let playerView = PlayerView(frame: .zero)
     private let catView = CatView(frame: .zero)
     private var aspect: CGFloat = 0.5
+    /// Where the figure was put (dragged, walked, restored). The window may stand elsewhere while
+    /// this doesn't fit on screen, so growing and shrinking it back returns it to the same spot.
+    private var feet: NSPoint?
     private var loadedID: UUID?
     private var cancellables: Set<AnyCancellable> = []
     private var pollTimer: Timer?
@@ -42,7 +45,7 @@ final class CharacterWindowController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         for view in [playerView, catView] as [FigureView] {
-            view.onDragEnded = { [weak self] in self?.layout(); self?.saveAnchor() }
+            view.onDragEnded = { [weak self] in self?.dropped() }
             view.onSecondaryClick = { [weak self, weak view] in
                 if let view { self?.onSecondaryClick?(view) }
             }
@@ -126,12 +129,25 @@ final class CharacterWindowController {
         let factor = model.selected?.isBuiltIn == true ? Self.catHeightFactor : 1
         let height = Self.baseHeight * model.scale * factor
         let size = NSSize(width: (height * aspect).rounded(), height: height.rounded())
-        let feet = Self.keepVisible(anchor(), size: size)
-        panel.setFrame(NSRect(x: feet.x - size.width / 2, y: feet.y, width: size.width, height: size.height), display: true)
+        if figureView.isDragging { feet = shownFeet }
+        let wanted = anchor()
+        feet = wanted
+        let shown = Self.keepVisible(wanted, size: size)
+        panel.setFrame(NSRect(x: shown.x - size.width / 2, y: shown.y, width: size.width, height: size.height), display: true)
     }
 
+    /// A drag puts the figure where it was dropped, moved back on screen if it went off.
+    private func dropped() {
+        feet = shownFeet
+        layout()
+        feet = shownFeet
+        saveAnchor()
+    }
+
+    private var shownFeet: NSPoint { NSPoint(x: panel.frame.midX, y: panel.frame.minY) }
+
     private func anchor() -> NSPoint {
-        if panel.frame.width > 0 { return NSPoint(x: panel.frame.midX, y: panel.frame.minY) }
+        if let feet { return feet }
         let defaults = UserDefaults.standard
         if let saved = defaults.array(forKey: "anchor") as? [Double], saved.count == 2 {
             let point = NSPoint(x: saved[0], y: saved[1])
@@ -159,7 +175,7 @@ final class CharacterWindowController {
 
     private func saveAnchor() {
         guard panel.frame.width > 0 else { return }
-        UserDefaults.standard.set([panel.frame.midX, panel.frame.minY], forKey: "anchor")
+        UserDefaults.standard.set([shownFeet.x, shownFeet.y], forKey: "anchor")
     }
 
     /// Walks the cat's window sideways, keeping it on its screen. Returns true at an edge.
@@ -174,6 +190,7 @@ final class CharacterWindowController {
         if x < minX { x = minX; blocked = dx < 0 }
         if x > maxX { x = maxX; blocked = dx > 0 }
         panel.setFrameOrigin(NSPoint(x: x, y: frame.minY))
+        feet?.x = shownFeet.x
         return blocked
     }
 
