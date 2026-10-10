@@ -16,7 +16,7 @@ const CATEGORIES = new Set(["animal", "person", "other"]);
 const DAY = 24 * 60 * 60;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get("Origin") || "";
     const allowed = env.ALLOWED_ORIGINS.split(",").includes(origin);
     const cors = allowed
@@ -135,9 +135,26 @@ export default {
       env.LIMITS.put(allKey, String(allCount + 1), { expirationTtl: 2 * DAY }),
       env.LIMITS.put(`sha:${fingerprint}`, id, { expirationTtl: 30 * DAY }),
     ]);
+    // Start the intake workflow now instead of waiting for its (heavily throttled) schedule.
+    ctx.waitUntil(startIntake(env));
     return reply(200, { ok: true, id, info });
   },
 };
+
+async function startIntake(env) {
+  if (!env.GITHUB_DISPATCH_TOKEN) return;
+  const response = await fetch(`https://api.github.com/repos/${env.GITHUB_REPOSITORY}/actions/workflows/intake.yml/dispatches`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "cameo-upload",
+    },
+    body: JSON.stringify({ ref: "main" }),
+  }).catch((error) => ({ ok: false, status: String(error) }));
+  if (!response.ok) console.log("intake dispatch failed", response.status);
+}
 
 async function sha256(text) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));

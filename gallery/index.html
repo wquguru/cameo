@@ -36,6 +36,7 @@
     color-scheme: light;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     margin: 0; background: #FFFFFF; color: var(--ink);
     font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
@@ -175,7 +176,13 @@
   .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); cursor: pointer; }
   .agree input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: #E89A1E; flex: none; }
   .upload .btn-dark:disabled { background: #C7C7CC; cursor: not-allowed; }
-  .progress { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+  .progress-row { display: flex; align-items: center; gap: 10px; }
+  .progress-row span { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .progress { flex: 1; height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+  .fallback { border-radius: 14px; padding: 16px; background: #FFF6E8; box-shadow: inset 0 0 0 1px #F5D9A8; display: flex; flex-direction: column; gap: 6px; }
+  .fallback strong { font-size: 15px; }
+  .fallback span { font-size: 13.5px; line-height: 1.5; color: #5A5148; }
+  .fb-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
   .progress i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .2s ease; }
   .status { margin: 0; font-size: 14px; line-height: 1.5; min-height: 1px; }
   .status.ok { color: #1E6B2E; }
@@ -303,8 +310,19 @@
       <label class="agree"><input type="checkbox" id="f-license"><span data-t="agreeLicense"></span></label>
       <div id="captcha"></div>
       <button class="btn btn-dark" type="submit" id="send" disabled data-t="send"></button>
-      <div class="progress" id="progress" hidden><i id="bar"></i></div>
+      <div class="progress-row" id="progress" hidden>
+        <div class="progress"><i id="bar"></i></div>
+        <span id="progress-text"></span>
+      </div>
       <p class="status" id="status" role="status" aria-live="polite"></p>
+      <div class="fallback" id="fallback" hidden role="alert">
+        <strong id="fb-title"></strong>
+        <span id="fb-body"></span>
+        <div class="fb-actions">
+          <button type="button" class="btn btn-soft btn-sm" id="retry" data-t="retry"></button>
+          <a class="btn btn-dark btn-sm" id="gh-fallback" target="_blank" rel="noopener" data-t="useGithub"></a>
+        </div>
+      </div>
       <p class="alt"><span data-t="altText"></span> <a href="https://github.com/wquguru/cameo/issues/new?template=character.yml" data-t="altLink"></a></p>
     </form>
   </section>
@@ -383,7 +401,10 @@
       eRefused: "This upload can't be accepted.",
       eInvalid: "The video doesn't meet the requirements:", eFields: "Please fill in every field and tick both boxes.",
       eNetwork: "The upload didn't go through. Check your connection and try again.",
-      eStalled: "The upload stalled: the connection stopped moving. Try again, try another network, or use the GitHub form.",
+      eStalled: "The upload stalled.",
+      slowTitle: "Uploading slowly…", slowBody: "Your connection to the upload server is barely moving. You can keep waiting, or submit through GitHub instead: the form opens with your details filled in, then drag the same .mov into it.",
+      stuckTitle: "The upload stalled", stuckBody: "Nothing moved for 30 seconds, which happens on some networks. Try again, or submit through GitHub: the form opens with your details filled in, then drag the same .mov into it (GitHub allows up to 10 MB).",
+      retry: "Try again", useGithub: "Submit on GitHub ↗", solveFirst: "Please complete the check above, then try again.",
     },
     zh: {
       navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
@@ -434,7 +455,10 @@
       eRefused: "无法接收这次上传。",
       eInvalid: "视频不符合要求：", eFields: "请填写所有信息并勾选两项确认。",
       eNetwork: "上传没有成功，请检查网络后重试。",
-      eStalled: "上传卡住了，连接没有任何进展。请重试、换个网络，或改用 GitHub 投稿表单。",
+      eStalled: "上传卡住了。",
+      slowTitle: "上传很慢…", slowBody: "到上传服务器的连接几乎没有进展。可以继续等待，也可以改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可。",
+      stuckTitle: "上传卡住了", stuckBody: "30 秒内没有任何进展，某些网络下会出现这种情况。可以重试，或改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可（GitHub 限 10 MB）。",
+      retry: "重试", useGithub: "改用 GitHub 投稿 ↗", solveFirst: "请先完成上方的人机验证，再重试。",
     },
   };
   const categories = ["animal", "person", "other"];
@@ -625,6 +649,38 @@
       "error-callback": () => { token = ""; update(); },
     });
   }
+  // The GitHub form opens with the name, credit and category already filled in.
+  function githubFormURL() {
+    const name = $("f-name").value.trim();
+    const params = new URLSearchParams({ template: "character.yml" });
+    if (name) { params.set("title", `[Character] ${name}`); params.set("name", name); }
+    if ($("f-author").value.trim()) params.set("author", $("f-author").value.trim());
+    params.set("category", { animal: "Animal / 动物", person: "Person / 人物", other: "Other / 其他" }[$("f-category").value]);
+    return `https://github.com/wquguru/cameo/issues/new?${params}`;
+  }
+
+  function showFallback(mode) {
+    const t = strings[lang];
+    const box = $("fallback");
+    box.dataset.mode = mode;
+    $("fb-title").textContent = mode === "slow" ? t.slowTitle : t.stuckTitle;
+    $("fb-body").textContent = mode === "slow" ? t.slowBody : t.stuckBody;
+    $("retry").hidden = mode === "slow";
+    $("gh-fallback").href = githubFormURL();
+    box.hidden = false;
+  }
+
+  function hideFallback() {
+    $("fallback").hidden = true;
+    delete $("fallback").dataset.mode;
+  }
+
+  $("retry").addEventListener("click", () => {
+    hideFallback();
+    if ($("send").disabled) return status(strings[lang].solveFirst, "err");
+    $("upload").requestSubmit();
+  });
+
   $("upload").addEventListener("submit", event => {
     event.preventDefault();
     const t = strings[lang];
@@ -637,16 +693,25 @@
     xhr.setRequestHeader("X-Author", encodeURIComponent($("f-author").value.trim()));
     xhr.setRequestHeader("X-Category", $("f-category").value);
     xhr.setRequestHeader("X-Rights", "yes");
-    // Give up when nothing moves for 30 s: on some networks the connection stalls silently.
-    let stalled;
-    const watch = () => { clearTimeout(stalled); stalled = setTimeout(() => xhr.abort(), 30000); };
+    // On some networks the connection stalls silently: after 10 s without progress offer the
+    // GitHub form while still waiting; after 30 s give up and offer a retry or GitHub.
+    let slow, stalled;
+    const watch = () => {
+      clearTimeout(slow); clearTimeout(stalled);
+      if (!$("fallback").dataset.mode || $("fallback").dataset.mode === "slow") hideFallback();
+      slow = setTimeout(() => showFallback("slow"), 10000);
+      stalled = setTimeout(() => xhr.abort(), 30000);
+    };
     xhr.upload.onprogress = e => {
       watch();
-      if (e.lengthComputable) $("bar").style.width = `${Math.round(e.loaded / e.total * 100)}%`;
+      if (!e.lengthComputable) return;
+      $("bar").style.width = `${Math.round(e.loaded / e.total * 100)}%`;
+      $("progress-text").textContent = `${(e.loaded / 1048576).toFixed(1)} / ${(e.total / 1048576).toFixed(1)} MB`;
     };
-    xhr.onabort = () => { status(t.eStalled, "err"); finish(); };
+    xhr.onabort = () => { status(""); finish(); showFallback("stuck"); };
     const finish = () => {
-      clearTimeout(stalled);
+      clearTimeout(slow); clearTimeout(stalled);
+      $("progress-text").textContent = "";
       $("progress").hidden = true;
       $("bar").style.width = "0";
       token = "";
@@ -669,7 +734,8 @@
       }
       finish();
     };
-    xhr.onerror = () => { status(t.eNetwork, "err"); finish(); };
+    xhr.onerror = () => { status(""); finish(); showFallback("stuck"); };
+    hideFallback();
     $("send").disabled = true;
     $("progress").hidden = false;
     status(t.uploading);

@@ -1,5 +1,6 @@
 // Cameo character upload Worker (see upload/src/index.js). Deploy: cd upload && npx wrangler deploy
-// Secrets (wrangler secret put): TURNSTILE_SECRET, IP_SALT.
+// Secrets (wrangler secret put): TURNSTILE_SECRET, IP_SALT, GITHUB_DISPATCH_TOKEN (fine-grained,
+// this repository only, Actions: read and write; starts the intake workflow after an upload).
 // Ban an uploader: npx wrangler kv key put --namespace-id c7ab0970f2e147e28e69924342cfc672 --remote "ban:<uploader id from the issue>" 1
 {
   "name": "cameo-upload",
@@ -15,6 +16,7 @@
     // "false" pauses all uploads (redeploy, or change it in the dashboard).
     "UPLOADS_OPEN": "true",
     "ALLOWED_ORIGINS": "https://wquguru.github.io",
+    "GITHUB_REPOSITORY": "wquguru/cameo",
     "TURNSTILE_HOSTNAME": "wquguru.github.io",
     "MAX_BYTES": "20971520",
     "DAILY_PER_IP": "2",
