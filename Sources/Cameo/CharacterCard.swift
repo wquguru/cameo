@@ -21,16 +21,7 @@ struct CharacterCard: View {
         Button(action: action) {
             ZStack(alignment: .bottom) {
                 RoundedRectangle(cornerRadius: cornerRadius).fill(lit ? Theme.stage : Color.primary.opacity(0.07))
-                BeamShape()
-                    .fill(LinearGradient(
-                        colors: [Color(red: 1, green: 0.824, blue: 0.478).opacity(0.42), Theme.spotlight.opacity(0)],
-                        startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.85)))
-                    .opacity(lit ? 1 : 0)
-                Ellipse()
-                    .fill(RadialGradient(colors: [Color(red: 1, green: 0.784, blue: 0.392).opacity(0.7), .clear], center: .center, startRadius: 0, endRadius: height * 0.36))
-                    .frame(width: height * 0.66, height: height * 0.15)
-                    .padding(.bottom, 4)
-                    .opacity(lit ? 1 : 0)
+                StageLights(height: height).opacity(lit ? 1 : 0)
                 if let preview {
                     LoopingVideo(url: preview)
                         .frame(height: height * 0.86)
@@ -69,6 +60,24 @@ struct CharacterCard: View {
     }
 }
 
+/// The spotlight beam and floor glow of a lit card, bottom-aligned in a card `height` tall.
+struct StageLights: View {
+    let height: CGFloat
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            BeamShape()
+                .fill(LinearGradient(
+                    colors: [Color(red: 1, green: 0.824, blue: 0.478).opacity(0.42), Theme.spotlight.opacity(0)],
+                    startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.85)))
+            Ellipse()
+                .fill(RadialGradient(colors: [Color(red: 1, green: 0.784, blue: 0.392).opacity(0.7), .clear], center: .center, startRadius: 0, endRadius: height * 0.36))
+                .frame(width: height * 0.66, height: height * 0.15)
+                .padding(.bottom, 4)
+        }
+    }
+}
+
 /// A muted, looping video with transparency, for previews.
 struct LoopingVideo: NSViewRepresentable {
     let url: URL
@@ -82,7 +91,7 @@ struct LoopingVideo: NSViewRepresentable {
         layer.videoGravity = .resizeAspect
         layer.isOpaque = false
         layer.backgroundColor = .clear
-        let view = NSView()
+        let view = PassthroughView()
         view.layer = layer
         view.wantsLayer = true
         player.play()
@@ -100,5 +109,10 @@ struct LoopingVideo: NSViewRepresentable {
 
     final class Coordinator {
         var looper: AVPlayerLooper?
+    }
+
+    /// Leaves clicks and hovering to the card underneath, even where the video overhangs it.
+    final class PassthroughView: NSView {
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
     }
 }

@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
-<title>Cameo 角色库</title>
+<title>角色库窗口</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -10,40 +10,90 @@
 <helmet>
 <style>
 body{margin:0}
+a{color:#0A64D6}a:hover{color:#084FA8}
 </style>
 </helmet>
-<div style="position: relative; width: 960px; height: 680px; display: flex; flex-direction: column; overflow: hidden; border-radius: 26px; background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
-
-<dc-import name="LibraryToolbar" count="24" hint-size="960px,64px"></dc-import>
-
-<main aria-label="角色" style="flex: 1; box-sizing: border-box; padding: 8px 28px 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 17px; row-gap: 18px; align-content: start; justify-items: center; overflow: hidden">
-<sc-for list="{{cards}}" as="c" hint-placeholder-count="24">
-<dc-import name="LibraryCard" label="{{c.name}}" figure="{{c.figure}}" state="{{c.state}}" hint-size="136px,136px"></dc-import>
+<div style="width: 960px; height: 680px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D1D1D6; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif; color: #1D1D1F">
+<div style="height: 52px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 16px; border-bottom: 1px solid #ECECEE">
+<div style="display: flex; gap: 8px" aria-hidden="true">
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FF5F57"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #FEBC2E"></span>
+<span style="width: 12px; height: 12px; border-radius: 6px; background: #28C840"></span>
+</div>
+<div style="display: flex; flex-direction: column; line-height: 1.2">
+<span style="font-size: 13px; font-weight: 600">角色</span>
+<span style="font-size: 11px; color: #6E6E73">20</span>
+</div>
+<div style="flex-grow: 1"></div>
+<button type="button" aria-label="添加角色" style="width: 32px; height: 32px; border-radius: 8px; border: 0; background: transparent; color: #1D1D1F; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0">
+<svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11"></path></svg>
+</button>
+<label style="display: flex; align-items: center; gap: 6px; width: 220px; height: 28px; box-sizing: border-box; padding: 0 9px; border-radius: 7px; background: #F0F0F2; color: #6E6E73; font-size: 13px">
+<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4.5"></circle><path d="M9.5 9.5l3 3"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">搜索角色</span>
+<input type="search" placeholder="搜索" style="border: 0; background: transparent; outline: none; font: inherit; color: #1D1D1F; width: 100%">
+</label>
+</div>
+<div style="flex-grow: 1; padding: 20px 24px 24px; overflow: auto">
+<div style="display: grid; gap: 18px 8px; grid-template-columns: {{cols}}">
+<sc-for list="{{items}}" as="c" hint-placeholder-count="20">
+<button type="button" onClick="{{c.pick}}" onDoubleClick="{{c.show}}" aria-label="{{c.name}}" style="background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0">
+<div style="position: relative; width: 100%; box-sizing: border-box; border-radius: 12px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; height: {{cellH}}; padding: {{c.pad}}; background: {{c.bg}}; color: {{c.fig}}">
+<sc-if value="{{c.lit}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true"><polygon points="38,0 62,0 90,100 10,100" fill="#FFB340" fill-opacity="0.16"></polygon><ellipse cx="50" cy="93" rx="36" ry="5" fill="#FFB340" fill-opacity="0.32"></ellipse></svg>
+</sc-if>
+<sc-if value="{{c.unlit}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 100 10" preserveAspectRatio="none" style="position: absolute; left: 18%; right: 18%; bottom: 2px; width: 64%; height: 8px" aria-hidden="true"><ellipse cx="50" cy="5" rx="50" ry="5" fill="#000000" fill-opacity="0.07"></ellipse></svg>
+</sc-if>
+<sc-if value="{{c.stand}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="36 3 28 74" preserveAspectRatio="xMidYMax meet" style="position: relative; width: 100%; height: 100%" fill="currentColor" aria-hidden="true"><circle cx="50" cy="12" r="6"></circle><path d="M42 21 Q50 18 58 21 L56.5 47 L43.5 47 Z"></path><rect x="44" y="46" width="5" height="29" rx="2.5"></rect><rect x="51" y="46" width="5" height="29" rx="2.5"></rect></svg>
+</sc-if>
+<sc-if value="{{c.sit}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="24 12 52 66" preserveAspectRatio="xMidYMax meet" style="position: relative; width: 100%; height: 100%" fill="currentColor" aria-hidden="true"><circle cx="50" cy="20" r="7"></circle><path d="M41 31 Q50 27 59 31 L61 58 L39 58 Z"></path><path d="M26 70 Q50 55 74 70 L72 76 Q50 66 28 76 Z"></path></svg>
+</sc-if>
+<sc-if value="{{c.lie}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="10 34 82 28" preserveAspectRatio="xMidYMax meet" style="position: relative; width: 100%; height: 100%" fill="currentColor" aria-hidden="true"><circle cx="20" cy="42" r="7"></circle><path d="M27 47 L58 46 L60 58 L27 60 Z"></path><path d="M58 49 L90 53 L90 59 L58 59 Z"></path><rect x="12" y="52" width="16" height="5" rx="2.5"></rect></svg>
+</sc-if>
+<sc-if value="{{c.cat}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="14 18 76 58" preserveAspectRatio="xMidYMax meet" style="position: relative; width: 100%; height: 100%" fill="currentColor" aria-hidden="true"><path d="M24 42 Q14 30 20 22" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"></path><ellipse cx="46" cy="50" rx="22" ry="13"></ellipse><circle cx="72" cy="40" r="11"></circle><path d="M64 33 L65 22 L72 30 Z"></path><path d="M76 30 L82 22 L83 34 Z"></path><rect x="30" y="56" width="5" height="18" rx="2.5"></rect><rect x="40" y="58" width="5" height="16" rx="2.5"></rect><rect x="52" y="58" width="5" height="16" rx="2.5"></rect><rect x="61" y="56" width="5" height="18" rx="2.5"></rect></svg>
+</sc-if>
+</div>
+<span style="max-width: 100%; box-sizing: border-box; padding: 1px 7px; border-radius: 5px; font-size: 12px; line-height: 16px; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; background: {{c.nameBg}}; color: {{c.nameColor}}; font-weight: {{c.weight}}">{{c.name}}</span>
+</button>
 </sc-for>
-</main>
-
-<div role="menu" aria-label="“鞠躬”的操作" style="position: absolute; left: 262px; top: 292px; width: 196px; box-sizing: border-box; padding: 5px; border-radius: 14px; background: rgba(246,246,248,0.94); border: 0.5px solid rgba(0,0,0,0.12); box-shadow: 0 14px 36px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-size: 13px">
-<button role="menuitem" style="height: 26px; padding: 0 10px; border: 0; border-radius: 8px; background: #0A6CE0; color: #FFFFFF; font: inherit; text-align: left; display: flex; align-items: center; gap: 8px; cursor: pointer">
-<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12.5l.6-2.6 7-7 2 2-7 7z"></path></svg>重命名</button>
-<button role="menuitem" style="height: 26px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #1D1D1F; font: inherit; text-align: left; display: flex; align-items: center; gap: 8px; cursor: pointer">
-<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5a1.5 1.5 0 0 1 1.5-1.5h3l1.5 1.5h4.5A1.5 1.5 0 0 1 14 6v5.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5z"></path></svg>在访达中显示</button>
-<div role="separator" style="height: 1px; margin: 4px 10px; background: rgba(0,0,0,0.1)"></div>
-<button role="menuitem" style="height: 26px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #1D1D1F; font: inherit; text-align: left; display: flex; align-items: center; gap: 8px; cursor: pointer">
-<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5"></path></svg><span style="flex: 1">移到废纸篓</span><span style="color: #8A8A8E">⌘⌫</span></button>
+</div>
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":680}}'>
+<script type="text/x-dc" data-dc-script data-props='{"density":{"editor":"enum","options":["小","中","大"],"default":"中"},"$preview":{"width":960,"height":680}}'>
 class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { focus: 'Freya Wave', showing: 'Chaofei' };
+}
 renderVals() {
-const names = ['Chaofei', 'Wave', '待机', 'Hip-hop 跳舞', '打招呼', '伸懒腰', 'Office Coffee Break Loop v2', '鞠躬', '点头', '跑步', 'Thinking', '坐姿看书', '转身挥手', '跳绳', '弹吉他', 'Robot', '拍手', '喝咖啡', 'Yoga 拉伸', '敲键盘', '比心', '思考 2', 'Jump', '再见'];
+const density = this.props.density ?? '中';
+const n = { '小': 9, '中': 7, '大': 5 }[density] ?? 7;
+const h = { '小': 76, '中': 104, '大': 148 }[density] ?? 104;
+const list = [['Chaofei','cat'],['Lily','stand'],['Freya Idle','sit'],['Freya Wave','sit'],['Tara Wave','lie'],['Mei Idle','stand'],['Nina','stand'],['Ada Wave','lie'],['Xuan Wave','lie'],['Luna Wave','lie'],['Xun Idle','lie'],['Mei Wave','stand'],['Tara Idle','lie'],['Camila Idle','lie'],['Anika Wave','sit'],['Anika Idle','sit'],['Ada Idle','lie'],['Luna Idle','lie'],['Olivia Wave','stand'],['Nina Wave','stand']];
+const { focus, showing } = this.state;
+const items = list.map(([name, pose]) => {
+const lit = name === showing;
+const on = name === focus;
 return {
-  cards: names.map((name, i) => ({
-    name,
-    figure: i === 0 ? 'cat' : 'person',
-    state: i === 0 ? 'lit' : i === 3 ? 'hover' : 'normal'
-  }))
+name, lit, unlit: !lit,
+stand: pose === 'stand', sit: pose === 'sit', lie: pose === 'lie', cat: pose === 'cat',
+pad: lit ? '14px 12px 10px' : '8px 10px 6px',
+bg: lit ? '#161618' : (on ? '#E8E8EB' : 'transparent'),
+fig: lit ? '#F5F1EA' : '#8A8580',
+nameBg: on ? '#0A64D6' : 'transparent',
+nameColor: on ? '#FFFFFF' : '#1D1D1F',
+weight: lit ? 600 : 400,
+pick: () => this.setState({ focus: name }),
+show: () => this.setState({ focus: name, showing: name })
 };
+});
+return { items, cellH: h + 'px', cols: 'repeat(' + n + ', minmax(0, 1fr))' };
 }
 }
 </script>

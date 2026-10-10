@@ -1,8 +1,8 @@
 import AppKit
 
 /// The menu bar menus Cameo shows while the library window makes it a regular app: enough for
-/// About, Quit, editing a name (cut, copy, paste, undo), closing the window, and Help pointing at
-/// the gallery's pages on making and submitting a character.
+/// About, Quit, editing a name (cut, copy, paste, undo), zooming the library, closing the window,
+/// and Help pointing at the gallery's pages on making and submitting a character.
 @MainActor
 enum MainMenu {
     static func make() -> NSMenu {
@@ -23,6 +23,11 @@ enum MainMenu {
             item(L("Paste"), #selector(NSText.paste(_:)), "v"),
             item(L("Select All"), #selector(NSText.selectAll(_:)), "a"),
         ]))
+        menu.addItem(submenu(L("View"), [
+            target(item(L("Zoom In"), #selector(LibraryZoom.zoomIn(_:)), "+")),
+            target(item(L("Zoom Out"), #selector(LibraryZoom.zoomOut(_:)), "-")),
+            target(item(L("Actual Size"), #selector(LibraryZoom.actualSize(_:)), "0")),
+        ]))
         menu.addItem(submenu(L("Window"), [
             item(L("Close"), #selector(NSWindow.performClose(_:)), "w"),
             item(L("Minimize"), #selector(NSWindow.performMiniaturize(_:)), "m"),
@@ -42,6 +47,11 @@ enum MainMenu {
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
         item.submenu = NSMenu(title: title)
         items.forEach(item.submenu!.addItem)
+        return item
+    }
+
+    private static func target(_ item: NSMenuItem) -> NSMenuItem {
+        item.target = LibraryZoom.shared
         return item
     }
 

@@ -1,44 +1,88 @@
 import SwiftUI
 
 /// The library window's content (design/Library*.dc.html): every character in a grid, most
-/// recently shown first. Click to show one, hover to preview it, right-click to rename, reveal
-/// or trash it, drop videos anywhere to add them.
+/// recently shown first as of opening (showing one doesn't reshuffle the grid under the pointer).
+/// Click selects, double-click or Return shows it on the desktop, Space previews it large, arrow
+/// keys move, Delete trashes (with undo), ⌘+/⌘− resize; hover plays a character, right-click
+/// renames, reveals or trashes it, drop videos anywhere to add them.
 struct LibraryView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var thumbnails: Thumbnails
     var onAdd: () -> Void
     @State private var query = ""
     @State private var dropTargeted = false
+    @State private var selection: UUID?
+    @State private var previewing = false
+    @State private var order: [UUID] = []
+    @State private var columns = 1
+    @FocusState private var gridFocused: Bool
+    @AppStorage(LibraryZoom.key) private var zoom = LibraryZoom.standard
     @Environment(\.undoManager) private var undoManager
 
+    private static let padding: CGFloat = 24
+    private static let spacing: CGFloat = 8
+
+    private var height: CGFloat { LibraryZoom.height(zoom) }
+
     private var shown: [Character] {
-        let all = model.recent
         let q = query.trimmingCharacters(in: .whitespaces)
-        return q.isEmpty ? all : all.filter { $0.name.localizedCaseInsensitiveContains(q) }
+        let all = q.isEmpty ? model.recent : model.recent.filter {
+            $0.name.range(of: q, options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive]) != nil
+        }
+        // Characters added since the order was taken come first, then the order as of opening.
+        let rank = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        return all.enumerated()
+            .sorted { (rank[$0.element.id] ?? -1, $0.offset) < (rank[$1.element.id] ?? -1, $1.offset) }
+            .map(\.element)
     }
 
+    private var selected: Character? { shown.first { $0.id == selection } }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                if let message = model.errorMessage { banner(message) }
-                if shown.isEmpty && model.importing.isEmpty {
-                    noResults
-                } else {
-                    grid
+        GeometryReader { geo in
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        if let message = model.errorMessage { banner(message) }
+                        if shown.isEmpty && model.importing.isEmpty {
+                            noResults
+                        } else {
+                            grid
+                        }
+                        if model.characters.count == 1 && query.isEmpty && model.importing.isEmpty { dropZone }
+                    }
+                    .padding(.horizontal, Self.padding)
+                    .padding(.vertical, 16)
+                    .frame(maxWidth: .infinity, minHeight: 0, alignment: .topLeading)
                 }
-                if model.characters.count == 1 && query.isEmpty && model.importing.isEmpty { dropZone }
+                .focusable()
+                .focusEffectDisabled()
+                .focused($gridFocused)
+                .onKeyPress(phases: .down) { press in handle(press, proxy) }
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, minHeight: 0, alignment: .topLeading)
+            .onAppear { columns = Self.columns(geo.size.width, height) }
+            .onChange(of: geo.size.width) { _, width in columns = Self.columns(width, height) }
+            .onChange(of: zoom) { _, _ in columns = Self.columns(geo.size.width, height) }
         }
+        .overlay { if previewing, let selected { preview(selected) } }
         .overlay(alignment: .bottom) { if let item = model.trashed { undoToast(item) } }
         .overlay { if dropTargeted { dropOverlay } }
         .animation(.easeOut(duration: 0.2), value: model.trashed?.file)
+        .animation(.easeOut(duration: 0.15), value: previewing)
+        .animation(.easeOut(duration: 0.2), value: zoom)
         .dropDestination(for: URL.self) { urls, _ in
             Task { await model.add(urls) }
             return true
         } isTargeted: { dropTargeted = $0 }
+        .onAppear {
+            order = model.recent.map(\.id)
+            if selection == nil { selection = model.visible ? model.selectedID : nil }
+            gridFocused = true
+        }
+        .onChange(of: model.characters.map(\.id)) { _, ids in
+            if let selection, !ids.contains(selection) { self.selection = nil }
+        }
+        .onChange(of: selection) { _, id in if id == nil { previewing = false } }
         .navigationTitle(L("Characters"))
         .navigationSubtitle(String(model.characters.count))
         .searchable(text: $query, placement: .toolbar, prompt: L("Search"))
@@ -50,25 +94,122 @@ struct LibraryView: View {
         }
     }
 
+    private static func columns(_ width: CGFloat, _ height: CGFloat) -> Int {
+        let cell = height * 1.2
+        return max(2, Int((width - 2 * padding + spacing) / (cell + spacing)))
+    }
+
     private var grid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 136, maximum: 168), spacing: 17)], spacing: 18) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Self.spacing, alignment: .top), count: columns),
+                  spacing: 18) {
             ForEach(model.importing) { pending in
-                PendingCard(name: pending.name)
+                PendingCard(name: pending.name, height: height)
             }
             ForEach(shown) { character in
-                LibraryCard(
+                let video = character.isBuiltIn ? nil : model.url(for: character)
+                LibraryTile(
                     character: character,
                     image: thumbnails.image(for: character, url: model.url(for: character)),
-                    video: character.isBuiltIn ? nil : model.url(for: character),
+                    video: video,
+                    box: thumbnails.bounds[character.id],
+                    height: height,
                     lit: model.visible && character.id == model.selectedID,
-                    onSelect: {
-                        model.selectedID = character.id
-                        model.visible = true
-                    },
+                    selected: character.id == selection,
+                    onSelect: { selection = character.id; gridFocused = true },
+                    onShow: { selection = character.id; show(character) },
                     onRename: { model.rename(character, to: $0) },
                     onTrash: { trash(character) })
+                .id(character.id)
             }
         }
+    }
+
+    private func show(_ character: Character) {
+        model.selectedID = character.id
+        model.visible = true
+    }
+
+    /// The grid's keys, as in Finder and Photos.
+    private func handle(_ press: KeyPress, _ proxy: ScrollViewProxy) -> KeyPress.Result {
+        if press.modifiers.contains(.command) {
+            switch press.characters {
+            case "=": LibraryZoom.shared.zoomIn(nil)
+            default: return .ignored
+            }
+            return .handled
+        }
+        let list = shown
+        let index = list.firstIndex { $0.id == selection }
+        func move(_ by: Int) {
+            guard !list.isEmpty else { return }
+            let next = index.map { min(max($0 + by, 0), list.count - 1) } ?? 0
+            selection = list[next].id
+            proxy.scrollTo(list[next].id)
+        }
+        switch press.key {
+        case .leftArrow: move(-1)
+        case .rightArrow: move(1)
+        case .upArrow: move(-columns)
+        case .downArrow: move(columns)
+        case .return:
+            guard let selected else { return .ignored }
+            show(selected)
+        case .space:
+            guard selected != nil else { return .ignored }
+            previewing.toggle()
+        case .escape:
+            guard previewing else { return .ignored }
+            previewing = false
+        case .delete, .deleteForward:
+            guard let selected, !selected.isBuiltIn, let index else { return .ignored }
+            let neighbour = list.indices.contains(index + 1) ? list[index + 1] : index > 0 ? list[index - 1] : nil
+            trash(selected)
+            selection = neighbour?.id
+        default:
+            return .ignored
+        }
+        return .handled
+    }
+
+    /// Space's large preview, like Quick Look: the character playing on a lit stage.
+    private func preview(_ character: Character) -> some View {
+        ZStack {
+            Color.black.opacity(0.28)
+                .ignoresSafeArea()
+                .onTapGesture { previewing = false }
+            VStack(spacing: 14) {
+                ZStack(alignment: .bottom) {
+                    RoundedRectangle(cornerRadius: 18).fill(Theme.stage)
+                    StageLights(height: 380)
+                    if character.isBuiltIn {
+                        if let image = thumbnails.images[character.id] {
+                            Image(nsImage: image).resizable().aspectRatio(contentMode: .fit)
+                                .padding(.horizontal, 48).padding(.top, 80).padding(.bottom, 34)
+                        }
+                    } else {
+                        LoopingVideo(url: model.url(for: character))
+                            .id(character.id)
+                            .padding(.horizontal, 24).padding(.top, 36).padding(.bottom, 20)
+                    }
+                }
+                .frame(width: 380, height: 380)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+                HStack(spacing: 12) {
+                    Text(character.name).font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                    Spacer(minLength: 8)
+                    Button(L("Show on Desktop")) {
+                        show(character)
+                        previewing = false
+                    }
+                    .keyboardShortcut(.defaultAction)
+                }
+                .frame(width: 380)
+            }
+            .padding(18)
+            .background(RoundedRectangle(cornerRadius: 26).fill(.regularMaterial))
+            .shadow(color: .black.opacity(0.3), radius: 30, y: 12)
+        }
+        .transition(.opacity)
     }
 
     private func trash(_ character: Character) {
@@ -160,73 +301,16 @@ struct LibraryView: View {
     }
 }
 
-/// One character in the library: its card (playing on hover), its name (editable after "Rename"),
-/// and the context menu.
-private struct LibraryCard: View {
-    let character: Character
-    let image: NSImage?
-    let video: URL?
-    let lit: Bool
-    let onSelect: () -> Void
-    let onRename: (String) -> Void
-    let onTrash: () -> Void
-    @State private var hovered = false
-    @State private var draft: String?
-    @FocusState private var editing: Bool
-
-    var body: some View {
-        VStack(spacing: 7) {
-            CharacterCard(image: image, lit: lit, height: 106, cornerRadius: 14, greysUnlit: false,
-                          preview: hovered ? video : nil, action: onSelect)
-                .shadow(color: .black.opacity(hovered ? 0.12 : 0), radius: 8, y: 4)
-                .onHover { hovered = $0 }
-            if let draft {
-                TextField(L("Name"), text: Binding(get: { draft }, set: { self.draft = $0 }))
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
-                    .multilineTextAlignment(.center)
-                    .focused($editing)
-                    .onSubmit { commit() }
-                    .onExitCommand { self.draft = nil }
-                    .onChange(of: editing) { _, focused in if !focused { commit() } }
-            } else {
-                Text(character.name)
-                    .font(.system(size: 12, weight: lit ? .semibold : .regular))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-        }
-        .help(character.name)
-        .contextMenu {
-            if !character.isBuiltIn {
-                Button(L("Rename")) {
-                    draft = character.name
-                    DispatchQueue.main.async { editing = true }
-                }
-                Button(L("Show in Finder")) {
-                    if let video { NSWorkspace.shared.activateFileViewerSelecting([video]) }
-                }
-                Divider()
-                Button(L("Move to Trash"), role: .destructive, action: onTrash)
-            }
-        }
-    }
-
-    private func commit() {
-        if let draft { onRename(draft) }
-        draft = nil
-    }
-}
-
 /// A video being checked and copied in.
 private struct PendingCard: View {
     let name: String
+    let height: CGFloat
 
     var body: some View {
         VStack(spacing: 7) {
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color.primary.opacity(0.06))
-                .frame(height: 106)
+                .frame(height: height)
                 .overlay(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text(L("Importing…")).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
