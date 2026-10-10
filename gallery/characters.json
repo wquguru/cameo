@@ -2,6 +2,18 @@
   {
     "author" : "@wquguru",
     "authorURL" : "https://x.com/wquguru",
+    "bytes" : 3902918,
+    "category" : "person",
+    "duration" : 0.6,
+    "id" : "nina",
+    "license" : "CC BY 4.0",
+    "name" : "Nina",
+    "poster" : "posters/nina.png",
+    "video" : "https://cameo.wqu.guru/characters/nina.mov"
+  },
+  {
+    "author" : "@wquguru",
+    "authorURL" : "https://x.com/wquguru",
     "bytes" : 2503514,
     "category" : "person",
     "duration" : 1,
