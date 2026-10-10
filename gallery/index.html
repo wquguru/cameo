@@ -383,6 +383,7 @@
       eRefused: "This upload can't be accepted.",
       eInvalid: "The video doesn't meet the requirements:", eFields: "Please fill in every field and tick both boxes.",
       eNetwork: "The upload didn't go through. Check your connection and try again.",
+      eStalled: "The upload stalled: the connection stopped moving. Try again, try another network, or use the GitHub form.",
     },
     zh: {
       navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
@@ -433,6 +434,7 @@
       eRefused: "无法接收这次上传。",
       eInvalid: "视频不符合要求：", eFields: "请填写所有信息并勾选两项确认。",
       eNetwork: "上传没有成功，请检查网络后重试。",
+      eStalled: "上传卡住了，连接没有任何进展。请重试、换个网络，或改用 GitHub 投稿表单。",
     },
   };
   const categories = ["animal", "person", "other"];
@@ -635,8 +637,16 @@
     xhr.setRequestHeader("X-Author", encodeURIComponent($("f-author").value.trim()));
     xhr.setRequestHeader("X-Category", $("f-category").value);
     xhr.setRequestHeader("X-Rights", "yes");
-    xhr.upload.onprogress = e => { if (e.lengthComputable) $("bar").style.width = `${Math.round(e.loaded / e.total * 100)}%`; };
+    // Give up when nothing moves for 30 s: on some networks the connection stalls silently.
+    let stalled;
+    const watch = () => { clearTimeout(stalled); stalled = setTimeout(() => xhr.abort(), 30000); };
+    xhr.upload.onprogress = e => {
+      watch();
+      if (e.lengthComputable) $("bar").style.width = `${Math.round(e.loaded / e.total * 100)}%`;
+    };
+    xhr.onabort = () => { status(t.eStalled, "err"); finish(); };
     const finish = () => {
+      clearTimeout(stalled);
       $("progress").hidden = true;
       $("bar").style.width = "0";
       token = "";
@@ -663,6 +673,7 @@
     $("send").disabled = true;
     $("progress").hidden = false;
     status(t.uploading);
+    watch();
     xhr.send(chosen);
   });
 
