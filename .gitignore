@@ -8,3 +8,5 @@ build/
 .wrangler/
 gallery/c/
 gallery/og/
+gallery/posters/*.webp
+gallery/sitemap.xml

@@ -12,6 +12,8 @@ struct Entry: Codable {
     var category: String?
     /// Loop length in seconds.
     var duration: Double?
+    /// First published, yyyy-MM-dd (the share page's uploadDate). Optional for older entries.
+    var added: String?
 }
 
 let args = CommandLine.arguments
@@ -46,13 +48,16 @@ CGImageDestinationAddImage(destination, image, nil)
 guard CGImageDestinationFinalize(destination) else { print("could not write poster"); exit(1) }
 
 let handle = author.hasPrefix("@") ? String(author.dropFirst()) : nil
-let entry = Entry(id: id, name: name, author: author, authorURL: handle.map { "https://x.com/\($0)" } ?? "",
+var entry = Entry(id: id, name: name, author: author, authorURL: handle.map { "https://x.com/\($0)" } ?? "",
                   license: "CC BY 4.0", video: videoURL, poster: posterPath,
                   bytes: (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0,
                   category: category, duration: (CMTimeGetSeconds(duration) * 10).rounded() / 10)
 
 let index = gallery.appendingPathComponent("characters.json")
 var entries = (try? JSONDecoder().decode([Entry].self, from: Data(contentsOf: index))) ?? []
+let today = ISO8601DateFormatter.string(from: Date(), timeZone: TimeZone(identifier: "UTC")!, formatOptions: [.withFullDate])
+// A replaced entry keeps its first publish date.
+entry.added = entries.first { $0.id == id }?.added ?? today
 entries.removeAll { $0.id == id }
 entries.insert(entry, at: 0)
 let encoder = JSONEncoder()

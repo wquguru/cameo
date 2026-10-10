@@ -18,6 +18,14 @@
 <meta property="og:image:alt" content="Chaofei, a silver tabby cat, in a spotlight next to the words: Put a character on your Mac">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:creator" content="@wquguru">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Cameo",
+ "description": "A macOS menu bar app that puts a transparent, click-through character on your desktop.",
+ "applicationCategory": "UtilitiesApplication", "operatingSystem": "macOS 14 or later",
+ "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+ "url": "https://wquguru.github.io/cameo/", "downloadUrl": "https://github.com/wquguru/cameo/releases/latest",
+ "image": "https://wquguru.github.io/cameo/og.png", "license": "https://github.com/wquguru/cameo/blob/main/LICENSE"}
+</script>
 <style>
   :root {
     --ink: #1D1D1F;
@@ -308,6 +316,7 @@
       <div class="tabs" role="tablist" id="tabs"></div>
       <span class="count" id="count"></span>
     </div>
+    <!-- scripts/gallery_pages.py --site fills this with plain character links for crawlers. -->
     <div class="grid" id="grid"></div>
   </section>
 
@@ -560,7 +569,10 @@
     const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
     const author = c.authorURL ? el("a", { href: c.authorURL, textContent: c.author }) : c.author;
     const facts = [c.duration ? `${Math.round(c.duration)} s` : "", size(c.bytes)].filter(Boolean).join(" · ");
-    const stage = el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" }));
+    // The build adds a small .webp beside each .png poster (scripts/gallery_pages.py).
+    const poster = el("img", { src: c.poster.replace(/\.png$/, ".webp"), alt: c.name, loading: "lazy" });
+    poster.addEventListener("error", () => { poster.src = c.poster; }, { once: true });
+    const stage = el("div", { className: "stage" }, poster);
     if (c.category && t[c.category]) stage.append(el("span", { className: "chip tl", textContent: t[c.category] }));
     if (facts) stage.append(el("span", { className: "chip br", textContent: facts }));
     stage.append(shareButton(c, lang));
@@ -635,7 +647,9 @@
       el("strong", { textContent: t.submitTitle }),
       el("span", { textContent: t.submitBody }),
       el("em", { textContent: t.submitLink }));
-    document.getElementById("grid").replaceChildren(...shown.map(c => card(c, t)), submit);
+    // Until characters.json arrives, keep the build's static links rather than an empty grid.
+    const grid = document.getElementById("grid");
+    if (characters.length || !grid.querySelector(".card")) grid.replaceChildren(...shown.map(c => card(c, t)), submit);
     externalLinks();
   }
 

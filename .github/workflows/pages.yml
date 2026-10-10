@@ -28,9 +28,15 @@ jobs:
       # so a new page never runs with an old mov.js or share.js.
       - name: Version the page's scripts
         run: perl -pi -e "s#from \"\./(mov|share)\.js\"#from \"./\$1.js?v=${GITHUB_SHA::12}\"#g" gallery/index.html
-      # One page and Open Graph card per character (gallery/c/<id>/, gallery/og/<id>.png).
+      - name: Install cwebp
+        run: brew install webp
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      # One page and Open Graph card per character (gallery/c/<id>/, gallery/og/<id>.png), .webp
+      # posters, sitemap.xml, and plain character links in index.html for crawlers.
       - name: Build the share pages
-        run: python3 scripts/gallery_pages.py
+        run: python3 scripts/gallery_pages.py --site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: gallery

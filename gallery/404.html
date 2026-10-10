@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- GitHub Pages serves this for any missing path under /cameo/, such as the share link of a
+     character that left the gallery (its id stays in retired.json, so it never points elsewhere). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Not found · Cameo</title>
+<link rel="icon" href="/cameo/icon.png">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: #FFFFFF; color: #1D1D1F;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 440px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+  .stage { position: relative; width: 220px; height: 160px; border-radius: 22px; overflow: hidden; background: #161618; }
+  .stage::before { content: ""; position: absolute; inset: 0 14%; background: linear-gradient(180deg, rgba(255,210,122,.36), rgba(255,179,64,0) 92%); clip-path: polygon(38% 0, 62% 0, 96% 100%, 4% 100%); }
+  .stage::after { content: ""; position: absolute; left: 20%; right: 20%; bottom: 18px; height: 34px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,200,100,.5), rgba(255,200,100,0)); }
+  h1 { margin: 8px 0 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -.02em; }
+  p { margin: 0; color: #48484A; }
+  a.btn { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 12px; background: #FFB340; color: #1D1D1F; font-weight: 650; text-decoration: none; }
+  a.btn:hover { filter: brightness(1.05); }
+</style>
+</head>
+<body>
+<main>
+  <div class="stage" aria-hidden="true"></div>
+  <h1 id="title">This page isn't here</h1>
+  <p id="body">The link may be mistyped, or the page has moved.</p>
+  <a class="btn" href="/cameo/" id="back">Browse all characters</a>
+</main>
+<script>
+  const zh = (() => { try { return (localStorage.getItem("lang") || navigator.language).startsWith("zh"); } catch { return navigator.language.startsWith("zh"); } })();
+  const character = /^\/cameo\/c\/[^/]+/.test(location.pathname);
+  const text = zh
+    ? character
+      ? ["这个角色已经下架", "它不在角色库里了。去看看其他角色吧。", "浏览全部角色"]
+      : ["找不到这个页面", "链接可能有误，或者页面已经移走。", "浏览全部角色"]
+    : character
+      ? ["This character has left the gallery", "It's no longer available. Plenty of others are.", "Browse all characters"]
+      : ["This page isn't here", "The link may be mistyped, or the page has moved.", "Browse all characters"];
+  document.documentElement.lang = zh ? "zh-CN" : "en";
+  document.title = `${text[0]} · Cameo`;
+  ["title", "body", "back"].forEach((id, i) => { document.getElementById(id).textContent = text[i]; });
+</script>
+</body>
+</html>

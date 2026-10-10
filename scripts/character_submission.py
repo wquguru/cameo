@@ -157,7 +157,8 @@ def slug(name, issue, taken):
 
 def publish(issue, form, path):
     entries = json.loads((ROOT / "gallery/characters.json").read_text())
-    character = slug(form["name"], issue, {e["id"] for e in entries})
+    retired = set(json.loads((ROOT / "gallery/retired.json").read_text()))
+    character = slug(form["name"], issue, {e["id"] for e in entries} | retired)
     url = f"{ORIGIN}/characters/{character}.mov"
 
     run("swift", "scripts/gallery-entry.swift", str(path), character, form["name"], form["author"], url, form["category"])

@@ -5,21 +5,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{name}} · Cameo</title>
+<title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="icon" href="../../icon.png">
 <link rel="canonical" href="{{url}}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cameo">
+<meta property="og:locale" content="en_US">
 <meta property="og:url" content="{{url}}">
-<meta property="og:title" content="{{name}} · Cameo character">
+<meta property="og:title" content="{{og_title}}">
 <meta property="og:description" content="{{description}}">
 <meta property="og:image" content="{{og_image}}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="{{name}} in a spotlight, a character for Cameo on the Mac">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:creator" content="@wquguru">
+<meta name="twitter:site" content="@wquguru">
+<meta name="twitter:creator" content="{{twitter}}">
+<script type="application/ld+json">
+{{jsonld}}
+</script>
 <style>
   :root {
     --ink: #1D1D1F; --ink-2: #48484A; --muted: #6E6E73; --line: #EEECE8; --soft: #F7F6F3;
@@ -162,7 +167,7 @@
     <div class="stage">
       <div class="beam" aria-hidden="true"></div>
       <div class="floor" aria-hidden="true"></div>
-      <img class="figure" id="poster" src="{{poster}}" alt="{{name}}">
+      <picture><source srcset="{{poster_webp}}" type="image/webp"><img class="figure" id="poster" src="{{poster}}" alt="{{name}}" width="{{poster_w}}" height="{{poster_h}}" fetchpriority="high"></picture>
       <video class="figure" id="video" src="{{video}}" muted loop playsinline preload="none" aria-label="{{name}}" hidden></video>
       <span class="label" id="live" data-t="live" hidden>Loop preview · transparent</span>
       <button class="pause" id="pause" type="button" aria-label="Pause" hidden>
