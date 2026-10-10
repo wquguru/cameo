@@ -2,6 +2,18 @@
   {
     "author" : "@wquguru",
     "authorURL" : "https://x.com/wquguru",
+    "bytes" : 3731623,
+    "category" : "person",
+    "duration" : 1,
+    "id" : "xuan",
+    "license" : "CC BY 4.0",
+    "name" : "Xuan",
+    "poster" : "posters/xuan.png",
+    "video" : "https://cameo.wqu.guru/characters/xuan.mov"
+  },
+  {
+    "author" : "@wquguru",
+    "authorURL" : "https://x.com/wquguru",
     "bytes" : 3902918,
     "category" : "person",
     "duration" : 0.6,
