@@ -13,6 +13,14 @@ struct PopoverView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
+            if !model.visible && !model.hideHintSeen {
+                Text(L("Until you show it again, Cameo stays in the Dock, so you can find it even when the menu bar is full."))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 6)
+            }
             separator
             section(L("Characters"), accessory: { libraryLink }) {
                 cards

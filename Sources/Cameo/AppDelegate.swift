@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var characterWindow: CharacterWindowController!
     private var library: LibraryWindowController!
     private var updateBadge: AnyCancellable?
+    private var dockIcon: AnyCancellable?
     /// An invisible point under the menu bar to show the popover from when the status item can't
     /// be relied on (it may be hidden behind the notch of a crowded menu bar).
     /// The view the popover is showing from.
@@ -57,6 +58,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         library = LibraryWindowController(model: model, thumbnails: thumbnails) { [weak self] window in
             self?.chooseVideos(in: window)
         }
+        library.onClose = { [weak self] in self?.updateDockIcon() }
+        // While the figure is hidden Cameo waits in the Dock: with its menu bar icon behind the
+        // notch there would otherwise be nothing on screen to click.
+        dockIcon = model.$visible.sink { [weak self] visible in self?.updateDockIcon(visible: visible) }
         NSApp.mainMenu = MainMenu.make()
         updateBadge = model.$update.combineLatest(model.$language).sink { [weak self] update, _ in
             self?.statusItem.button?.image = update == nil ? Glyph.template : Glyph.withBadge
@@ -137,6 +142,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             }
         }
         popover.contentViewController?.view.window?.makeKey()
+    }
+
+    /// A Dock icon (and the menus) while the library is open or the figure is hidden.
+    private func updateDockIcon(visible: Bool? = nil) {
+        let regular = library.isOpen || !(visible ?? model.visible)
+        let policy: NSApplication.ActivationPolicy = regular ? .regular : .accessory
+        if NSApp.activationPolicy() != policy { NSApp.setActivationPolicy(policy) }
     }
 
     private func openLibrary() {

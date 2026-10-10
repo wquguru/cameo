@@ -10,6 +10,8 @@ final class LibraryWindowController: NSObject, NSWindowDelegate {
     private let thumbnails: Thumbnails
     private let onAdd: (NSWindow) -> Void
     private var window: NSWindow?
+    /// Called after the window closes, so the Dock icon can go if nothing else needs it.
+    var onClose: (() -> Void)?
 
     init(model: AppModel, thumbnails: Thumbnails, onAdd: @escaping (NSWindow) -> Void) {
         self.model = model
@@ -49,6 +51,6 @@ final class LibraryWindowController: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        DispatchQueue.main.async { self.onClose?() }
     }
 }

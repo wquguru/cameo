@@ -32,7 +32,15 @@ final class AppModel: ObservableObject {
         didSet { defaults.set(scale, forKey: "scale") }
     }
     @Published var visible: Bool {
-        didSet { defaults.set(visible, forKey: "visible") }
+        didSet {
+            defaults.set(visible, forKey: "visible")
+            if visible && !oldValue { hideHintSeen = true }
+        }
+    }
+    /// Whether the figure has been shown again after a hide, so the popover stops explaining
+    /// that a hidden Cameo waits in the Dock.
+    @Published private(set) var hideHintSeen: Bool {
+        didSet { defaults.set(hideHintSeen, forKey: "hideHintSeen") }
     }
     @Published private(set) var launchAtLogin: Bool
     @Published var errorMessage: String?
@@ -63,6 +71,7 @@ final class AppModel: ObservableObject {
         lastUsed = defaults.dictionary(forKey: "lastUsed") as? [String: Double] ?? [:]
         scale = defaults.double(forKey: "scale")
         visible = defaults.bool(forKey: "visible")
+        hideHintSeen = defaults.bool(forKey: "hideHintSeen")
         launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = defaults.string(forKey: "selectedID").flatMap(UUID.init(uuidString:))
         selectedID = characters.contains { $0.id == saved } ? saved : characters.first?.id

@@ -42,7 +42,7 @@ final class CharacterWindowController {
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = true
         for view in [playerView, catView] as [FigureView] {
-            view.onDragEnded = { [weak self] in self?.saveAnchor() }
+            view.onDragEnded = { [weak self] in self?.layout(); self?.saveAnchor() }
             view.onSecondaryClick = { [weak self, weak view] in
                 if let view { self?.onSecondaryClick?(view) }
             }
@@ -126,7 +126,7 @@ final class CharacterWindowController {
         let factor = model.selected?.isBuiltIn == true ? Self.catHeightFactor : 1
         let height = Self.baseHeight * model.scale * factor
         let size = NSSize(width: (height * aspect).rounded(), height: height.rounded())
-        let feet = anchor()
+        let feet = Self.keepVisible(anchor(), size: size)
         panel.setFrame(NSRect(x: feet.x - size.width / 2, y: feet.y, width: size.width, height: size.height), display: true)
     }
 
@@ -139,6 +139,22 @@ final class CharacterWindowController {
         }
         let visible = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
         return NSPoint(x: visible.maxX - 220, y: visible.minY)
+    }
+
+    /// Moves feet that ended up off every screen (dragged away, a display unplugged) back so the
+    /// feet stay on a screen and at least half the figure is below its menu bar.
+    private static func keepVisible(_ feet: NSPoint, size: NSSize) -> NSPoint {
+        let screens = NSScreen.screens
+        guard !screens.isEmpty else { return feet }
+        func distance(_ frame: NSRect) -> CGFloat {
+            hypot(max(frame.minX - feet.x, 0, feet.x - frame.maxX), max(frame.minY - feet.y, 0, feet.y - frame.maxY))
+        }
+        let screen = screens.min { distance($0.frame) < distance($1.frame) }!
+        let visible = screen.visibleFrame
+        let x = min(max(feet.x, visible.minX), visible.maxX)
+        let top = visible.maxY - min(size.height, visible.height) / 2
+        let y = min(max(feet.y, screen.frame.minY), max(top, screen.frame.minY))
+        return NSPoint(x: x, y: y)
     }
 
     private func saveAnchor() {
