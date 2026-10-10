@@ -9,12 +9,15 @@ class FigureView: NSView {
     var onDragEnded: (() -> Void)?
     var onClick: (() -> Void)?
     var onDragChanged: ((Bool) -> Void)?
-    /// A right-click or Control-click (the second click of a double-click is ignored).
+    /// A right-click or Control-click, on release (the second click of a double-click is ignored).
     var onSecondaryClick: (() -> Void)?
 
     private(set) var link: CADisplayLink?
     private var dragStart: (start: NSPoint, last: NSPoint)?
     private var moved = false
+    /// A right (or Control-) click is down. The popover opens on release: opened on the press,
+    /// the release would land outside it and close it straight away.
+    private var secondaryDown = false
 
     var maxFrameRate: Float = 60 {
         didSet { applyFrameRate() }
@@ -58,6 +61,7 @@ class FigureView: NSView {
     override func mouseDown(with event: NSEvent) {
         guard window != nil else { return }
         if event.modifierFlags.contains(.control) { return rightMouseDown(with: event) }
+        secondaryDown = false
         dragStart = (NSEvent.mouseLocation, NSEvent.mouseLocation)
         moved = false
         NSCursor.closedHand.push()
@@ -77,10 +81,17 @@ class FigureView: NSView {
     }
 
     override func rightMouseDown(with event: NSEvent) {
-        if event.clickCount == 1 { onSecondaryClick?() }
+        secondaryDown = event.clickCount == 1
+    }
+
+    override func rightMouseUp(with event: NSEvent) {
+        guard secondaryDown else { return }
+        secondaryDown = false
+        onSecondaryClick?()
     }
 
     override func mouseUp(with event: NSEvent) {
+        if secondaryDown { return rightMouseUp(with: event) }
         guard dragStart != nil else { return }
         dragStart = nil
         NSCursor.pop()
