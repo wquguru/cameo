@@ -2,12 +2,15 @@ import AppKit
 import QuartzCore
 
 /// Base for the views shown in the character window: a display link driving `step`,
-/// a frame-rate cap, dragging the window, and an alpha hit test for click-through.
+/// a frame-rate cap, dragging the window, a right-click (or Control-click) that asks for the menu,
+/// and an alpha hit test for click-through.
 @MainActor
 class FigureView: NSView {
     var onDragEnded: (() -> Void)?
     var onClick: (() -> Void)?
     var onDragChanged: ((Bool) -> Void)?
+    /// A right-click or Control-click (the second click of a double-click is ignored).
+    var onSecondaryClick: (() -> Void)?
 
     private(set) var link: CADisplayLink?
     private var dragStart: (start: NSPoint, last: NSPoint)?
@@ -54,6 +57,7 @@ class FigureView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         guard window != nil else { return }
+        if event.modifierFlags.contains(.control) { return rightMouseDown(with: event) }
         dragStart = (NSEvent.mouseLocation, NSEvent.mouseLocation)
         moved = false
         NSCursor.closedHand.push()
@@ -70,6 +74,10 @@ class FigureView: NSView {
         let origin = window.frame.origin
         window.setFrameOrigin(NSPoint(x: origin.x + now.x - drag.last.x, y: origin.y + now.y - drag.last.y))
         dragStart = (drag.start, now)
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        if event.clickCount == 1 { onSecondaryClick?() }
     }
 
     override func mouseUp(with event: NSEvent) {

@@ -220,19 +220,27 @@ struct PopoverView: View {
     /// The popover shows the most recent characters; the library has them all.
     static let recentCount = 7
 
+    /// Opens the library window; the chevron marks it as staying in the app (the gallery is in
+    /// the add menu).
     private var libraryLink: some View {
-        HStack(spacing: 10) {
-            Link(destination: GalleryLink.gallery) {
-                HStack(spacing: 2) {
-                    Text(L("Gallery"))
-                    Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
-                }
+        Button(action: onOpenLibrary) {
+            HStack(spacing: 2) {
+                Text(L("All %@", String(model.characters.count)))
+                Image(systemName: "chevron.right").font(.system(size: 8, weight: .semibold))
             }
-            .help(GalleryLink.gallery.absoluteString)
-            Button(L("All %@…", String(model.characters.count)), action: onOpenLibrary)
-                .buttonStyle(.link)
         }
+        .buttonStyle(.link)
         .font(.system(size: 11))
+    }
+
+    /// The ways to get a character: a video from disk, one from the gallery, or making one.
+    private func showAddMenu() {
+        let menu = NSMenu()
+        menu.addItem(ActionMenuItem(L("Choose Videos…"), onAdd))
+        menu.addItem(LinkMenuItem(L("Add from Gallery"), GalleryLink.gallery))
+        menu.addItem(.separator())
+        menu.addItem(LinkMenuItem(L("Make Your Own"), GalleryLink.make))
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
     private var cards: some View {
@@ -260,7 +268,7 @@ struct PopoverView: View {
                 }
             }
             VStack(spacing: 4) {
-                Button(action: onAdd) {
+                Button(action: showAddMenu) {
                     RoundedRectangle(cornerRadius: 9)
                         .strokeBorder(.tertiary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                         .frame(height: CharacterCard.height)
@@ -268,7 +276,7 @@ struct PopoverView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(L("Add a character video"))
+                .accessibilityLabel(L("Add a character"))
                 Text(L("Add")).font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }

@@ -54,7 +54,6 @@
 "Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)" = "選擇具透明通道的影片（HEVC with Alpha 或 ProRes 4444）";
 "System" = "跟隨系統";
 "A .mov encoded as HEVC with Alpha or ProRes 4444; you can drop several at once." = "以 HEVC with Alpha 或 ProRes 4444 編碼的 .mov，可一次拖入多個。";
-"All %@…" = "全部 %@ 個…";
 "Browse the Gallery ↗" = "瀏覽角色藝廊 ↗";
 "Choose Videos…" = "選擇影片…";
 "Close" = "關閉";
@@ -81,3 +80,11 @@
 "Show in Finder" = "在 Finder 中顯示";
 "Undo" = "還原";
 "Window" = "視窗";
+"All %@" = "全部 %@ 個";
+"Add from Gallery" = "從角色藝廊加入";
+"Make Your Own" = "自己做一個";
+"Help" = "輔助說明";
+"Make a Character" = "製作角色";
+"Submit a Character" = "投稿角色";
+"No video? Make your own ↗" = "沒有影片？自己做一個 ↗";
+"Add a character" = "加入角色";

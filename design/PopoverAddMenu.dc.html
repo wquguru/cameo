@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>弹窗 · 添加菜单</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0066CC}a:hover{color:#004C99}
+</style>
+</helmet>
+<div style="width: 420px; height: 520px; box-sizing: border-box; padding: 28px 50px; position: relative; background: #D6E0EA; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+<div style="width: 320px; box-sizing: border-box; padding: 6px 0 10px; border-radius: 12px; background: rgba(246, 246, 248, 0.92); border: 0.5px solid rgba(0, 0, 0, 0.14); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16); display: flex; flex-direction: column">
+
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 14px 8px">
+<div style="display: flex; flex-direction: column; gap: 1px"><div style="font-size: 13px; font-weight: 600">Cameo</div><div style="font-size: 11px; color: #6E6E73">显示中 · Nina</div></div>
+<span style="width: 38px; height: 22px; box-sizing: border-box; border-radius: 11px; padding: 2px; background: #0A7AFF; display: flex; justify-content: flex-end"><span style="width: 18px; height: 18px; border-radius: 9px; background: #FFFFFF; display: block"></span></span>
+</div>
+<div style="height: 1px; background: rgba(0, 0, 0, 0.1); margin: 2px 14px 6px"></div>
+
+<div style="padding: 0 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<div style="font-size: 11px; font-weight: 600; color: #6E6E73">角色</div>
+<a href="#" style="font-size: 11px; text-decoration: none; display: flex; align-items: center; gap: 3px">全部 7 个<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 1.5px solid #FFB340; background: #161618; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#F5F1EA"></path></svg></span><span style="font-size: 11px; font-weight: 500">Nina</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#A1A1A6"></path></svg></span><span style="font-size: 11px; color: #6E6E73">Xuan</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#A1A1A6"></path></svg></span><span style="font-size: 11px; color: #6E6E73">Lily</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#A1A1A6"></path></svg></span><span style="font-size: 11px; color: #6E6E73">Mia</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#A1A1A6"></path></svg></span><span style="font-size: 11px; color: #6E6E73">Zoe</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 9px"><svg viewBox="0 0 100 70" width="44" height="31" aria-hidden="true"><path d="M22 44 Q6 38 10 20" fill="none" stroke="#A1A1A6" stroke-width="6" stroke-linecap="round"></path><ellipse cx="46" cy="44" rx="26" ry="14" fill="#A1A1A6"></ellipse><circle cx="72" cy="30" r="13" fill="#A1A1A6"></circle><path d="M62 23 L64 10 L71 20 Z M76 19 L83 9 L85 23 Z" fill="#A1A1A6"></path><rect x="28" y="50" width="7" height="16" rx="3" fill="#A1A1A6"></rect><rect x="56" y="50" width="7" height="16" rx="3" fill="#A1A1A6"></rect></svg></span><span style="font-size: 11px; color: #6E6E73">Chaofei</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 100%; height: 66px; box-sizing: border-box; border-radius: 9px; border: 0.5px solid rgba(0,0,0,0.1); background: #E6E6EB; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 7px"><svg viewBox="0 0 100 204" width="26" height="52" aria-hidden="true"><path d="M33 22 a17 17 0 1 0 34 0 a17 17 0 1 0 -34 0 Z M50 43 C33 43 23 53 21 70 L14 128 L27 128 L32 200 L44 200 L48 140 L52 140 L56 200 L68 200 L73 128 L86 128 L79 70 C77 53 67 43 50 43 Z" fill="#A1A1A6"></path></svg></span><span style="font-size: 11px; color: #6E6E73">Ava</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><button type="button" onClick="{{toggle}}" aria-label="添加角色" aria-haspopup="menu" aria-expanded="{{open}}" style="width: 100%; height: 66px; border-radius: 9px; border: 1.5px dashed rgba(0, 0, 0, 0.2); background: {{plusBg}}; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="#6E6E73" stroke-width="1.6" stroke-linecap="round"></path></svg></button><span style="font-size: 11px; color: #6E6E73">添加</span></div>
+</div>
+</div>
+
+<div style="height: 1px; background: rgba(0, 0, 0, 0.1); margin: 10px 14px 6px"></div>
+<div style="padding: 0 14px; font-size: 11px; font-weight: 600; color: #6E6E73; opacity: .5">大小</div>
+</div>
+
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<div role="menu" style="position: absolute; left: 288px; top: 262px; width: 190px; box-sizing: border-box; padding: 5px; border-radius: 8px; background: rgba(246,246,246,0.97); box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18), 0 10px 28px rgba(0,0,0,0.2); font-size: 13px; display: flex; flex-direction: column">
+<span role="menuitem" style="height: 22px; padding: 0 10px; border-radius: 4px; background: #0A6CE0; color: #FFFFFF; display: flex; align-items: center">选择视频…</span>
+<span role="menuitem" style="height: 22px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between">从角色画廊添加<span style="color: #8E8E93">↗</span></span>
+<div style="height: 1px; margin: 5px 0; background: rgba(0,0,0,0.1)"></div>
+<span role="menuitem" style="height: 22px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between">自己制作一个<span style="color: #8E8E93">↗</span></span>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const open = !(this.state && this.state.closed);
+    return {
+      open: open,
+      plusBg: open ? 'rgba(0,0,0,0.06)' : 'transparent',
+      toggle: () => this.setState({ closed: open })
+    };
+  }
+}
+</script>
+</body>
+</html>

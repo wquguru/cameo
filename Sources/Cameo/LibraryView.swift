@@ -115,6 +115,7 @@ struct LibraryView: View {
             }
             .controlSize(.large)
             .padding(.top, 6)
+            Link(L("No video? Make your own ↗"), destination: GalleryLink.make).font(.system(size: 13))
         }
         .frame(maxWidth: .infinity, minHeight: 360)
         .background(RoundedRectangle(cornerRadius: 22).strokeBorder(.tertiary, style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])))

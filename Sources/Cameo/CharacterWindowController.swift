@@ -23,6 +23,8 @@ final class CharacterWindowController {
     private var pollTimer: Timer?
     private var pollCount = 0
     private var screensAsleep = false
+    /// A right-click on the figure, with the view to show the popover beside.
+    var onSecondaryClick: ((NSView) -> Void)?
 
     private var figureView: FigureView {
         model.selected?.isBuiltIn == true ? catView : playerView
@@ -41,6 +43,9 @@ final class CharacterWindowController {
         panel.ignoresMouseEvents = true
         for view in [playerView, catView] as [FigureView] {
             view.onDragEnded = { [weak self] in self?.saveAnchor() }
+            view.onSecondaryClick = { [weak self, weak view] in
+                if let view { self?.onSecondaryClick?(view) }
+            }
         }
         catView.onMove = { [weak self] dx in self?.moveCat(by: dx) ?? false }
 

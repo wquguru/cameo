@@ -54,7 +54,6 @@
 "Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)" = "アルファチャンネル付きのビデオを選択（HEVC with Alpha または ProRes 4444）";
 "System" = "システム設定に従う";
 "A .mov encoded as HEVC with Alpha or ProRes 4444; you can drop several at once." = "HEVC with Alpha または ProRes 4444 でエンコードした .mov。まとめてドロップできます。";
-"All %@…" = "すべて（%@）…";
 "Browse the Gallery ↗" = "ギャラリーを見る ↗";
 "Choose Videos…" = "ビデオを選択…";
 "Close" = "閉じる";
@@ -81,3 +80,11 @@
 "Show in Finder" = "Finder に表示";
 "Undo" = "取り消す";
 "Window" = "ウインドウ";
+"All %@" = "すべて（%@）";
+"Add from Gallery" = "ギャラリーから追加";
+"Make Your Own" = "自分で作る";
+"Help" = "ヘルプ";
+"Make a Character" = "キャラクターを作る";
+"Submit a Character" = "キャラクターを投稿";
+"No video? Make your own ↗" = "ビデオがない？自分で作る ↗";
+"Add a character" = "キャラクターを追加";

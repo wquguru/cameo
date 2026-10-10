@@ -54,7 +54,6 @@
 "Choose videos with an alpha channel (HEVC with Alpha or ProRes 4444)" = "Escolha vídeos com canal alfa (HEVC with Alpha ou ProRes 4444)";
 "System" = "Sistema";
 "A .mov encoded as HEVC with Alpha or ProRes 4444; you can drop several at once." = "Um .mov codificado em HEVC with Alpha ou ProRes 4444; você pode soltar vários de uma vez.";
-"All %@…" = "Todos (%@)…";
 "Browse the Gallery ↗" = "Explorar a galeria ↗";
 "Choose Videos…" = "Escolher vídeos…";
 "Close" = "Fechar";
@@ -81,3 +80,11 @@
 "Show in Finder" = "Mostrar no Finder";
 "Undo" = "Desfazer";
 "Window" = "Janela";
+"All %@" = "Todos (%@)";
+"Add from Gallery" = "Adicionar da galeria";
+"Make Your Own" = "Criar o seu";
+"Help" = "Ajuda";
+"Make a Character" = "Criar um personagem";
+"Submit a Character" = "Enviar um personagem";
+"No video? Make your own ↗" = "Sem vídeo? Crie o seu ↗";
+"Add a character" = "Adicionar um personagem";

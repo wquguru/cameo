@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>帮助菜单</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 960px; height: 420px; position: relative; overflow: hidden; border-radius: 26px; background: #CFDDEA; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #1D1D1F; -webkit-font-smoothing: antialiased">
+
+<div style="height: 30px; padding: 0 14px; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.72); font-size: 13px">
+<svg width="14" height="16" viewBox="0 0 14 16" fill="#1D1D1F" aria-hidden="true"><path d="M11.6 8.5c0-2 1.6-2.9 1.7-3a3.7 3.7 0 0 0-2.9-1.6c-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7A3.9 3.9 0 0 0 1.5 6c-1.4 2.4-.4 6 1 8 .7 1 1.5 2 2.5 2s1.4-.6 2.6-.6 1.5.6 2.6.6 1.7-1 2.4-2a8 8 0 0 0 1-2.1 3.4 3.4 0 0 1-2-3.4ZM9.6 2.6A3.4 3.4 0 0 0 10.4 0a3.5 3.5 0 0 0-2.3 1.2 3.2 3.2 0 0 0-.8 2.4 2.9 2.9 0 0 0 2.3-1Z"></path></svg>
+<span style="padding: 3px 9px; font-weight: 700">Cameo</span>
+<span style="padding: 3px 9px">编辑</span>
+<span style="padding: 3px 9px">窗口</span>
+<span style="padding: 3px 9px; border-radius: 5px; background: rgba(0,0,0,0.1)">帮助</span>
+</div>
+
+<div style="position: absolute; left: 228px; top: 34px; width: 260px; box-sizing: border-box; padding: 5px; border-radius: 10px; background: rgba(246,246,246,0.96); box-shadow: 0 0 0 0.5px rgba(0,0,0,0.18), 0 12px 32px rgba(0,0,0,0.2); font-size: 13px; display: flex; flex-direction: column">
+<div style="margin: 2px 4px 6px; height: 24px; border-radius: 6px; background: #FFFFFF; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 6px; padding: 0 8px; color: #8E8E93">
+<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle><path d="M11 11l3.5 3.5"></path></svg>
+<span>搜索</span>
+</div>
+<div style="height: 1px; margin: 0 -5px 5px; background: rgba(0,0,0,0.1)"></div>
+<a href="https://wquguru.github.io/cameo/#make" style="height: 24px; padding: 0 10px; border-radius: 5px; background: #0A6CE0; color: #FFFFFF; display: flex; align-items: center; text-decoration: none">制作角色…</a>
+<a href="https://wquguru.github.io/cameo/#submit" style="height: 24px; padding: 0 10px; border-radius: 5px; color: #1D1D1F; display: flex; align-items: center; text-decoration: none">投稿角色…</a>
+<div style="height: 1px; margin: 5px -5px; background: rgba(0,0,0,0.1)"></div>
+<a href="https://github.com/wquguru/cameo/issues" style="height: 24px; padding: 0 10px; border-radius: 5px; color: #1D1D1F; display: flex; align-items: center; text-decoration: none">反馈问题…</a>
+</div>
+
+<div style="position: absolute; left: 520px; right: 40px; top: 70px; bottom: -20px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,0.16); overflow: hidden">
+<div style="height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 12px; border-bottom: 1px solid #EEEEEE"><i style="width: 11px; height: 11px; border-radius: 50%; background: #FF5F57"></i><i style="width: 11px; height: 11px; border-radius: 50%; background: #FEBC2E"></i><i style="width: 11px; height: 11px; border-radius: 50%; background: #28C840"></i><span style="margin-left: 8px; font-size: 13px; font-weight: 600">角色库</span></div>
+<div style="padding: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<i style="height: 90px; border-radius: 12px; background: #161618"></i><i style="height: 90px; border-radius: 12px; background: #F2F2F4"></i><i style="height: 90px; border-radius: 12px; background: #F2F2F4"></i>
+<i style="height: 90px; border-radius: 12px; background: #F2F2F4"></i><i style="height: 90px; border-radius: 12px; background: #F2F2F4"></i>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":420}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

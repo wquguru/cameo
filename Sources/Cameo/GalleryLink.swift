@@ -6,6 +6,9 @@ import Foundation
 struct GalleryLink {
     static let maxBytes = 200_000_000
     static let gallery = URL(string: "https://wquguru.github.io/cameo/")!
+    /// The gallery's sections on making a character (agent skills) and submitting one.
+    static let make = URL(string: "https://wquguru.github.io/cameo/#make")!
+    static let submit = URL(string: "https://wquguru.github.io/cameo/#submit")!
     static let assetHost = "cameo.wqu.guru"
 
     let source: URL

@@ -1,7 +1,8 @@
 import AppKit
 
 /// The menu bar menus Cameo shows while the library window makes it a regular app: enough for
-/// About, Quit, editing a name (cut, copy, paste, undo) and closing the window.
+/// About, Quit, editing a name (cut, copy, paste, undo), closing the window, and Help pointing at
+/// the gallery's pages on making and submitting a character.
 @MainActor
 enum MainMenu {
     static func make() -> NSMenu {
@@ -26,6 +27,14 @@ enum MainMenu {
             item(L("Close"), #selector(NSWindow.performClose(_:)), "w"),
             item(L("Minimize"), #selector(NSWindow.performMiniaturize(_:)), "m"),
         ]))
+        let help = submenu(L("Help"), [
+            LinkMenuItem(L("Make a Character"), GalleryLink.make),
+            LinkMenuItem(L("Submit a Character"), GalleryLink.submit),
+            .separator(),
+            LinkMenuItem(L("Report an Issue"), AboutPanel.repository.appendingPathComponent("issues/new")),
+        ])
+        menu.addItem(help)
+        NSApp.helpMenu = help.submenu
         return menu
     }
 

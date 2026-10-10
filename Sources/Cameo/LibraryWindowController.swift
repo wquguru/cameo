@@ -17,6 +17,9 @@ final class LibraryWindowController: NSObject, NSWindowDelegate {
         self.onAdd = onAdd
     }
 
+    /// On screen or in the Dock.
+    var isOpen: Bool { window.map { $0.isVisible || $0.isMiniaturized } ?? false }
+
     func show() {
         let window = window ?? makeWindow()
         self.window = window
