@@ -2,7 +2,7 @@ name: character
 
 # Character submissions (issues opened from the "Submit a character" form, label "character"):
 # every new or edited submission is checked and gets a reply; adding the "approved" label
-# (only maintainers can) uploads the video to R2 and opens a pull request for the gallery.
+# (only maintainers can) uploads the video to R2, commits the gallery entry and deploys it.
 on:
   issues:
     types: [opened, edited, labeled]
@@ -36,9 +36,9 @@ jobs:
       contains(github.event.issue.labels.*.name, 'character')
     runs-on: macos-15
     permissions:
-      contents: write
+      contents: write   # commit the gallery entry to main
       issues: write
-      pull-requests: write
+      actions: write    # start the pages workflow
     steps:
       - uses: actions/checkout@v4
       - name: Publish the character

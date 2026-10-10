@@ -96,10 +96,14 @@ def check_video(path):
         return {"ok": False, "problems": ["The video could not be read. 无法读取这个视频。"]}
 
 
-def comment(issue, text):
-    """Creates the bot's comment, or replaces it so the issue keeps one up-to-date report."""
+def comment(issue, text, new=False):
+    """Posts the bot's check report, replacing the previous one so edits don't pile up comments.
+    With new=True it always posts a fresh comment, so people get notified (publishing)."""
     repo = os.environ["GITHUB_REPOSITORY"]
     body = f"{MARKER}\n{text}"
+    if new:
+        run("gh", "issue", "comment", issue, "--body", body, capture=True)
+        return
     ids = run("gh", "api", f"repos/{repo}/issues/{issue}/comments", "--paginate",
               "-q", f'.[] | select(.body | startswith("{MARKER}")) | .id', capture=True).stdout.split()
     if ids:
@@ -168,18 +172,24 @@ def publish(issue, form, path):
     if form["video"].startswith("r2:"):
         s3("rm", f"s3://{UPLOADS}/{form['video'][3:]}")
 
-    branch = f"character/{character}"
+    # Approval is the review: commit straight to main, deploy the gallery, close the issue.
+    # (A push made with the workflow token starts no workflows, so Pages is started explicitly.)
     run("git", "config", "user.name", "github-actions[bot]")
     run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
-    run("git", "checkout", "-B", branch)
     run("git", "add", "gallery")
-    run("git", "commit", "-m", f"Add character {form['name']} (#{issue})")
-    run("git", "push", "-f", "origin", branch)
-    pr = run("gh", "pr", "create", "--base", "main", "--head", branch,
-             "--title", f"Add character: {form['name']}",
-             "--body", f"Closes #{issue}\n\nVideo: {url}\n\nMerging deploys the gallery.", capture=True).stdout.strip()
-    comment(issue, f"### 🚀 Published to the gallery's storage / 已上传\n\n{url}\n\n"
-                   f"It goes live when {pr} is merged. 合并 {pr} 后上线。")
+    run("git", "commit", "-m", f"Add character {form['name']}\n\nCloses #{issue}")
+    for attempt in range(5):
+        if run("git", "pull", "--rebase", "origin", "main", check=False).returncode == 0 and \
+           run("git", "push", "origin", "HEAD:main", check=False).returncode == 0:
+            break
+    else:
+        sys.exit("could not push the gallery update")
+    run("gh", "workflow", "run", "pages", "--ref", "main")
+    gallery = f"https://wquguru.github.io/cameo/?c={character}"
+    comment(issue, f"### 🎉 Published / 已上线\n\n**{form['name']}** is in the gallery: {gallery}\n"
+                   f"(the page updates within a couple of minutes / 页面会在一两分钟内更新)\n\n"
+                   f"Video / 视频: {url}\n\nThanks for the character! 感谢投稿！", new=True)
+    run("gh", "issue", "close", issue, "--reason", "completed", capture=True)
 
 
 def main():

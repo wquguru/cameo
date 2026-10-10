@@ -112,6 +112,7 @@
   .count { padding-bottom: 14px; font-size: 14px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; margin-top: 24px; }
   .card { border-radius: var(--radius); overflow: hidden; background: #FFFFFF; box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; transition: box-shadow .2s ease, transform .2s ease; }
+  .card.spot { box-shadow: 0 0 0 3px var(--amber), 0 14px 34px rgba(0,0,0,.08); }
   .card:hover { box-shadow: 0 0 0 1px var(--line), 0 14px 34px rgba(0,0,0,.08); transform: translateY(-2px); }
   .stage { position: relative; aspect-ratio: 3 / 4; background: var(--stage); }
   .stage::before { content: ""; position: absolute; left: 18%; right: 18%; bottom: 13%; height: 6%; border-radius: 50%; background: rgba(0,0,0,.08); }
@@ -488,7 +489,7 @@
     const stage = el("div", { className: "stage" }, el("img", { src: c.poster, alt: c.name, loading: "lazy" }));
     if (c.category && t[c.category]) stage.append(el("span", { className: "chip tl", textContent: t[c.category] }));
     if (facts) stage.append(el("span", { className: "chip br", textContent: facts }));
-    return el("article", { className: "card" }, stage,
+    return el("article", { className: "card", id: `c-${c.id}` }, stage,
       el("div", { className: "meta" },
         el("div", {}, el("div", { className: "name", textContent: c.name }), el("div", { className: "by" }, `${t.by} `, author)),
         el("div", { className: "actions" },
@@ -746,7 +747,13 @@
   render();
   fetch("characters.json", { cache: "no-cache" })
     .then(r => r.json())
-    .then(list => { characters = list; render(); })
+    .then(list => {
+      characters = list;
+      render();
+      // ?c=<id> (from the "published" reply on a submission) points at one character.
+      const wanted = document.getElementById(`c-${new URLSearchParams(location.search).get("c")}`);
+      if (wanted) { wanted.classList.add("spot"); wanted.scrollIntoView({ block: "center" }); }
+    })
     .catch(() => {});
   renderCaptcha();
 </script>
