@@ -87,12 +87,17 @@ A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). T
 | A green-screen clip, or a video with alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Only a description (needs an OpenRouter API key) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # from a video
-npx skills add wquguru/cameo --skill cameo-image-loop  # from a description
+Paste one of these into your coding agent (Claude Code, Codex, Cursor…):
+
+```text
+Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video, then turn ~/Downloads/dance.mp4 into a Cameo character.
 ```
 
-Then ask, e.g. *"Turn ~/Downloads/dance.mp4 into a Cameo character"* or *"Make a Cameo character: a woman in a yellow sundress, sitting, waving"*. It checks the result and adds it to Cameo.
+```text
+Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop, then make me a Cameo character: a woman in a yellow sundress, sitting, waving.
+```
+
+It installs the skill, checks the result and adds the character to Cameo. To install a skill for all your agents at once, run `npx skills add wquguru/cameo --skill <name>` instead.
 
 Made one you like? [Upload it to the gallery](https://wquguru.github.io/cameo/#submit) for review.
 

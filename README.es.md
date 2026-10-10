@@ -87,12 +87,17 @@ Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProR
 | Un clip con croma verde o un vídeo con alfa | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Solo una descripción (requiere una clave de API de OpenRouter) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # a partir de un vídeo
-npx skills add wquguru/cameo --skill cameo-image-loop  # a partir de una descripción
+Pega una de estas frases en tu agente de programación (Claude Code, Codex, Cursor…):
+
+```text
+Instala la skill de Cameo de https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video y convierte ~/Downloads/dance.mp4 en un personaje de Cameo.
 ```
 
-Después pídeselo, por ejemplo: *"Convierte ~/Downloads/dance.mp4 en un personaje de Cameo"* o *"Crea un personaje de Cameo: una mujer con vestido amarillo, sentada, saludando"*. Comprueba el resultado y lo añade a Cameo.
+```text
+Instala la skill de Cameo de https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop y crea un personaje de Cameo: una mujer con vestido amarillo, sentada, saludando.
+```
+
+Instala la skill, comprueba el resultado y añade el personaje a Cameo. Para instalarla en todos tus agentes a la vez, usa `npx skills add wquguru/cameo --skill <nombre>`.
 
 ¿Has hecho uno que te gusta? [Súbelo a la galería](https://wquguru.github.io/cameo/#submit) para que lo revisemos.
 

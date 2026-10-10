@@ -87,12 +87,17 @@ Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alp
 | Einen Greenscreen-Clip oder ein Video mit Alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Nur eine Beschreibung (braucht einen OpenRouter-API-Schlüssel) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # aus einem Video
-npx skills add wquguru/cameo --skill cameo-image-loop  # aus einer Beschreibung
+Füge einen dieser Sätze in deinen Coding-Agent ein (Claude Code, Codex, Cursor …):
+
+```text
+Installiere den Cameo-Skill unter https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video und mach dann aus ~/Downloads/dance.mp4 eine Cameo-Figur.
 ```
 
-Dann bitte ihn zum Beispiel: *„Mach aus ~/Downloads/dance.mp4 eine Cameo-Figur“* oder *„Erstelle eine Cameo-Figur: eine Frau im gelben Sommerkleid, sitzend, winkend“*. Er prüft das Ergebnis und fügt die Figur zu Cameo hinzu.
+```text
+Installiere den Cameo-Skill unter https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop und erstelle dann eine Cameo-Figur: eine Frau im gelben Sommerkleid, sitzend, winkend.
+```
+
+Er installiert den Skill, prüft das Ergebnis und fügt die Figur zu Cameo hinzu. Um einen Skill für alle deine Agents auf einmal zu installieren, nimm `npx skills add wquguru/cameo --skill <Name>`.
 
 Eine gelungene Figur erstellt? [Lade sie in die Galerie hoch](https://wquguru.github.io/cameo/#submit), damit wir sie prüfen können.
 

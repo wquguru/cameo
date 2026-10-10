@@ -87,12 +87,17 @@ open build/Cameo.app
 | 그린 스크린 영상 또는 알파가 있는 영상 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 설명뿐 (OpenRouter API 키 필요) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # 영상에서
-npx skills add wquguru/cameo --skill cameo-image-loop  # 설명에서
+아래 중 하나를 코딩 에이전트(Claude Code, Codex, Cursor 등)에 붙여 넣으세요:
+
+```text
+https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video 의 Cameo 스킬을 설치하고 ~/Downloads/dance.mp4를 Cameo 캐릭터로 만들어 줘.
 ```
 
-그런 다음 *"~/Downloads/dance.mp4를 Cameo 캐릭터로 만들어 줘"* 또는 *"Cameo 캐릭터를 만들어 줘: 노란 원피스를 입은 여성, 앉아서 손 흔들기"*처럼 요청하면 됩니다. 결과를 확인한 뒤 Cameo에 추가합니다.
+```text
+https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop 의 Cameo 스킬을 설치하고 Cameo 캐릭터를 만들어 줘: 노란 원피스를 입은 여성, 앉아서 손 흔들기.
+```
+
+스킬을 설치하고 결과를 확인한 뒤 Cameo에 추가합니다. 모든 에이전트에 한 번에 설치하려면 `npx skills add wquguru/cameo --skill <이름>`을 쓰세요.
 
 마음에 드는 캐릭터를 만들었다면 [갤러리에 업로드](https://wquguru.github.io/cameo/#submit)해 검토를 받아 보세요.
 

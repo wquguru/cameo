@@ -160,11 +160,16 @@
   .make-top div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .make-top strong { font-size: 17px; }
   .make-top span { font-size: 14px; color: #5A5A5F; }
-  .cmd { display: flex; align-items: center; gap: 8px; padding: 5px 5px 5px 14px; border-radius: 12px; background: var(--ink); color: #F5F1EA; }
-  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font: 13px ui-monospace, "SF Mono", Menlo, monospace; }
-  .cmd code::-webkit-scrollbar { display: none; }
-  .cmd button { flex: none; min-width: 64px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: #2C2C2E; color: #F5F1EA; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .cmd button:hover { background: #3A3A3C; }
+  .prompt { display: flex; align-items: flex-start; gap: 12px; padding: 12px 12px 12px 16px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 0 0 1px var(--line); }
+  .prompt p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+  .prompt button { flex: none; min-width: 64px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--amber); color: var(--ink); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+  .prompt button:hover { filter: brightness(1.05); }
+  .cli { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12.5px; color: var(--muted); }
+  .cli span { flex: none; }
+  .cli code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font: 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-2); }
+  .cli code::-webkit-scrollbar { display: none; }
+  .cli button { flex: none; height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: var(--chip); color: var(--ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .cli button:hover { background: #E8E6E1; }
   /* Steps and footer */
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
   .step { padding: 24px; border-radius: var(--radius); background: var(--soft); display: flex; flex-direction: column; gap: 8px; }
@@ -254,6 +259,8 @@
     .brand { margin-right: auto; }
     .links { order: 3; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; gap: 22px; padding-bottom: 2px; }
     .hero-copy { padding: 36px 24px; }
+    .cli { flex-wrap: wrap; }
+    .cli span { flex-basis: 100%; }
     .hero-art { min-height: 300px; }
     .desk { inset: 0 16px 0 16px; }
     .nav-actions .btn-dark span { display: none; }
@@ -331,14 +338,16 @@
           <span class="make-art" aria-hidden="true"><span class="tile green"><svg width="20" height="34" viewBox="0 0 40 72" fill="#F5F1EA"><circle cx="20" cy="11" r="8"/><path d="M6 72C6 46 10 24 20 24s14 22 14 48Z"/></svg></span><svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h11M9 2l3 3-3 3"/></svg><span class="tile alpha"><svg width="20" height="34" viewBox="0 0 40 72" fill="#5A5148"><circle cx="20" cy="11" r="8"/><path d="M6 72C6 46 10 24 20 24s14 22 14 48Z"/></svg></span></span>
           <div><strong data-t="makeVideo"></strong><span data-t="makeVideoB"></span></div>
         </div>
-        <div class="cmd"><code>npx skills add wquguru/cameo --skill cameo-from-video</code><button type="button" data-copy data-t="copy"></button></div>
+        <div class="prompt"><p data-t="promptVideo"></p><button type="button" data-copy data-t="copy"></button></div>
+        <div class="cli"><span data-t="cli"></span><code>npx skills add wquguru/cameo --skill cameo-from-video</code><button type="button" data-copy data-t="copy"></button></div>
       </div>
       <div class="make-card">
         <div class="make-top">
           <span class="make-art" aria-hidden="true"><span class="tile grid4"><i></i><i></i><i></i><i></i></span><svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h11M9 2l3 3-3 3"/></svg><span class="tile alpha"><svg width="20" height="34" viewBox="0 0 40 72" fill="none" stroke="#5A5148" stroke-width="5" stroke-linecap="round"><circle cx="18" cy="11" r="7" fill="#5A5148" stroke="none"/><path d="M8 72C8 46 10 24 18 24s12 22 12 48Z" fill="#5A5148" stroke="none"/><path d="M27 30l11-12"/></svg></span></span>
           <div><strong data-t="makeText"></strong><span data-t="makeTextB"></span></div>
         </div>
-        <div class="cmd"><code>npx skills add wquguru/cameo --skill cameo-image-loop</code><button type="button" data-copy data-t="copy"></button></div>
+        <div class="prompt"><p data-t="promptText"></p><button type="button" data-copy data-t="copy"></button></div>
+        <div class="cli"><span data-t="cli"></span><code>npx skills add wquguru/cameo --skill cameo-image-loop</code><button type="button" data-copy data-t="copy"></button></div>
       </div>
     </div>
   </section>
@@ -480,10 +489,13 @@
       eStalled: "The upload stalled.",
       slowTitle: "Uploading slowly…", slowBody: "Your connection to the upload server is barely moving. You can keep waiting, or submit through GitHub instead: the form opens with your details filled in, then drag the same .mov into it.",
       stuckTitle: "The upload stalled", stuckBody: "Nothing moved for 30 seconds, which happens on some networks. Try again, or submit through GitHub: the form opens with your details filled in, then drag the same .mov into it (GitHub allows up to 10 MB).",
-      makeTitle: "Make your own", makeAgent: "With your coding agent", makeSubmit: "then submit it ↓",
+      makeTitle: "Make your own", makeAgent: "Paste this to your coding agent", makeSubmit: "then submit it ↓",
       makeVideo: "From a video", makeVideoB: "A green-screen or alpha clip becomes a character.",
       makeText: "From a description", makeTextB: "Describe someone; get a looping character.",
       copy: "Copy", copied: "Copied",
+      promptVideo: "Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video, then turn my green-screen clip into a Cameo character.",
+      promptText: "Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop, then make me a Cameo character from a description.",
+      cli: "Or for all your agents:",
       retry: "Try again", useGithub: "Submit on GitHub ↗", solveFirst: "Please complete the check above, then try again.",
     },
     zh: {
@@ -538,10 +550,13 @@
       eStalled: "上传卡住了。",
       slowTitle: "上传很慢…", slowBody: "到上传服务器的连接几乎没有进展。可以继续等待，也可以改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可。",
       stuckTitle: "上传卡住了", stuckBody: "30 秒内没有任何进展，某些网络下会出现这种情况。可以重试，或改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可（GitHub 限 10 MB）。",
-      makeTitle: "自己做一个", makeAgent: "交给你的编程 Agent", makeSubmit: "做好再来投稿 ↓",
+      makeTitle: "自己做一个", makeAgent: "把这句话发给你的编程 Agent", makeSubmit: "做好再来投稿 ↓",
       makeVideo: "从视频开始", makeVideoB: "绿幕或带透明通道的视频，变成一个角色。",
       makeText: "从一句描述开始", makeTextB: "描述一个人，得到一个循环动画角色。",
       copy: "复制", copied: "已复制",
+      promptVideo: "安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video 这个 Cameo skill，然后把我的绿幕视频做成 Cameo 角色。",
+      promptText: "安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop 这个 Cameo skill，然后根据一段描述给我做一个 Cameo 角色。",
+      cli: "或一次装给所有 Agent：",
       retry: "重试", useGithub: "改用 GitHub 投稿 ↗", solveFirst: "请先完成上方的人机验证，再重试。",
     },
   };

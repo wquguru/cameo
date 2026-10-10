@@ -87,12 +87,17 @@ open build/Cameo.app
 | 一段绿幕视频，或带透明通道的视频 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 只有一句描述（需要 OpenRouter API key） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # 从视频开始
-npx skills add wquguru/cameo --skill cameo-image-loop  # 从描述开始
+把下面一句话发给你的编程 Agent（Claude Code、Codex、Cursor 等）：
+
+```text
+安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video 这个 Cameo skill，然后把 ~/Downloads/dance.mp4 做成 Cameo 角色。
 ```
 
-然后直接说，比如 *“把 ~/Downloads/dance.mp4 做成 Cameo 角色”* 或 *“做一个 Cameo 角色：穿黄色连衣裙的女生，坐着挥手”*。它会校验结果并添加到 Cameo。
+```text
+安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop 这个 Cameo skill，然后做一个 Cameo 角色：穿黄色连衣裙的女生，坐着挥手。
+```
+
+它会装好 skill、校验结果并把角色添加到 Cameo。想一次装给所有 Agent，可以改用 `npx skills add wquguru/cameo --skill <名称>`。
 
 做出了满意的角色？[上传到角色库](https://wquguru.github.io/cameo/#submit)等待审核。
 

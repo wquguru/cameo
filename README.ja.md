@@ -87,12 +87,17 @@ open build/Cameo.app
 | グリーンバックの動画、またはアルファ付きの動画 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 説明文だけ（OpenRouter の API キーが必要） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
-```bash
-npx skills add wquguru/cameo --skill cameo-from-video  # 動画から
-npx skills add wquguru/cameo --skill cameo-image-loop  # 説明文から
+次のどちらかをコーディングエージェント（Claude Code、Codex、Cursor など）に貼り付けます：
+
+```text
+https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video の Cameo スキルをインストールして、~/Downloads/dance.mp4 を Cameo のキャラクターにして。
 ```
 
-あとは *「~/Downloads/dance.mp4 を Cameo のキャラクターにして」* や *「Cameo のキャラクターを作って：黄色いサンドレスの女性、座って手を振る」* のように頼むだけ。結果を確認して Cameo に追加してくれます。
+```text
+https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop の Cameo スキルをインストールして、Cameo のキャラクターを作って：黄色いサンドレスの女性、座って手を振る。
+```
+
+スキルを入れ、結果を確認して Cameo に追加してくれます。すべてのエージェントに一度に入れるなら `npx skills add wquguru/cameo --skill <名前>` を使います。
 
 気に入ったものができたら、[ギャラリーにアップロード](https://wquguru.github.io/cameo/#submit)して審査を受けてください。
 
