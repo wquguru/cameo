@@ -201,7 +201,7 @@ final class CharacterWindowController {
     private func poll() {
         guard panel.isVisible else { return }
         let view = figureView
-        if !view.isDragging {
+        if !view.isPressed {
             let mouse = NSEvent.mouseLocation
             var hit = false
             if panel.frame.contains(mouse) {

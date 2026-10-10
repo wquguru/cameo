@@ -9,7 +9,8 @@ class FigureView: NSView {
     var onDragEnded: (() -> Void)?
     var onClick: (() -> Void)?
     var onDragChanged: ((Bool) -> Void)?
-    /// A right-click or Control-click, on release (the second click of a double-click is ignored).
+    /// A right-click or Control-click, on release. Every press counts, so a retry straight after
+    /// a click that missed the figure is not thrown away as the second half of a double-click.
     var onSecondaryClick: (() -> Void)?
 
     private(set) var link: CADisplayLink?
@@ -24,6 +25,9 @@ class FigureView: NSView {
     }
 
     var isDragging: Bool { dragStart != nil }
+    /// A button is down on the figure (a drag or a right-click), so it must keep receiving events
+    /// until release even if the figure moves out from under the pointer.
+    var isPressed: Bool { dragStart != nil || secondaryDown }
 
     /// True when something is drawn at `point` (view coordinates).
     func hasFigure(at point: NSPoint) -> Bool { false }
@@ -81,7 +85,7 @@ class FigureView: NSView {
     }
 
     override func rightMouseDown(with event: NSEvent) {
-        secondaryDown = event.clickCount == 1
+        secondaryDown = true
     }
 
     override func rightMouseUp(with event: NSEvent) {

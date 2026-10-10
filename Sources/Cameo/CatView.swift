@@ -49,10 +49,14 @@ final class CatView: FigureView {
 
     override func hasFigure(at point: NSPoint) -> Bool {
         guard let f = frame_ else { return false }
-        if CatArt.body.contains(point, using: .winding, transform: f.body) { return true }
-        if CatArt.head.contains(point, using: .winding, transform: f.head) { return true }
-        for (leg, t) in f.legs where CatArt.legPath(leg).contains(point, using: .winding, transform: t) { return true }
-        return Self.tailOutline.contains(point, using: .winding, transform: f.tail)
+        // `contains(_:transform:)` applies the transform to the point, so map the view point
+        // back into each part's art coordinates.
+        func hits(_ path: CGPath, _ t: CGAffineTransform) -> Bool {
+            path.contains(point, using: .winding, transform: t.inverted())
+        }
+        if hits(CatArt.body, f.body) || hits(CatArt.head, f.head) { return true }
+        for (leg, t) in f.legs where hits(CatArt.legPath(leg), t) { return true }
+        return hits(Self.tailOutline, f.tail)
     }
 
     /// A still image of the cat standing, for the popover card.
