@@ -30,7 +30,10 @@ enum PackageLoader {
         var manifest = try manifest(in: folder)
         var frames: [String: [PackageFrame]] = [:]
         for clip in manifest.clips {
-            let decoded = try await decode(folder.appendingPathComponent(clip.file))
+            var decoded = try await decode(folder.appendingPathComponent(clip.file))
+            // A looping clip's last frame repeats its first (both are the same keyframe); showing it
+            // would hold that pose for two frames at every seam.
+            if clip.loop, clip.from == clip.to, decoded.count > 2 { decoded.removeLast() }
             if !decoded.isEmpty { frames[clip.id] = decoded }
         }
         manifest.clips = manifest.clips.compactMap { clip in
