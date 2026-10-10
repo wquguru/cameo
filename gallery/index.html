@@ -134,6 +134,29 @@
   .submit span { font-size: 13px; line-height: 1.5; color: var(--muted); }
   .submit em { font-style: normal; font-size: 14px; font-weight: 650; color: var(--amber-ink); }
 
+  /* Make your own */
+  .make { display: flex; flex-direction: column; gap: 20px; scroll-margin-top: 90px; }
+  .make-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  .make-head h2 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+  .make-head span { font-size: 14px; color: var(--muted); }
+  .make-head a { font-weight: 650; text-decoration: none; color: var(--amber-ink); }
+  .make-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+  .make-card { min-width: 0; padding: 24px; border-radius: var(--radius); background: var(--soft); display: flex; flex-direction: column; gap: 14px; }
+  .make-top { display: flex; align-items: center; gap: 14px; }
+  .make-art { flex: none; display: flex; align-items: center; gap: 6px; color: #B26A00; }
+  .make-art .tile { width: 36px; height: 44px; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; }
+  .make-art .green { background: #2FCB5C; }
+  .make-art .alpha { box-shadow: 0 0 0 1px #E3DED5; background-color: #FFFFFF; background-image: linear-gradient(45deg, #ECEAE6 25%, transparent 25%, transparent 75%, #ECEAE6 75%), linear-gradient(45deg, #ECEAE6 25%, transparent 25%, transparent 75%, #ECEAE6 75%); background-size: 8px 8px; background-position: 0 0, 4px 4px; }
+  .make-art .grid4 { width: 44px; box-sizing: border-box; padding: 3px; background: #E6E4E0; display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; gap: 2px; }
+  .make-art .grid4 i { border-radius: 4px; background: #FFFFFF; }
+  .make-top div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .make-top strong { font-size: 17px; }
+  .make-top span { font-size: 14px; color: #5A5A5F; }
+  .cmd { display: flex; align-items: center; gap: 8px; padding: 5px 5px 5px 14px; border-radius: 12px; background: var(--ink); color: #F5F1EA; }
+  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font: 13px ui-monospace, "SF Mono", Menlo, monospace; }
+  .cmd code::-webkit-scrollbar { display: none; }
+  .cmd button { flex: none; min-width: 64px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: #2C2C2E; color: #F5F1EA; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .cmd button:hover { background: #3A3A3C; }
   /* Steps and footer */
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
   .step { padding: 24px; border-radius: var(--radius); background: var(--soft); display: flex; flex-direction: column; gap: 8px; }
@@ -236,7 +259,7 @@
     <a class="brand" href="./"><img src="icon.png" alt="">Cameo</a>
     <nav class="links" aria-label="Main">
       <a href="./" aria-current="page" data-t="navCharacters"></a>
-      <a href="https://github.com/wquguru/cameo#make-a-character" data-t="navMake"></a>
+      <a href="#make" data-t="navMake"></a>
       <a href="#submit" data-t="navSubmit"></a>
       <a href="https://github.com/wquguru/cameo">GitHub</a>
     </nav>
@@ -262,7 +285,7 @@
           <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
           <span data-t="download"></span>
         </a>
-        <a class="text-link" href="https://github.com/wquguru/cameo#make-a-character" data-t="make"></a>
+        <a class="text-link" href="#make" data-t="make"></a>
       </div>
       <span class="hero-meta" data-t="requirements"></span>
     </div>
@@ -288,6 +311,29 @@
     <div class="grid" id="grid"></div>
   </section>
 
+  <section class="make" id="make" aria-labelledby="make-title">
+    <div class="make-head">
+      <h2 id="make-title" data-t="makeTitle"></h2>
+      <span><span data-t="makeAgent"></span> · <a href="#submit" data-t="makeSubmit"></a></span>
+    </div>
+    <div class="make-grid">
+      <div class="make-card">
+        <div class="make-top">
+          <span class="make-art" aria-hidden="true"><span class="tile green"><svg width="20" height="34" viewBox="0 0 40 72" fill="#F5F1EA"><circle cx="20" cy="11" r="8"/><path d="M6 72C6 46 10 24 20 24s14 22 14 48Z"/></svg></span><svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h11M9 2l3 3-3 3"/></svg><span class="tile alpha"><svg width="20" height="34" viewBox="0 0 40 72" fill="#5A5148"><circle cx="20" cy="11" r="8"/><path d="M6 72C6 46 10 24 20 24s14 22 14 48Z"/></svg></span></span>
+          <div><strong data-t="makeVideo"></strong><span data-t="makeVideoB"></span></div>
+        </div>
+        <div class="cmd"><code>npx skills add wquguru/cameo --skill cameo-from-video</code><button type="button" data-copy data-t="copy"></button></div>
+      </div>
+      <div class="make-card">
+        <div class="make-top">
+          <span class="make-art" aria-hidden="true"><span class="tile grid4"><i></i><i></i><i></i><i></i></span><svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h11M9 2l3 3-3 3"/></svg><span class="tile alpha"><svg width="20" height="34" viewBox="0 0 40 72" fill="none" stroke="#5A5148" stroke-width="5" stroke-linecap="round"><circle cx="18" cy="11" r="7" fill="#5A5148" stroke="none"/><path d="M8 72C8 46 10 24 18 24s12 22 12 48Z" fill="#5A5148" stroke="none"/><path d="M27 30l11-12"/></svg></span></span>
+          <div><strong data-t="makeText"></strong><span data-t="makeTextB"></span></div>
+        </div>
+        <div class="cmd"><code>npx skills add wquguru/cameo --skill cameo-image-loop</code><button type="button" data-copy data-t="copy"></button></div>
+      </div>
+    </div>
+  </section>
+
   <section class="submit-section" id="submit" aria-labelledby="submit-title">
     <div>
       <h2 id="submit-title" data-t="subTitle"></h2>
@@ -299,7 +345,7 @@
         <li data-t="req4"></li>
       </ul>
       <ol class="flow">
-        <li><strong data-t="flow1"></strong><span data-t="flow1b"></span> <a href="https://github.com/wquguru/cameo#make-a-character" data-t="flowGuide"></a></li>
+        <li><strong data-t="flow1"></strong><span data-t="flow1b"></span> <a href="#make" data-t="flowGuide"></a></li>
         <li><strong data-t="flow2"></strong><span data-t="flow2b"></span></li>
         <li><strong data-t="flow4"></strong><span data-t="flow4b"></span></li>
       </ol>
@@ -397,7 +443,7 @@
       req3: "At most 1080 px tall; under 20 MB here (10 MB through GitHub)",
       req4: "Made by you, or you hold the rights; it is published under CC BY 4.0",
       subButton: "Open the submission form", subNote: "Needs a free GitHub account.",
-      flow1: "Make it", flow1b: "Film on a green screen or start from an animation, then export with transparency.", flowGuide: "Guide",
+      flow1: "Make it", flow1b: "Let your coding agent do it with a skill above, or export any clip with transparency.", flowGuide: "Skills ↑",
       flow2: "Try it in Cameo", flow2b: "Drop the .mov on Cameo's menu bar popover and check it loops cleanly.",
       flow3: "Submit", flow3b: "Fill in the form, attach the .mov and say how to credit you.",
       flow4: "Review", flow4b: "Each submission is checked by hand; once approved it appears here.",
@@ -425,6 +471,10 @@
       eStalled: "The upload stalled.",
       slowTitle: "Uploading slowly…", slowBody: "Your connection to the upload server is barely moving. You can keep waiting, or submit through GitHub instead: the form opens with your details filled in, then drag the same .mov into it.",
       stuckTitle: "The upload stalled", stuckBody: "Nothing moved for 30 seconds, which happens on some networks. Try again, or submit through GitHub: the form opens with your details filled in, then drag the same .mov into it (GitHub allows up to 10 MB).",
+      makeTitle: "Make your own", makeAgent: "With your coding agent", makeSubmit: "then submit it ↓",
+      makeVideo: "From a video", makeVideoB: "A green-screen or alpha clip becomes a character.",
+      makeText: "From a description", makeTextB: "Describe someone; get a looping character.",
+      copy: "Copy", copied: "Copied",
       retry: "Try again", useGithub: "Submit on GitHub ↗", solveFirst: "Please complete the check above, then try again.",
     },
     zh: {
@@ -451,7 +501,7 @@
       req3: "高度不超过 1080 像素；在这里上传小于 20 MB（GitHub 表单为 10 MB）",
       req4: "由你创作或你拥有版权；将以 CC BY 4.0 发布",
       subButton: "打开投稿表单", subNote: "需要一个免费的 GitHub 账号。",
-      flow1: "制作", flow1b: "用绿幕拍摄或从动画开始，导出为带透明通道的视频。", flowGuide: "制作指南",
+      flow1: "制作", flow1b: "用上面的 skill 交给编程 Agent 来做，或自己导出带透明通道的视频。", flowGuide: "制作方式 ↑",
       flow2: "在 Cameo 里试试", flow2b: "把 .mov 拖到 Cameo 的菜单栏弹窗上，看看循环是否自然。",
       flow3: "提交", flow3b: "填写表单，附上 .mov，并写明署名方式。",
       flow4: "审核", flow4b: "每个投稿都会人工检查，通过后就会出现在这里。",
@@ -479,6 +529,10 @@
       eStalled: "上传卡住了。",
       slowTitle: "上传很慢…", slowBody: "到上传服务器的连接几乎没有进展。可以继续等待，也可以改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可。",
       stuckTitle: "上传卡住了", stuckBody: "30 秒内没有任何进展，某些网络下会出现这种情况。可以重试，或改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可（GitHub 限 10 MB）。",
+      makeTitle: "自己做一个", makeAgent: "交给你的编程 Agent", makeSubmit: "做好再来投稿 ↓",
+      makeVideo: "从视频开始", makeVideoB: "绿幕或带透明通道的视频，变成一个角色。",
+      makeText: "从一句描述开始", makeTextB: "描述一个人，得到一个循环动画角色。",
+      copy: "复制", copied: "已复制",
       retry: "重试", useGithub: "改用 GitHub 投稿 ↗", solveFirst: "请先完成上方的人机验证，再重试。",
     },
   };
@@ -593,6 +647,16 @@
       a.rel = "noopener";
     });
   }
+
+  document.querySelectorAll("[data-copy]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const text = button.previousElementSibling.textContent;
+      try { await navigator.clipboard.writeText(text); } catch { return; }
+      button.textContent = strings[lang].copied;
+      clearTimeout(button.reset);
+      button.reset = setTimeout(() => { button.textContent = strings[lang].copy; }, 1500);
+    });
+  });
 
   document.getElementById("lang").addEventListener("click", () => {
     lang = lang === "en" ? "zh" : "en";

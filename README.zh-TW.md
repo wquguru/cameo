@@ -62,6 +62,8 @@ open build/Cameo.app
 2. 用 **+** 加入影片、把影片拖放到彈出視窗上，或在 Finder 中使用「**打開檔案的應用程式 → Cameo**」。
 3. 選擇角色，再把它拖到你喜歡的位置。
 
+選單列太滿，圖像被瀏海擋住了？再次打開 Cameo（Spotlight 或啟動台），或在角色上按右鍵，就能打開同一個彈出視窗。
+
 角色一多，可以打開資料庫來搜尋、重新命名或移除角色。匯入的影片會拷貝到 `~/Library/Application Support/Cameo/Characters`。
 
 ## 角色
@@ -72,13 +74,19 @@ open build/Cameo.app
 
 ### 製作角色
 
-一個角色就是一段帶 Alpha 通道、可循環播放的 `.mov`（HEVC with Alpha 或 ProRes 4444）。最簡單的方式是讓你的程式設計 agent 使用隨附的 [`cameo-character`](skills/cameo-character/SKILL.md) skill 來製作：
+一個角色就是一段帶 Alpha 通道、可循環播放的 `.mov`（HEVC with Alpha 或 ProRes 4444）。最簡單的方式是讓你的程式設計 agent 使用隨附的 skill 來製作：
+
+| 你手上有 | Skill |
+| --- | --- |
+| 一段綠幕影片，或帶 Alpha 通道的影片 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| 只有一段描述（需要 OpenRouter API key） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # 從影片開始
+npx skills add wquguru/cameo --skill cameo-image-loop  # 從描述開始
 ```
 
-或直接告訴你的 agent：*「安裝這個 skill：https://github.com/wquguru/cameo/tree/main/skills/cameo-character」*。接著請它把一段綠幕影片做成角色，或幫你撰寫用 AI 影片工具生成角色的提示詞。它會去除背景、檢查成果，並將角色加入 Cameo。
+接著直接說，例如 *「把 ~/Downloads/dance.mp4 做成 Cameo 角色」* 或 *「做一個 Cameo 角色：穿黃色洋裝的女生，坐著揮手」*。它會檢查成果並將角色加入 Cameo。
 
 做出滿意的角色了嗎？[上傳到角色庫](https://wquguru.github.io/cameo/#submit)等待審核。
 

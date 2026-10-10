@@ -62,6 +62,8 @@ open build/Cameo.app
 2. Añade un vídeo con **+**, soltándolo sobre el popover o mediante **Abrir con → Cameo** en el Finder.
 3. Elige un personaje y arrastra la figura a donde quieras.
 
+¿La barra de menús está llena y el icono queda oculto tras la muesca? Vuelve a abrir Cameo (Spotlight o Launchpad) o haz clic derecho en la figura para ver el mismo panel.
+
 Cuando tengas más de unos pocos personajes, abre la biblioteca para buscarlos, renombrarlos o eliminarlos. Los vídeos importados se copian en `~/Library/Application Support/Cameo/Characters`.
 
 ## Personajes
@@ -72,13 +74,19 @@ Explora personajes gratuitos en **[wquguru.github.io/cameo](https://wquguru.gith
 
 ### Crear un personaje
 
-Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProRes 4444). La forma más fácil es pedírselo a tu agente de programación con la skill incluida [`cameo-character`](skills/cameo-character/SKILL.md):
+Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProRes 4444). La forma más fácil es pedírselo a tu agente de programación con una de las skills incluidas:
+
+| Tienes | Skill |
+| --- | --- |
+| Un clip con croma verde o un vídeo con alfa | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| Solo una descripción (requiere una clave de API de OpenRouter) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # a partir de un vídeo
+npx skills add wquguru/cameo --skill cameo-image-loop  # a partir de una descripción
 ```
 
-O simplemente dile a tu agente: *"Instala la skill de https://github.com/wquguru/cameo/tree/main/skills/cameo-character"*. Después pídele que cree un personaje a partir de un clip con croma verde, o que escriba el prompt para generar uno con una herramienta de vídeo con IA. Elimina el fondo, comprueba el resultado y lo añade a Cameo.
+Después pídeselo, por ejemplo: *"Convierte ~/Downloads/dance.mp4 en un personaje de Cameo"* o *"Crea un personaje de Cameo: una mujer con vestido amarillo, sentada, saludando"*. Comprueba el resultado y lo añade a Cameo.
 
 ¿Has hecho uno que te gusta? [Súbelo a la galería](https://wquguru.github.io/cameo/#submit) para que lo revisemos.
 

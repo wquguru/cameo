@@ -62,6 +62,8 @@ open build/Cameo.app
 2. Ajoutez une vidéo avec **+**, en la déposant sur la fenêtre contextuelle, ou via **Ouvrir avec → Cameo** dans le Finder.
 3. Choisissez un personnage et faites-le glisser où vous le souhaitez.
 
+Barre des menus pleine et icône cachée derrière l’encoche ? Rouvrez Cameo (Spotlight ou Launchpad) ou faites un clic droit sur le personnage pour afficher le même panneau.
+
 Au-delà de quelques personnages, ouvrez la bibliothèque pour les rechercher, les renommer ou les supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`.
 
 ## Personnages
@@ -72,13 +74,19 @@ Parcourez des personnages gratuits sur **[wquguru.github.io/cameo](https://wqugu
 
 ### Créer un personnage
 
-Un personnage est un seul `.mov` en boucle avec couche alpha (HEVC with Alpha ou ProRes 4444). Le plus simple est de confier la tâche à votre agent de code avec la skill fournie [`cameo-character`](skills/cameo-character/SKILL.md) :
+Un personnage est un seul `.mov` en boucle avec couche alpha (HEVC with Alpha ou ProRes 4444). Le plus simple est de confier la tâche à votre agent de code avec l’une des skills fournies :
+
+| Vous avez | Skill |
+| --- | --- |
+| Un clip sur fond vert ou une vidéo avec alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| Seulement une description (clé d’API OpenRouter requise) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # à partir d’une vidéo
+npx skills add wquguru/cameo --skill cameo-image-loop  # à partir d’une description
 ```
 
-Ou dites simplement à votre agent : *« Installe la skill qui se trouve à https://github.com/wquguru/cameo/tree/main/skills/cameo-character »*. Demandez-lui ensuite de créer un personnage à partir d’un clip sur fond vert, ou de rédiger le prompt pour en générer un avec un outil vidéo d’IA. Il détoure l’arrière-plan, vérifie le résultat et l’ajoute à Cameo.
+Demandez-lui ensuite, par exemple : *« Transforme ~/Downloads/dance.mp4 en personnage Cameo »* ou *« Crée un personnage Cameo : une femme en robe d’été jaune, assise, qui fait coucou »*. Il vérifie le résultat et l’ajoute à Cameo.
 
 Vous en avez créé un qui vous plaît ? [Envoyez-le à la galerie](https://wquguru.github.io/cameo/#submit) pour qu’il soit examiné.
 

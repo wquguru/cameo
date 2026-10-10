@@ -62,6 +62,8 @@ open build/Cameo.app
 2. **+** 버튼으로 동영상을 추가하거나, 팝오버에 동영상을 드롭하거나, Finder에서 **다음으로 열기 → Cameo**를 선택합니다.
 3. 캐릭터를 고르고 원하는 곳으로 드래그합니다.
 
+메뉴 막대가 꽉 차서 아이콘이 노치에 가려졌다면 Cameo를 다시 열거나(Spotlight 또는 Launchpad) 캐릭터를 오른쪽 클릭하면 같은 팝오버가 열립니다.
+
 캐릭터가 많아지면 라이브러리를 열어 검색하거나, 이름을 변경하거나, 제거할 수 있습니다. 가져온 동영상은 `~/Library/Application Support/Cameo/Characters`에 복사됩니다.
 
 ## 캐릭터
@@ -72,13 +74,19 @@ open build/Cameo.app
 
 ### 캐릭터 만들기
 
-캐릭터는 알파가 있는 반복 재생 `.mov`(HEVC with Alpha 또는 ProRes 4444) 하나입니다. 가장 쉬운 방법은 함께 제공되는 [`cameo-character`](skills/cameo-character/SKILL.md) 스킬로 코딩 에이전트에게 맡기는 것입니다.
+캐릭터는 알파가 있는 반복 재생 `.mov`(HEVC with Alpha 또는 ProRes 4444) 하나입니다. 가장 쉬운 방법은 함께 제공되는 스킬로 코딩 에이전트에게 맡기는 것입니다.
+
+| 가지고 있는 것 | 스킬 |
+| --- | --- |
+| 그린 스크린 영상 또는 알파가 있는 영상 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| 설명뿐 (OpenRouter API 키 필요) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # 영상에서
+npx skills add wquguru/cameo --skill cameo-image-loop  # 설명에서
 ```
 
-또는 에이전트에게 *"https://github.com/wquguru/cameo/tree/main/skills/cameo-character 에 있는 스킬을 설치해 줘"*라고 말하기만 하면 됩니다. 그런 다음 그린 스크린 영상으로 캐릭터를 만들어 달라고 하거나, AI 동영상 도구로 캐릭터를 생성할 프롬프트를 써 달라고 요청하십시오. 에이전트가 배경을 제거하고 결과를 확인한 뒤 Cameo에 추가합니다.
+그런 다음 *"~/Downloads/dance.mp4를 Cameo 캐릭터로 만들어 줘"* 또는 *"Cameo 캐릭터를 만들어 줘: 노란 원피스를 입은 여성, 앉아서 손 흔들기"*처럼 요청하면 됩니다. 결과를 확인한 뒤 Cameo에 추가합니다.
 
 마음에 드는 캐릭터를 만들었다면 [갤러리에 업로드](https://wquguru.github.io/cameo/#submit)해 검토를 받아 보세요.
 

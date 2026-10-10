@@ -62,6 +62,8 @@ open build/Cameo.app
 2. Füge ein Video mit **+** hinzu, leg es auf dem Popover ab oder wähle im Finder **Öffnen mit → Cameo**.
 3. Wähle eine Figur und zieh sie an die gewünschte Stelle.
 
+Menüleiste zu voll und das Symbol hinter der Notch versteckt? Öffne Cameo erneut (Spotlight oder Launchpad) oder klicke mit der rechten Maustaste auf die Figur, um dasselbe Popover zu sehen.
+
 Sobald du mehr als eine Handvoll Figuren hast, öffne die Bibliothek, um sie zu suchen, umzubenennen oder zu entfernen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert.
 
 ## Figuren
@@ -72,13 +74,19 @@ Stöbere auf **[wquguru.github.io/cameo](https://wquguru.github.io/cameo/)** dur
 
 ### Eine Figur erstellen
 
-Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alpha oder ProRes 4444). Am einfachsten lässt du das deinen Coding-Agent mit dem mitgelieferten Skill [`cameo-character`](skills/cameo-character/SKILL.md) erledigen:
+Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alpha oder ProRes 4444). Am einfachsten lässt du das deinen Coding-Agent mit einem der mitgelieferten Skills erledigen:
+
+| Du hast | Skill |
+| --- | --- |
+| Einen Greenscreen-Clip oder ein Video mit Alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| Nur eine Beschreibung (braucht einen OpenRouter-API-Schlüssel) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # aus einem Video
+npx skills add wquguru/cameo --skill cameo-image-loop  # aus einer Beschreibung
 ```
 
-Oder sag deinem Agent einfach: *„Installiere den Skill unter https://github.com/wquguru/cameo/tree/main/skills/cameo-character“*. Bitte ihn dann, aus einem Greenscreen-Clip eine Figur zu machen oder den Prompt zu schreiben, um eine mit einem KI-Videotool zu generieren. Er stellt den Hintergrund frei, prüft das Ergebnis und fügt die Figur zu Cameo hinzu.
+Dann bitte ihn zum Beispiel: *„Mach aus ~/Downloads/dance.mp4 eine Cameo-Figur“* oder *„Erstelle eine Cameo-Figur: eine Frau im gelben Sommerkleid, sitzend, winkend“*. Er prüft das Ergebnis und fügt die Figur zu Cameo hinzu.
 
 Eine gelungene Figur erstellt? [Lade sie in die Galerie hoch](https://wquguru.github.io/cameo/#submit), damit wir sie prüfen können.
 

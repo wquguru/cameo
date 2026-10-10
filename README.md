@@ -62,6 +62,8 @@ open build/Cameo.app
 2. Add a video with **+**, by dropping it onto the popover, or via **Open With → Cameo** in Finder.
 3. Pick a character and drag the figure wherever you like.
 
+Menu bar too full and the icon hidden behind the notch? Open Cameo again (Spotlight or Launchpad), or right-click the figure, to get the same popover.
+
 With more than a handful of characters, open the library to search, rename or remove them. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
 
 ## Characters
@@ -72,13 +74,19 @@ Browse free characters at **[wquguru.github.io/cameo](https://wquguru.github.io/
 
 ### Make a character
 
-A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). The easiest route is to have your coding agent do it with the bundled [`cameo-character`](skills/cameo-character/SKILL.md) skill:
+A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). The easiest route is to let your coding agent make it with a bundled skill:
+
+| You have | Skill |
+| --- | --- |
+| A green-screen clip, or a video with alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| Only a description (needs an OpenRouter API key) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # from a video
+npx skills add wquguru/cameo --skill cameo-image-loop  # from a description
 ```
 
-Or just tell your agent: *"Install the skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-character"*. Then ask it to make a character from a green-screen clip, or to write the prompt for generating one with an AI video tool. It keys out the background, checks the result and adds it to Cameo.
+Then ask, e.g. *"Turn ~/Downloads/dance.mp4 into a Cameo character"* or *"Make a Cameo character: a woman in a yellow sundress, sitting, waving"*. It checks the result and adds it to Cameo.
 
 Made one you like? [Upload it to the gallery](https://wquguru.github.io/cameo/#submit) for review.
 

@@ -62,6 +62,8 @@ open build/Cameo.app
 2. **+** で動画を追加するか、ポップオーバーに動画をドロップするか、Finder で「**このアプリケーションで開く → Cameo**」を選びます。
 3. キャラクターを選び、好きな場所へドラッグします。
 
+メニューバーが混んでアイコンがノッチに隠れたときは、Cameo をもう一度開く（Spotlight や Launchpad）か、キャラクターを右クリックすると同じポップオーバーが開きます。
+
 キャラクターが増えてきたら、ライブラリを開いて検索、名前の変更、削除ができます。読み込んだ動画は `~/Library/Application Support/Cameo/Characters` にコピーされます。
 
 ## キャラクター
@@ -72,13 +74,19 @@ open build/Cameo.app
 
 ### キャラクターを作る
 
-キャラクターは、アルファ付きでループする `.mov`（HEVC with Alpha または ProRes 4444）ひとつです。いちばん簡単なのは、同梱の [`cameo-character`](skills/cameo-character/SKILL.md) スキルを使ってコーディングエージェントに作らせる方法です：
+キャラクターは、アルファ付きでループする `.mov`（HEVC with Alpha または ProRes 4444）ひとつです。いちばん簡単なのは、同梱のスキルを使ってコーディングエージェントに作らせる方法です：
+
+| 手元にあるもの | スキル |
+| --- | --- |
+| グリーンバックの動画、またはアルファ付きの動画 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
+| 説明文だけ（OpenRouter の API キーが必要） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
 
 ```bash
-npx skills add wquguru/cameo --skill cameo-character
+npx skills add wquguru/cameo --skill cameo-from-video  # 動画から
+npx skills add wquguru/cameo --skill cameo-image-loop  # 説明文から
 ```
 
-または、エージェントにこう伝えるだけでも構いません：*「https://github.com/wquguru/cameo/tree/main/skills/cameo-character にあるスキルをインストールして」*。あとはグリーンバックの動画からキャラクターを作るよう頼むか、AI 動画ツールでキャラクターを生成するためのプロンプトを書いてもらいましょう。背景を抜き、結果を確認して、Cameo に追加してくれます。
+あとは *「~/Downloads/dance.mp4 を Cameo のキャラクターにして」* や *「Cameo のキャラクターを作って：黄色いサンドレスの女性、座って手を振る」* のように頼むだけ。結果を確認して Cameo に追加してくれます。
 
 気に入ったものができたら、[ギャラリーにアップロード](https://wquguru.github.io/cameo/#submit)して審査を受けてください。
 
