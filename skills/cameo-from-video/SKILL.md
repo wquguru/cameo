@@ -1,5 +1,5 @@
 ---
-name: cameo-character
+name: cameo-from-video
 description: Make a character for Cameo, the macOS app that puts a transparent looping video on the desktop. Turns a green-screen clip (from an AI video tool, a phone or an editor) or a video with alpha into an HEVC-with-alpha .mov, checks it, and adds it to Cameo. Also writes the prompt for generating a green-screen character with an AI video tool. Use when the user wants a Cameo character, a desktop pet / 桌宠, or to "remove the green screen" / 抠绿幕 / make a transparent .mov for Cameo.
 ---
 
@@ -20,6 +20,8 @@ Ask what the user has:
   > Full-body [character], [idle action: breathing, swaying, waving], standing still in place, facing the camera, whole body in frame with feet near the bottom edge. Solid flat pure green (#00FF00) background, evenly lit, no shadows on the background, no floor, no props. Static locked-off camera, no camera movement, no cuts. The character contains no green. 4–6 seconds, the last frame matches the first so it loops.
 
   Image-to-video works best: first make a still of the character on a green background, then animate it.
+
+  No video tool either? The `cameo-image-loop` skill makes a short wave or idle loop from a description alone (`npx skills add wquguru/cameo --skill cameo-image-loop`).
 
 ## 2. Key out the green
 
