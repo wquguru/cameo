@@ -217,24 +217,22 @@ struct PopoverView: View {
         .padding(.horizontal, 14)
     }
 
-    /// The popover shows the most recent characters; past that, this opens the library.
+    /// The popover shows the most recent characters; the library has them all.
     static let recentCount = 7
 
-    @ViewBuilder private var libraryLink: some View {
-        if model.characters.count > Self.recentCount {
-            Button(L("All %@…", String(model.characters.count)), action: onOpenLibrary)
-                .buttonStyle(.link)
-                .font(.system(size: 11))
-        } else {
+    private var libraryLink: some View {
+        HStack(spacing: 10) {
             Link(destination: GalleryLink.gallery) {
                 HStack(spacing: 2) {
                     Text(L("Gallery"))
                     Image(systemName: "arrow.up.right").font(.system(size: 8, weight: .semibold))
                 }
             }
-            .font(.system(size: 11))
             .help(GalleryLink.gallery.absoluteString)
+            Button(L("All %@…", String(model.characters.count)), action: onOpenLibrary)
+                .buttonStyle(.link)
         }
+        .font(.system(size: 11))
     }
 
     private var cards: some View {
