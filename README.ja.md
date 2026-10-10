@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### アンインストール
+
+ポップオーバーで「ログイン時に開く」をオフにし、Cameo を終了してゴミ箱に入れます。読み込んだキャラクターと設定は残るので、`~/Library/Application Support/Cameo` を削除し、`defaults delete io.github.wquguru.cameo` を実行すると消えます。
+
 ## 使い方
 
 1. メニューバーの Cameo アイコン（画面から顔をのぞかせる人の形）をクリックします。
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. キャラクターを選び、好きな場所へドラッグします。
 
 メニューバーが混んでアイコンがノッチに隠れたときは、Cameo をもう一度開く（Spotlight や Launchpad）か、キャラクターを右クリックすると同じポップオーバーが開きます。
+
+キャラクターを非表示にしている間は Cameo が Dock にも表示されます。クリックするとポップオーバーが開き、ビデオをドロップすると追加できます。
 
 キャラクターが増えてきたら、ライブラリを開いて検索、名前の変更、削除ができます。読み込んだ動画は `~/Library/Application Support/Cameo/Characters` にコピーされます。
 

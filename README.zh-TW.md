@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### 解除安裝
+
+先在彈出視窗中關閉「登入時開啟」，結束 Cameo，再把它移到垃圾桶。匯入的角色和設定會留在原處，刪除 `~/Library/Application Support/Cameo` 並執行 `defaults delete io.github.wquguru.cameo` 即可清除。
+
 ## 使用方式
 
 1. 按一下選單列中的 Cameo 圖像（一個從螢幕裡探出頭的小人）。
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. 選擇角色，再把它拖到你喜歡的位置。
 
 選單列太滿，圖像被瀏海擋住了？再次打開 Cameo（Spotlight 或啟動台），或在角色上按右鍵，就能打開同一個彈出視窗。
+
+角色隱藏期間，Cameo 也會留在 Dock 中：按一下打開彈出視窗，把影片拖到上面即可加入。
 
 角色一多，可以打開資料庫來搜尋、重新命名或移除角色。匯入的影片會拷貝到 `~/Library/Application Support/Cameo/Characters`。
 

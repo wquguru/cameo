@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### 제거
+
+팝오버에서 '로그인 시 열기'를 끄고 Cameo를 종료한 뒤 휴지통으로 옮깁니다. 가져온 캐릭터와 설정은 남아 있으므로 `~/Library/Application Support/Cameo`를 삭제하고 `defaults delete io.github.wquguru.cameo`를 실행하면 지워집니다.
+
 ## 사용법
 
 1. 메뉴 막대에서 Cameo 아이콘(화면 밖으로 고개를 내민 사람 모양)을 클릭합니다.
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. 캐릭터를 고르고 원하는 곳으로 드래그합니다.
 
 메뉴 막대가 꽉 차서 아이콘이 노치에 가려졌다면 Cameo를 다시 열거나(Spotlight 또는 Launchpad) 캐릭터를 오른쪽 클릭하면 같은 팝오버가 열립니다.
+
+캐릭터를 숨긴 동안에는 Cameo가 Dock에도 나타납니다. 클릭하면 팝오버가 열리고, 비디오를 끌어다 놓으면 추가됩니다.
 
 캐릭터가 많아지면 라이브러리를 열어 검색하거나, 이름을 변경하거나, 제거할 수 있습니다. 가져온 동영상은 `~/Library/Application Support/Cameo/Characters`에 복사됩니다.
 

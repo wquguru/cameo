@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### Uninstall
+
+Turn off **Open at Login** in the popover, quit Cameo and move it to the Trash. Your imported characters and settings stay behind until you delete `~/Library/Application Support/Cameo` and run `defaults delete io.github.wquguru.cameo`.
+
 ## Usage
 
 1. Click the Cameo icon (a figure peeking out of a screen) in the menu bar.
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. Pick a character and drag the figure wherever you like.
 
 Menu bar too full and the icon hidden behind the notch? Open Cameo again (Spotlight or Launchpad), or right-click the figure, to get the same popover.
+
+While the figure is hidden, Cameo also stays in the Dock: click it for the popover, or drop a video on it to add one.
 
 With more than a handful of characters, open the library to search, rename or remove them. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
 

@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### Désinstaller
+
+Désactivez **Ouvrir à la connexion** dans le panneau, quittez Cameo et placez-le dans la Corbeille. Les personnages importés et les réglages restent jusqu’à ce que vous supprimiez `~/Library/Application Support/Cameo` et lanciez `defaults delete io.github.wquguru.cameo`.
+
 ## Utilisation
 
 1. Cliquez sur l’icône de Cameo (un personnage qui dépasse d’un écran) dans la barre des menus.
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. Choisissez un personnage et faites-le glisser où vous le souhaitez.
 
 Barre des menus pleine et icône cachée derrière l’encoche ? Rouvrez Cameo (Spotlight ou Launchpad) ou faites un clic droit sur le personnage pour afficher le même panneau.
+
+Tant que le personnage est masqué, Cameo apparaît aussi dans le Dock : cliquez dessus pour le panneau, ou déposez-y une vidéo pour l’ajouter.
 
 Au-delà de quelques personnages, ouvrez la bibliothèque pour les rechercher, les renommer ou les supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`.
 

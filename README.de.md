@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### Deinstallieren
+
+Schalte im Popover **Bei Anmeldung öffnen** aus, beende Cameo und bewege es in den Papierkorb. Importierte Figuren und Einstellungen bleiben, bis du `~/Library/Application Support/Cameo` löschst und `defaults delete io.github.wquguru.cameo` ausführst.
+
 ## Verwendung
 
 1. Klicke in der Menüleiste auf das Cameo-Symbol (eine Figur, die aus einem Bildschirm hervorschaut).
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. Wähle eine Figur und zieh sie an die gewünschte Stelle.
 
 Menüleiste zu voll und das Symbol hinter der Notch versteckt? Öffne Cameo erneut (Spotlight oder Launchpad) oder klicke mit der rechten Maustaste auf die Figur, um dasselbe Popover zu sehen.
+
+Solange die Figur ausgeblendet ist, steht Cameo auch im Dock: Klick darauf öffnet das Popover, ein daraufgezogenes Video wird hinzugefügt.
 
 Sobald du mehr als eine Handvoll Figuren hast, öffne die Bibliothek, um sie zu suchen, umzubenennen oder zu entfernen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert.
 

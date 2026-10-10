@@ -56,6 +56,10 @@ scripts/build.sh          # → build/Cameo.app
 open build/Cameo.app
 ```
 
+### Desinstalar
+
+Desactiva **Abrir al iniciar sesión** en el panel, cierra Cameo y muévelo a la Papelera. Los personajes importados y los ajustes se quedan hasta que borres `~/Library/Application Support/Cameo` y ejecutes `defaults delete io.github.wquguru.cameo`.
+
 ## Uso
 
 1. Haz clic en el icono de Cameo (una figura asomándose por encima de una pantalla) en la barra de menús.
@@ -63,6 +67,8 @@ open build/Cameo.app
 3. Elige un personaje y arrastra la figura a donde quieras.
 
 ¿La barra de menús está llena y el icono queda oculto tras la muesca? Vuelve a abrir Cameo (Spotlight o Launchpad) o haz clic derecho en la figura para ver el mismo panel.
+
+Mientras la figura está oculta, Cameo también aparece en el Dock: haz clic para abrir el panel o suelta un vídeo encima para añadirlo.
 
 Cuando tengas más de unos pocos personajes, abre la biblioteca para buscarlos, renombrarlos o eliminarlos. Los vídeos importados se copian en `~/Library/Application Support/Cameo/Characters`.
 
