@@ -3,7 +3,7 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["gallery/**"]
+    paths: ["gallery/**", "scripts/gallery_pages.py", "scripts/gallery-character.html", "design/og-character.html", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -17,16 +17,20 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # macOS for the share cards: they are rendered with Chrome and the system font, like the app.
+    runs-on: macos-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      # Pages lets browsers cache files for 10 minutes; version the checker the page imports
-      # so a new page never runs with an old mov.js.
+      # Pages lets browsers cache files for 10 minutes; version the scripts the page imports
+      # so a new page never runs with an old mov.js or share.js.
       - name: Version the page's scripts
-        run: sed -i "s|from \"./mov.js\"|from \"./mov.js?v=${GITHUB_SHA::12}\"|" gallery/index.html
+        run: perl -pi -e "s#from \"\./(mov|share)\.js\"#from \"./\$1.js?v=${GITHUB_SHA::12}\"#g" gallery/index.html
+      # One page and Open Graph card per character (gallery/c/<id>/, gallery/og/<id>.png).
+      - name: Build the share pages
+        run: python3 scripts/gallery_pages.py
       - uses: actions/upload-pages-artifact@v3
         with:
           path: gallery

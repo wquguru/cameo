@@ -1,0 +1,369 @@
+<!doctype html>
+<!-- One character's share page, gallery/c/<id>/index.html. scripts/gallery_pages.py fills the
+     {{…}} fields (already HTML-escaped) for each entry of gallery/characters.json. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{name}} · Cameo</title>
+<meta name="description" content="{{description}}">
+<link rel="icon" href="../../icon.png">
+<link rel="canonical" href="{{url}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cameo">
+<meta property="og:url" content="{{url}}">
+<meta property="og:title" content="{{name}} · Cameo character">
+<meta property="og:description" content="{{description}}">
+<meta property="og:image" content="{{og_image}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{name}} in a spotlight, a character for Cameo on the Mac">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@wquguru">
+<style>
+  :root {
+    --ink: #1D1D1F; --ink-2: #48484A; --muted: #6E6E73; --line: #EEECE8; --soft: #F7F6F3;
+    --chip: #F2F1EE; --hero: #FFF3DF; --amber: #FFB340; --amber-ink: #8A5200; --stage: #161618; --ivory: #F5F1EA;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; background: #FFFFFF; color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--amber-ink); }
+  a:hover { color: #5C3700; }
+  img { display: block; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .icon { width: 16px; height: 16px; flex: none; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; padding: 0 18px; border: 0; border-radius: 12px;
+    font: inherit; font-weight: 650; text-decoration: none; white-space: nowrap; cursor: pointer; color: var(--ink);
+    transition: transform .15s ease, filter .15s ease, background-color .15s ease;
+  }
+  .btn:hover { color: var(--ink); }
+  .btn:active { transform: scale(.98); }
+  .btn-dark { background: var(--ink); color: #FFFFFF; }
+  .btn-dark:hover { background: #3A3A3C; color: #FFFFFF; }
+  .btn-soft { background: var(--chip); }
+  .btn-soft:hover { background: #E8E6E1; }
+  .btn-amber { background: var(--amber); }
+  .btn-amber:hover { filter: brightness(1.05); }
+  .btn-lg { height: 52px; border-radius: 14px; font-size: 16px; }
+  .btn-sm { height: 40px; padding: 0 14px; border-radius: 10px; font-size: 14px; }
+
+  .top { border-bottom: 1px solid var(--line); }
+  .nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; padding-top: 12px; padding-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-size: 20px; font-weight: 750; letter-spacing: -.02em; }
+  .brand:hover { color: var(--ink); }
+  .brand img { width: 32px; height: 32px; }
+  .links { display: flex; flex-wrap: wrap; gap: 4px 26px; flex: 1; }
+  .links a { text-decoration: none; color: var(--ink-2); white-space: nowrap; }
+  .links a:hover { color: var(--ink); }
+
+  main.wrap { padding-top: 20px; padding-bottom: 64px; display: flex; flex-direction: column; gap: 48px; }
+  .crumbs { font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; }
+  .crumbs a { text-decoration: none; color: var(--muted); }
+  .crumbs a:hover { color: var(--ink); }
+  .crumbs span:last-child { color: var(--ink); }
+
+  .hero { display: flex; flex-wrap: wrap; gap: 32px 56px; align-items: stretch; }
+  .stage { flex: 1 1 520px; min-width: 0; position: relative; height: 560px; border-radius: 28px; overflow: hidden; background: var(--stage); }
+  .stage .beam { position: absolute; left: 12%; right: 12%; top: 0; bottom: 0; background: linear-gradient(180deg, rgba(255,210,122,.36), rgba(255,179,64,0) 92%); clip-path: polygon(38% 0, 62% 0, 96% 100%, 4% 100%); }
+  .stage .floor { position: absolute; left: 16%; right: 16%; bottom: 36px; height: 80px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,200,100,.55), rgba(255,200,100,0)); }
+  .stage .figure { position: absolute; left: 10%; right: 10%; bottom: 66px; width: 80%; height: 78%; object-fit: contain; object-position: bottom; }
+  .stage .label { position: absolute; left: 20px; top: 20px; padding: 5px 12px; border-radius: 999px; background: rgba(245,241,234,.14); color: var(--ivory); font-size: 13px; font-weight: 600; }
+  .stage .pause { position: absolute; right: 16px; bottom: 16px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(245,241,234,.14); color: var(--ivory); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .stage .pause:hover { background: rgba(245,241,234,.24); }
+
+  .info { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 22px; justify-content: center; }
+  .info > * { max-width: 460px; }
+  .kind { align-self: flex-start; padding: 4px 12px; border-radius: 999px; background: var(--chip); font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .title { display: flex; flex-direction: column; gap: 6px; }
+  h1 { margin: 0; font-size: clamp(44px, 6vw, 64px); line-height: 1; font-weight: 800; letter-spacing: -.035em; overflow-wrap: anywhere; }
+  .by { font-size: 16px; color: var(--muted); }
+  .by a { color: var(--ink); font-weight: 600; text-decoration: none; }
+  .by a:hover { text-decoration: underline; }
+  .lede { margin: 0; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
+  dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  dl div { padding: 12px 14px; border-radius: 12px; background: var(--soft); }
+  dt { font-size: 12px; color: var(--muted); }
+  dd { margin: 2px 0 0; font-size: 15px; font-weight: 650; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .cta .btn-amber, .cta .primary { flex: 1 1 200px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .note { padding: 14px; border-radius: 14px; background: var(--hero); display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: #5A5148; }
+  .note svg { flex: none; margin-top: 1px; }
+  .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .share > span { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-right: 6px; }
+  .share .btn { height: 40px; padding: 0 12px; border-radius: 10px; font-size: 13px; gap: 6px; }
+
+  .more { display: flex; flex-direction: column; gap: 20px; }
+  .more-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .more-head h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+  .more-head a { font-size: 14px; font-weight: 650; text-decoration: none; }
+  .more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .mini { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 16px; box-shadow: 0 0 0 1px var(--line); text-decoration: none; color: var(--ink); transition: box-shadow .2s ease; }
+  .mini:hover { color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 10px 24px rgba(0,0,0,.07); }
+  .mini .thumb { flex: none; width: 72px; height: 88px; border-radius: 10px; background: #F4F2EE; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+  .mini .thumb img { width: 64px; height: 78px; object-fit: contain; object-position: bottom; }
+  .mini > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mini strong { font-size: 15px; }
+  .mini small { font-size: 13px; color: var(--muted); }
+
+  footer { border-top: 1px solid var(--line); }
+  footer .wrap { padding-top: 24px; padding-bottom: 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
+  footer nav { display: flex; gap: 20px; }
+  footer a { color: inherit; }
+
+  dialog { border: 0; border-radius: 20px; padding: 28px; width: min(420px, calc(100vw - 32px)); box-shadow: 0 30px 80px rgba(0,0,0,.25); color: var(--ink); }
+  dialog::backdrop { background: rgba(29,29,31,.35); backdrop-filter: blur(2px); }
+  dialog h3 { margin: 0 0 6px; font-size: 19px; }
+  dialog p { margin: 0 0 18px; color: #5A5A5F; }
+  dialog .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 640px) {
+    .links { display: none; }
+    .brand { margin-right: auto; }
+    main.wrap { gap: 36px; padding-left: 16px; padding-right: 16px; }
+    .stage { height: 380px; border-radius: 22px; }
+    .stage .floor { bottom: 22px; height: 56px; }
+    .stage .figure { bottom: 42px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body data-name="{{name}}">
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="../../"><img src="../../icon.png" alt="">Cameo</a>
+    <nav class="links" aria-label="Main">
+      <a href="../../" data-t="characters">Characters</a>
+      <a href="../../#make" data-t="make">Make your own</a>
+      <a href="../../#submit" data-t="submit">Submit</a>
+      <a href="https://github.com/wquguru/cameo">GitHub</a>
+    </nav>
+    <a class="btn btn-dark btn-sm" href="https://github.com/wquguru/cameo/releases/latest" data-t="download">Download Cameo</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="https://github.com/wquguru/cameo">Cameo</a><span aria-hidden="true">›</span>
+    <a href="../../" data-t="characters">Characters</a><span aria-hidden="true">›</span>
+    <span>{{name}}</span>
+  </nav>
+
+  <section class="hero">
+    <div class="stage">
+      <div class="beam" aria-hidden="true"></div>
+      <div class="floor" aria-hidden="true"></div>
+      <img class="figure" id="poster" src="{{poster}}" alt="{{name}}">
+      <video class="figure" id="video" src="{{video}}" muted loop playsinline preload="none" aria-label="{{name}}" hidden></video>
+      <span class="label" id="live" data-t="live" hidden>Loop preview · transparent</span>
+      <button class="pause" id="pause" type="button" aria-label="Pause" hidden>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><rect x="3" y="2" width="3" height="10" rx="1"/><rect x="8" y="2" width="3" height="10" rx="1"/></svg>
+      </button>
+    </div>
+
+    <div class="info">
+      <span class="kind" data-t="{{category}}">{{category_label}}</span>
+      <div class="title">
+        <h1>{{name}}</h1>
+        <span class="by"><span data-t="by">by</span> {{author_html}} · {{license}}</span>
+      </div>
+      <p class="lede" data-t="lede">Put {{name}} on your Mac desktop: transparent, always on top, and clicks pass through the empty space around it.</p>
+      <dl>
+        <div><dt data-t="length">Length</dt><dd>{{duration}}</dd></div>
+        <div><dt data-t="size">Size</dt><dd>{{size}}</dd></div>
+        <div><dt data-t="licenseLabel">License</dt><dd>{{license}}</dd></div>
+      </dl>
+
+      <div class="note" id="elsewhere" hidden>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#8A5200" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="10" rx="1.5"/><path d="M7 16.5h6M10 13.5v3"/></svg>
+        <span data-t="elsewhere">Cameo is a Mac app. Send this link to your Mac and add the character there.</span>
+      </div>
+      <div class="cta" id="mac-cta">
+        <a class="btn btn-amber btn-lg" id="add" href="{{add_link}}" data-t="add">Add to Cameo</a>
+        <a class="btn btn-soft btn-lg" href="{{video}}" download>
+          <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
+          <span data-t="mov">Download .mov</span>
+        </a>
+      </div>
+      <span class="hint" id="mac-hint"><span data-t="noApp">No Cameo yet?</span> <a href="https://github.com/wquguru/cameo/releases/latest" data-t="getApp">Download it free</a><span data-t="req">, macOS 14 or later.</span></span>
+
+      <div class="share" id="share">
+        <span data-t="share">Share</span>
+        <button class="btn btn-soft" id="copy" type="button">
+          <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.8 9.2a3 3 0 0 0 4.3 0l2.2-2.2a3 3 0 0 0-4.3-4.3l-.9.9M9.2 6.8a3 3 0 0 0-4.3 0L2.7 9a3 3 0 0 0 4.3 4.3l.9-.9"/></svg>
+          <span id="copy-label" data-t="copy">Copy link</span>
+        </button>
+        <a class="btn btn-soft" id="x" href="{{x_link}}" target="_blank" rel="noopener">
+          <svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M12.2 1.5h2.2L9.6 7l5.6 7.5h-4.4L7.4 10l-4 4.5H1.2l5.1-5.8L1 1.5h4.5l3.1 4.1 3.6-4.1Zm-.8 11.7h1.2L4.8 2.7H3.5l7.9 10.5Z"/></svg>
+          <span data-t="postX">Post on X</span>
+        </a>
+        <button class="btn btn-soft" id="native" type="button" hidden>
+          <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10V2M5 4.8 8 1.8l3 3M5.5 7H4a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1.5"/></svg>
+          <span data-t="more">More…</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="more" aria-labelledby="more-title">
+    <div class="more-head">
+      <h2 id="more-title" data-t="moreTitle">More characters</h2>
+      <a href="../../" data-t="all">See them all ›</a>
+    </div>
+    <div class="more-grid">
+{{more_html}}
+    </div>
+  </section>
+</main>
+
+<dialog id="opening" aria-labelledby="opening-title">
+  <h3 id="opening-title"></h3>
+  <p id="opening-body"></p>
+  <div class="row" id="opening-actions"></div>
+</dialog>
+
+<footer>
+  <div class="wrap">
+    <span data-t="footer">Cameo is free and open source. Characters are CC BY 4.0 unless noted.</span>
+    <nav aria-label="Footer"><a href="../../" data-t="characters">Characters</a><a href="https://github.com/wquguru/cameo">GitHub</a></nav>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const strings = {
+    en: {
+      characters: "Characters", make: "Make your own", submit: "Submit", download: "Download Cameo",
+      animal: "Animal", person: "Person", other: "Other", by: "by",
+      lede: "Put {name} on your Mac desktop: transparent, always on top, and clicks pass through the empty space around it.",
+      length: "Length", size: "Size", licenseLabel: "License",
+      add: "Add to Cameo", mov: "Download .mov", noApp: "No Cameo yet?", getApp: "Download it free", req: ", macOS 14 or later.",
+      elsewhere: "Cameo is a Mac app. Send this link to your Mac and add the character there.",
+      share: "Share", copy: "Copy link", copied: "Copied", postX: "Post on X", more: "More…", shareMine: "Share it with yourself or a friend",
+      live: "Loop preview · transparent", pause: "Pause", play: "Play",
+      moreTitle: "More characters", all: "See them all ›",
+      footer: "Cameo is free and open source. Characters are CC BY 4.0 unless noted.",
+      openTitle: "Opening Cameo…", sentTitle: "Sent to Cameo", sentBody: "{name} is being added. It shows up in Cameo's menu bar popover.",
+      missTitle: "Cameo didn't open", missBody: "Install Cameo first, or download the .mov and drop it on Cameo later.",
+      close: "Close", getMov: "Download .mov", install: "Get Cameo",
+    },
+    zh: {
+      characters: "角色", make: "自己做一个", submit: "投稿", download: "下载 Cameo",
+      animal: "动物", person: "人物", other: "其他", by: "作者",
+      lede: "把 {name} 放到你的 Mac 桌面上：透明背景，永远在最前，周围的空白处点击直接穿透。",
+      length: "时长", size: "大小", licenseLabel: "许可",
+      add: "添加到 Cameo", mov: "下载 .mov", noApp: "还没装 Cameo？", getApp: "免费下载", req: "，需要 macOS 14 及以上。",
+      elsewhere: "Cameo 是 Mac 上的应用。把这个链接发到你的 Mac，在那边添加。",
+      share: "分享", copy: "复制链接", copied: "已复制", postX: "发到 X", more: "更多…", shareMine: "分享给自己或朋友",
+      live: "循环预览 · 透明背景", pause: "暂停", play: "播放",
+      moreTitle: "更多角色", all: "查看全部 ›",
+      footer: "Cameo 免费开源。除特别说明外，角色均以 CC BY 4.0 发布。",
+      openTitle: "正在打开 Cameo…", sentTitle: "已发送到 Cameo", sentBody: "正在添加 {name}，稍后会出现在 Cameo 的菜单栏弹窗里。",
+      missTitle: "Cameo 没有打开", missBody: "请先安装 Cameo，或者先下载 .mov，之后拖到 Cameo 上。",
+      close: "关闭", getMov: "下载 .mov", install: "获取 Cameo",
+    },
+  };
+  const name = document.body.dataset.name;
+  let lang = "en";
+  try { lang = localStorage.getItem("lang") || (navigator.language.startsWith("zh") ? "zh" : "en"); } catch {}
+  const asked = new URLSearchParams(location.search).get("lang");
+  if (asked in strings) lang = asked;
+  const t = strings[lang];
+  const fill = text => text.replace("{name}", name);
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  document.querySelectorAll("[data-t]").forEach(node => { if (t[node.dataset.t]) node.textContent = fill(t[node.dataset.t]); });
+  const $ = id => document.getElementById(id);
+  const url = document.querySelector('link[rel="canonical"]').href;
+
+  // Phones and other computers can't run Cameo: lead with sharing the link instead.
+  const mac = /Mac/.test(navigator.platform) && navigator.maxTouchPoints < 2;
+  if (!mac) {
+    $("elsewhere").hidden = false;
+    $("mac-hint").hidden = true;
+    $("add").hidden = true;
+    $("share").hidden = true;
+    if (navigator.share) {
+      const primary = Object.assign(document.createElement("button"), { type: "button", className: "btn btn-amber btn-lg primary", textContent: t.shareMine });
+      primary.addEventListener("click", () => navigator.share({ title: `${name} · Cameo`, url }).catch(() => {}));
+      $("mac-cta").prepend(primary);
+    } else {
+      $("share").hidden = false;
+    }
+  }
+
+  // Copy, X and the system share sheet.
+  $("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(url); } catch { return; }
+    $("copy-label").textContent = t.copied;
+    clearTimeout($("copy").reset);
+    $("copy").reset = setTimeout(() => { $("copy-label").textContent = t.copy; }, 1500);
+  });
+  if (navigator.share) {
+    $("native").hidden = false;
+    $("native").addEventListener("click", () => navigator.share({ title: `${name} · Cameo`, url }).catch(() => {}));
+  }
+
+  // The video only plays with its transparency in Safari (HEVC with Alpha / ProRes 4444);
+  // elsewhere the poster stays.
+  const safari = /Apple/.test(navigator.vendor) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const video = $("video");
+  if (safari && !still) {
+    video.preload = "auto";
+    video.addEventListener("playing", () => {
+      video.hidden = false; $("poster").hidden = true; $("live").hidden = false; $("pause").hidden = false;
+    }, { once: true });
+    video.play().catch(() => {});
+  }
+  $("pause").addEventListener("click", () => {
+    const paused = !video.paused;
+    if (paused) video.pause(); else video.play().catch(() => {});
+    $("pause").setAttribute("aria-label", paused ? t.play : t.pause);
+    $("pause").innerHTML = paused
+      ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M4 2.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L4.9 1.7a.6.6 0 0 0-.9.5Z"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><rect x="3" y="2" width="3" height="10" rx="1"/><rect x="8" y="2" width="3" height="10" rx="1"/></svg>';
+  });
+  $("pause").setAttribute("aria-label", t.pause);
+
+  // Add to Cameo: the page losing focus within two seconds means the app took the link.
+  const dialog = $("opening");
+  const button = (text, className, href) => {
+    const node = document.createElement(href ? "a" : "button");
+    node.className = `btn btn-sm ${className}`;
+    node.textContent = text;
+    if (href) node.href = href; else { node.type = "button"; node.addEventListener("click", () => dialog.close()); }
+    return node;
+  };
+  const show = (title, body, actions) => {
+    $("opening-title").textContent = title;
+    $("opening-body").textContent = body;
+    $("opening-body").hidden = !body;
+    $("opening-actions").replaceChildren(...actions);
+    if (!dialog.open) dialog.showModal();
+  };
+  $("add").addEventListener("click", event => {
+    event.preventDefault();
+    show(t.openTitle, "", [button(t.close, "btn-soft")]);
+    let left = false;
+    const onBlur = () => { left = true; };
+    window.addEventListener("blur", onBlur, { once: true });
+    location.href = $("add").href;
+    setTimeout(() => {
+      window.removeEventListener("blur", onBlur);
+      if (left) show(t.sentTitle, fill(t.sentBody), [button(t.close, "btn-soft")]);
+      else show(t.missTitle, t.missBody, [button(t.getMov, "btn-soft", video.getAttribute("src")), button(t.install, "btn-dark", "https://github.com/wquguru/cameo/releases/latest")]);
+    }, 2000);
+  });
+})();
+</script>
+</body>
+</html>

@@ -185,9 +185,10 @@ def publish(issue, form, path):
     else:
         sys.exit("could not push the gallery update")
     run("gh", "workflow", "run", "pages", "--ref", "main")
-    gallery = f"https://wquguru.github.io/cameo/?c={character}"
+    gallery = f"https://wquguru.github.io/cameo/c/{character}/"
     comment(issue, f"### 🎉 Published / 已上线\n\n**{form['name']}** is in the gallery: {gallery}\n"
-                   f"(the page updates within a couple of minutes / 页面会在一两分钟内更新)\n\n"
+                   f"(the page and its link preview go live within a few minutes; share the link anywhere / "
+                   f"页面和链接预览几分钟内生效，这个链接可以直接分享)\n\n"
                    f"Video / 视频: {url}\n\nThanks for the character! 感谢投稿！", new=True)
     run("gh", "issue", "close", issue, "--reason", "completed", capture=True)
 

@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- One character's social card (Open Graph / X), from the share-link design canvas.
+     scripts/gallery_pages.py fills the {{…}} fields per character and renders it to gallery/og/<id>.png. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cameo character card</title>
+<style>
+  html, body { margin: 0; }
+  body {
+    position: relative; width: 1200px; height: 630px; overflow: hidden;
+    background: #161618; color: #F5F1EA;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .beam {
+    position: absolute; left: 600px; top: 0; width: 560px; height: 630px;
+    background: linear-gradient(180deg, rgba(255, 210, 122, .38), rgba(255, 179, 64, 0) 92%);
+    clip-path: polygon(40% 0, 60% 0, 96% 100%, 4% 100%);
+  }
+  .floor {
+    position: absolute; left: 610px; top: 512px; width: 540px; height: 92px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 200, 100, .55), rgba(255, 200, 100, 0));
+  }
+  .figure { position: absolute; left: 650px; top: 92px; width: 460px; height: 486px; object-fit: contain; object-position: bottom; }
+  .copy { position: absolute; left: 72px; top: 64px; width: 520px; display: flex; flex-direction: column; gap: 22px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; color: #C7C2BA; }
+  .brand img { width: 44px; height: 44px; }
+  .kind { align-self: flex-start; margin-top: 34px; padding: 6px 16px; border-radius: 999px; background: rgba(245, 241, 234, .12); font-size: 22px; font-weight: 600; }
+  h1 { margin: 0; font-size: {{name_size}}px; line-height: .95; font-weight: 800; letter-spacing: -.04em; overflow-wrap: anywhere; }
+  p { margin: 0; font-size: 28px; line-height: 1.35; color: #C7C2BA; }
+  p b { color: #F5F1EA; font-weight: 600; }
+  .foot { position: absolute; left: 72px; bottom: 56px; display: flex; align-items: center; gap: 16px; font-size: 22px; font-weight: 600; color: #C7C2BA; }
+  .cta { height: 48px; padding: 0 22px; border-radius: 24px; background: #FFB340; color: #161618; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+  <div class="beam"></div>
+  <div class="floor"></div>
+  <img class="figure" src="{{poster}}" alt="">
+  <div class="copy">
+    <div class="brand"><img src="{{icon}}" alt="">Cameo</div>
+    <span class="kind">{{category}}</span>
+    <h1>{{name}}</h1>
+    <p>by <b>{{author}}</b>{{facts}}</p>
+  </div>
+  <div class="foot"><span class="cta">Add to your Mac</span><span>wquguru.github.io/cameo</span></div>
+</body>
+</html>
