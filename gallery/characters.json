@@ -3,6 +3,18 @@
     "author" : "@wquguru",
     "authorURL" : "https://x.com/wquguru",
     "bytes" : 2503514,
+    "category" : "other",
+    "duration" : 1,
+    "id" : "flow-test",
+    "license" : "CC BY 4.0",
+    "name" : "Flow Test",
+    "poster" : "posters/flow-test.png",
+    "video" : "https://cameo.wqu.guru/characters/flow-test.mov"
+  },
+  {
+    "author" : "@wquguru",
+    "authorURL" : "https://x.com/wquguru",
+    "bytes" : 2503514,
     "category" : "person",
     "duration" : 1,
     "id" : "lily",
