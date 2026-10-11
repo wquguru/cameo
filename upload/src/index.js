@@ -1,16 +1,18 @@
 // Cameo character uploads: POST /submit from the gallery page.
 //
-// The video is the raw request body; the form fields travel in headers. After Turnstile and
-// the daily limits pass, the body is streamed straight into pending/ of the private
-// cameo-uploads bucket, which has no public domain (no buffering, so it fits the Workers CPU
-// budget), then its "moov" box is
-// read back with range requests and checked. A failing file is deleted again. The intake
+// The video (or a character package .zip, sent as Content-Type application/zip) is the raw
+// request body; the form fields travel in headers. After Turnstile and the daily limits pass,
+// the body is streamed straight into pending/ of the private cameo-uploads bucket, which has no
+// public domain (no buffering, so it fits the Workers CPU budget), then its "moov" box (or the
+// zip's table of contents) is read back with range requests and checked; the clips inside a zip
+// are checked by the intake workflow. A failing file is deleted again. The intake
 // workflow later turns pending files into GitHub issues for review; nothing here is public.
 //
 // Abuse controls, cheapest first: a kill switch (UPLOADS_OPEN), a per-IP burst limiter, a ban
 // list, Turnstile bound to this site and action, daily per-IP and site-wide quotas, a cap on
 // what waits for review (files and bytes), duplicate rejection by SHA-256, then the file checks.
 import { inspectMoov, problems, readBoxHeader } from "./mov.js";
+import { findDirectory, inspectEntries, readDirectory, zipProblems } from "./zip.js";
 
 const CATEGORIES = new Set(["animal", "person", "other"]);
 const DAY = 24 * 60 * 60;
@@ -90,15 +92,16 @@ export default {
     }
 
     // Stream into the private pending/ prefix.
+    const zip = request.headers.get("Content-Type") === "application/zip";
     const id = crypto.randomUUID();
-    const key = `pending/${id}.mov`;
+    const key = `pending/${id}.${zip ? "zip" : "mov"}`;
     const { readable, writable } = new FixedLengthStream(length);
     const [toBucket, toDigest] = request.body.tee();
     const digest = new crypto.DigestStream("SHA-256");
     const piping = Promise.all([toBucket.pipeTo(writable), toDigest.pipeTo(digest)]).catch(() => {});
     try {
       await env.BUCKET.put(key, readable, {
-        httpMetadata: { contentType: "video/quicktime" },
+        httpMetadata: { contentType: zip ? "application/zip" : "video/quicktime" },
         customMetadata: {
           name: encodeURIComponent(name), author: encodeURIComponent(author), category,
           uploader: visitor, submitted: new Date().toISOString(),
@@ -117,14 +120,15 @@ export default {
     }
 
     // Check it; delete what fails.
-    let info;
+    let info, found;
     try {
-      info = await inspectStored(env.BUCKET, key, length);
+      info = zip ? await inspectStoredZip(env.BUCKET, key, length) : await inspectStored(env.BUCKET, key, length);
+      found = zip ? zipProblems(info, length) : problems(info, length);
+      if (zip) info = { files: info.files.length };
     } catch {
       await env.BUCKET.delete(key);
-      return reply(422, { error: "invalid", problems: ["not_mov"] });
+      return reply(422, { error: "invalid", problems: [zip ? "not_zip" : "not_mov"] });
     }
-    const found = problems(info, length);
     if (found.length) {
       await env.BUCKET.delete(key);
       return reply(422, { error: "invalid", problems: found, info });
@@ -178,6 +182,14 @@ async function queueSize(bucket) {
 async function range(bucket, key, offset, length) {
   const object = await bucket.get(key, { range: { offset, length } });
   return new Uint8Array(await object.arrayBuffer());
+}
+
+/// Reads a stored zip's table of contents: its last bytes, then the central directory.
+async function inspectStoredZip(bucket, key, total) {
+  const tailLength = Math.min(total, 65557);
+  const where = findDirectory(await range(bucket, key, total - tailLength, tailLength), total);
+  if (where.size > 1024 * 1024) throw new Error("not_zip");
+  return inspectEntries(readDirectory(await range(bucket, key, where.offset, where.size), where.count));
 }
 
 /// Walks the top-level boxes with small range reads, then parses the "moov" box.

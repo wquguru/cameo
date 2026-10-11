@@ -194,9 +194,9 @@
       </div>
       <div class="cta" id="mac-cta">
         <a class="btn btn-amber btn-lg" id="add" href="{{add_link}}" data-t="add">Add to Cameo</a>
-        <a class="btn btn-soft btn-lg" href="{{video}}" download>
+        <a class="btn btn-soft btn-lg" id="download" href="{{download}}" download>
           <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>
-          <span data-t="mov">Download .mov</span>
+          <span data-t="{{download_key}}">{{download_label}}</span>
         </a>
       </div>
       <span class="hint" id="mac-hint"><span data-t="noApp">No Cameo yet?</span> <a href="https://github.com/wquguru/cameo/releases/latest" data-t="getApp">Download it free</a><span data-t="req">, macOS 14 or later.</span></span>
@@ -251,30 +251,30 @@
       animal: "Animal", person: "Person", other: "Other", by: "by",
       lede: "Put {name} on your Mac desktop: transparent, always on top, and clicks pass through the empty space around it.",
       length: "Length", size: "Size", licenseLabel: "License",
-      add: "Add to Cameo", mov: "Download .mov", noApp: "No Cameo yet?", getApp: "Download it free", req: ", macOS 14 or later.",
+      add: "Add to Cameo", mov: "Download .mov", zip: "Download .zip", noApp: "No Cameo yet?", getApp: "Download it free", req: ", macOS 14 or later.",
       elsewhere: "Cameo is a Mac app. Send this link to your Mac and add the character there.",
       share: "Share", copy: "Copy link", copied: "Copied", postX: "Post on X", more: "More…", shareMine: "Share it with yourself or a friend",
       live: "Loop preview · transparent", pause: "Pause", play: "Play",
       moreTitle: "More characters", all: "See them all ›",
       footer: "Cameo is free and open source. Characters are CC BY 4.0 unless noted.",
       openTitle: "Opening Cameo…", sentTitle: "Sent to Cameo", sentBody: "{name} is being added. It shows up in Cameo's menu bar popover.",
-      missTitle: "Cameo didn't open", missBody: "Install Cameo first, or download the .mov and drop it on Cameo later.",
-      close: "Close", getMov: "Download .mov", install: "Get Cameo",
+      missTitle: "Cameo didn't open", missBody: "Install the latest Cameo first, or download the file and drop it on Cameo later.",
+      close: "Close", install: "Get Cameo",
     },
     zh: {
       characters: "角色", make: "自己做一个", submit: "投稿", download: "下载 Cameo",
       animal: "动物", person: "人物", other: "其他", by: "作者",
       lede: "把 {name} 放到你的 Mac 桌面上：透明背景，永远在最前，周围的空白处点击直接穿透。",
       length: "时长", size: "大小", licenseLabel: "许可",
-      add: "添加到 Cameo", mov: "下载 .mov", noApp: "还没装 Cameo？", getApp: "免费下载", req: "，需要 macOS 14 及以上。",
+      add: "添加到 Cameo", mov: "下载 .mov", zip: "下载 .zip", noApp: "还没装 Cameo？", getApp: "免费下载", req: "，需要 macOS 14 及以上。",
       elsewhere: "Cameo 是 Mac 上的应用。把这个链接发到你的 Mac，在那边添加。",
       share: "分享", copy: "复制链接", copied: "已复制", postX: "发到 X", more: "更多…", shareMine: "分享给自己或朋友",
       live: "循环预览 · 透明背景", pause: "暂停", play: "播放",
       moreTitle: "更多角色", all: "查看全部 ›",
       footer: "Cameo 免费开源。除特别说明外，角色均以 CC BY 4.0 发布。",
       openTitle: "正在打开 Cameo…", sentTitle: "已发送到 Cameo", sentBody: "正在添加 {name}，稍后会出现在 Cameo 的菜单栏弹窗里。",
-      missTitle: "Cameo 没有打开", missBody: "请先安装 Cameo，或者先下载 .mov，之后拖到 Cameo 上。",
-      close: "关闭", getMov: "下载 .mov", install: "获取 Cameo",
+      missTitle: "Cameo 没有打开", missBody: "请先安装最新版 Cameo，或者先下载文件，之后拖到 Cameo 上。",
+      close: "关闭", install: "获取 Cameo",
     },
   };
   const name = document.body.dataset.name;
@@ -365,7 +365,7 @@
     setTimeout(() => {
       window.removeEventListener("blur", onBlur);
       if (left) show(t.sentTitle, fill(t.sentBody), [button(t.close, "btn-soft")]);
-      else show(t.missTitle, t.missBody, [button(t.getMov, "btn-soft", video.getAttribute("src")), button(t.install, "btn-dark", "https://github.com/wquguru/cameo/releases/latest")]);
+      else show(t.missTitle, t.missBody, [button($("download").querySelector("span").textContent, "btn-soft", $("download").getAttribute("href")), button(t.install, "btn-dark", "https://github.com/wquguru/cameo/releases/latest")]);
     }, 2000);
   });
 })();

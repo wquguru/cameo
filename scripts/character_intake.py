@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Turns website uploads into submission issues (the "intake" workflow).
 
-The upload Worker (upload/) leaves each accepted video in pending/ of the private cameo-uploads
-bucket, with the form fields as object metadata. This script checks every pending video with
-AVFoundation, moves good ones to submitted/ and opens a "character" issue for review that
-points at it (r2:submitted/<id>.mov); videos that fail are deleted. Approving the issue then
+The upload Worker (upload/) leaves each accepted video (or zipped character package) in pending/
+of the private cameo-uploads bucket, with the form fields as object metadata. This script checks
+every pending upload with AVFoundation (a package is unpacked and checked clip by clip), moves good
+ones to submitted/ and opens a "character" issue for review that points at it
+(r2:submitted/<id>.mov or .zip); uploads that fail are deleted. Approving the issue then
 publishes it like any other submission (character_submission.py publish).
 Environment: GH_TOKEN, GITHUB_REPOSITORY, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
 """
@@ -14,10 +15,10 @@ import tempfile
 import urllib.parse
 from pathlib import Path
 
-from character_submission import UPLOADS, check_video, comment, report_table, run, s3, s3api
+from character_submission import UPLOADS, check_submission, comment, report_table, run, s3, s3api
 
 LABELS = {"animal": "Animal / 动物", "person": "Person / 人物", "other": "Other / 其他"}
-KEY = re.compile(r"^pending/([0-9a-f-]{36})\.mov$")
+KEY = re.compile(r"^pending/([0-9a-f-]{36})\.(mov|zip)$")
 
 
 def issue_body(name, author, category, ref, uploader):
@@ -38,20 +39,20 @@ def main():
         match = KEY.match(key)
         if not match:
             continue
-        upload = match.group(1)
+        upload, extension = match.groups()
         meta = json.loads(s3api("head-object", "--bucket", UPLOADS, "--key", key)).get("Metadata", {})
         name = urllib.parse.unquote(meta.get("name", "")).strip()[:60]
         author = urllib.parse.unquote(meta.get("author", "")).strip()[:60]
         category = meta.get("category", "")
         uploader = re.sub(r"[^0-9a-f]", "", meta.get("uploader", ""))[:64]
-        path = Path(tempfile.mkdtemp()) / "upload.mov"
+        path = Path(tempfile.mkdtemp()) / f"upload.{extension}"
         s3("cp", f"s3://{UPLOADS}/{key}", str(path))
-        facts = check_video(path)
+        facts, _ = check_submission(path)
         if not name or not author or category not in LABELS or not facts.get("ok"):
             print(f"Rejecting {key}: {facts.get('problems') or 'missing fields'}")
             s3("rm", f"s3://{UPLOADS}/{key}")
             continue
-        submitted = f"submitted/{upload}.mov"
+        submitted = f"submitted/{upload}.{extension}"
         s3("mv", f"s3://{UPLOADS}/{key}", f"s3://{UPLOADS}/{submitted}")
         url = run("gh", "issue", "create", "--title", f"[Character] {name}", "--label", "character",
                   "--body", issue_body(name, author, category, f"r2:{submitted}", uploader), capture=True).stdout.strip()

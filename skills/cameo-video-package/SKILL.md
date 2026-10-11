@@ -77,6 +77,16 @@ open -a Cameo work/<id>/package
 
 Cameo copies the folder in and switches to it. To try a package without importing (development build): `CAMEO_PACKAGE=/abs/path/package .build/debug/Cameo`. With a locally built app: `open -a /path/to/Cameo.app work/<id>/package`. Not installed: https://github.com/wquguru/cameo/releases/latest (package support needs a build with the package player).
 
+## 6. Share it in the gallery (optional)
+
+Zip the package folder and submit the .zip at https://wquguru.github.io/cameo/#submit (or attach it to the GitHub submission form):
+
+```bash
+ditto -c -k --keepParent work/<id>/package "<Name>.zip"
+```
+
+The zip must be under 20 MB, every clip at most 10 s and 1080 px tall; the page checks it before uploading. A two-character canvas or many actions can go over: drop an action chain, or keep it for yourself.
+
 ## Two characters together (optional)
 
 Video models blend two characters' outfits when drawn together, so a duo starts from two finished single packages placed side by side; play-fights are scripted motion on top:

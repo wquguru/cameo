@@ -1,5 +1,8 @@
 // Checks a gallery video for alpha, writes its poster and upserts gallery/characters.json.
 // Usage: swift scripts/gallery-entry.swift <video.mov> <id> <name> <author> <video-url> <category>
+//        swift scripts/gallery-entry.swift <package-folder> <id> <name> <author> <video-url> <category> <package-url>
+// For a package (docs/package-spec.md) the video is its idle clip, published at <video-url> as
+// the gallery's preview; "Add to Cameo" downloads the zipped package at <package-url>.
 import AVFoundation
 import Foundation
 import ImageIO
@@ -14,15 +17,35 @@ struct Entry: Codable {
     var duration: Double?
     /// First published, yyyy-MM-dd (the share page's uploadDate). Optional for older entries.
     var added: String?
+    /// Packages only: the zipped package (what "Add to Cameo" adds), its action count and whether it walks.
+    var package: String?
+    var actions: Int?
+    var walks: Bool?
 }
 
 let args = CommandLine.arguments
-guard args.count == 7, ["animal", "person", "other"].contains(args[6]) else {
-    print("usage: swift scripts/gallery-entry.swift <video.mov> <id> <name> <author> <video-url> <animal|person|other>")
+guard args.count == 7 || args.count == 8, ["animal", "person", "other"].contains(args[6]) else {
+    print("usage: swift scripts/gallery-entry.swift <video.mov | package-folder> <id> <name> <author> <video-url> <animal|person|other> [<package-url>]")
     exit(1)
 }
-let (file, id, name, author, videoURL, category) = (URL(fileURLWithPath: args[1]), args[2], args[3], args[4], args[5], args[6])
+let (source, id, name, author, videoURL, category) = (URL(fileURLWithPath: args[1]), args[2], args[3], args[4], args[5], args[6])
+let packageURL = args.count == 8 ? args[7] : nil
 let gallery = URL(fileURLWithPath: "gallery")
+
+var file = source
+var bytes = (try? source.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+var package: (actions: Int, walks: Bool)?
+if packageURL != nil {
+    guard let data = try? Data(contentsOf: source.appendingPathComponent("manifest.json")),
+          let manifest = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let clips = (manifest["clips"] as? [Any])?.compactMap({ $0 as? [String: Any] }),
+          let clip = clips.first(where: { $0["kind"] as? String == "idle" }) ?? clips.first,
+          let preview = clip["file"] as? String else { print("not a package: no manifest.json with clips"); exit(1) }
+    file = source.appendingPathComponent(preview)
+    let files = ["manifest.json", "poster.png"] + clips.compactMap { $0["file"] as? String }
+    bytes = Set(files).map { (try? source.appendingPathComponent($0).resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0 }.reduce(0, +)
+    package = (clips.filter { $0["kind"] as? String == "action" }.count, clips.contains { $0["kind"] as? String == "walk" })
+}
 
 let asset = AVURLAsset(url: file)
 guard let track = try await asset.loadTracks(withMediaType: .video).first,
@@ -50,8 +73,8 @@ guard CGImageDestinationFinalize(destination) else { print("could not write post
 let handle = author.hasPrefix("@") ? String(author.dropFirst()) : nil
 var entry = Entry(id: id, name: name, author: author, authorURL: handle.map { "https://x.com/\($0)" } ?? "",
                   license: "CC BY 4.0", video: videoURL, poster: posterPath,
-                  bytes: (try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0,
-                  category: category, duration: (CMTimeGetSeconds(duration) * 10).rounded() / 10)
+                  bytes: bytes, category: category, duration: (CMTimeGetSeconds(duration) * 10).rounded() / 10,
+                  package: packageURL, actions: package?.actions, walks: package?.walks)
 
 let index = gallery.appendingPathComponent("characters.json")
 var entries = (try? JSONDecoder().decode([Entry].self, from: Data(contentsOf: index))) ?? []

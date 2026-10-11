@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Handles a character submission issue (the "character" workflow).
 
-  check    reads the form, downloads the attached .mov, checks it and replies on the issue.
+  check    reads the form, downloads the attached .mov or package .zip, checks it and replies on the issue.
   publish  (after a maintainer adds the "approved" label) does the same checks, uploads the
-           video to R2, adds the gallery entry and poster, and opens a pull request.
+           video to R2 (a package as a clean .zip plus its idle clip as the preview video),
+           adds the gallery entry and poster, and commits it to main.
 
 The issue body is untrusted: it is only ever parsed here, never passed to a shell.
 Environment: GH_TOKEN, GITHUB_REPOSITORY, ISSUE_NUMBER, ISSUE_BODY; publish also needs
@@ -19,13 +20,15 @@ import tempfile
 import unicodedata
 from pathlib import Path
 
+import character_package
+
 ROOT = Path(__file__).resolve().parent.parent
 BUCKET = "cameo-characters"   # public, served at ORIGIN
 UPLOADS = "cameo-uploads"     # private: website uploads waiting for review
 ORIGIN = "https://cameo.wqu.guru"
 MARKER = "<!-- cameo-bot -->"
 ATTACHMENT = re.compile(r"https://github\.com/user-attachments/(?:assets|files)/[A-Za-z0-9._/-]+")
-UPLOADED = re.compile(r"\br2:submitted/[0-9a-f-]{36}\.mov\b")  # set by the intake workflow
+UPLOADED = re.compile(r"\br2:submitted/[0-9a-f-]{36}\.(?:mov|zip)\b")  # set by the intake workflow
 CATEGORIES = {"animal": "animal", "person": "person", "other": "other"}
 DOWNLOAD_LIMIT = 20 * 1024 * 1024  # generous; the check reports anything over 10 MB
 
@@ -54,7 +57,8 @@ def parse_form(body):
     if not category:
         problems.append("Missing a category. 缺少分类。")
     if not video:
-        problems.append("No video attached: drag the .mov into the Video field. 没有附上视频：请把 .mov 拖进「视频」一栏。")
+        problems.append("No video attached: drag the .mov (or the package .zip) into the Video field. "
+                        "没有附上视频：请把 .mov（或角色包 .zip）拖进「视频」一栏。")
     return {"name": name[:60], "author": author[:60], "category": category,
             "video": video.group(0) if video else ""}, problems
 
@@ -80,12 +84,28 @@ def s3api(*args):
 
 
 def download(url, folder):
+    """The attachment, named .zip when it is one (GitHub's file links keep the name, its video
+    links don't, so the file itself decides)."""
     path = Path(folder) / "submission.mov"
     if url.startswith("r2:"):
+        path = path.with_suffix(Path(url).suffix)
         s3("cp", f"s3://{UPLOADS}/{url[3:]}", str(path))
         return path
     result = run("curl", "-fsSL", "--retry", "3", "--max-filesize", str(DOWNLOAD_LIMIT), "-o", str(path), url, check=False)
-    return path if result.returncode == 0 and path.exists() else None
+    if result.returncode or not path.exists():
+        return None
+    return path.rename(path.with_suffix(".zip")) if character_package.is_zip(path) else path
+
+
+def check_submission(path):
+    """Checks a .mov, or unpacks and checks a package .zip. Returns (facts, package folder or None)."""
+    if not character_package.is_zip(path):
+        return check_video(path), None
+    try:
+        package = character_package.unpack(path, tempfile.mkdtemp())
+    except character_package.PackageError as error:
+        return {"ok": False, "problems": [str(error)]}, None
+    return check_video(package), package
 
 
 def check_video(path):
@@ -118,15 +138,20 @@ def label(issue, name, present):
 
 
 def report_table(facts):
-    return ("| | |\n|---|---|\n"
-            f"| Format / 格式 | {facts.get('codec', '?')}, {'transparent / 透明' if facts.get('alpha') else 'opaque / 不透明'} |\n"
-            f"| Size / 尺寸 | {facts.get('width', '?')} × {facts.get('height', '?')} px |\n"
-            f"| Length / 时长 | {facts.get('duration', '?')} s |\n"
-            f"| File / 文件 | {round(facts.get('bytes', 0) / 1024)} KB |\n")
+    table = ("| | |\n|---|---|\n"
+             f"| Format / 格式 | {facts.get('codec', '?')}, {'transparent / 透明' if facts.get('alpha') else 'opaque / 不透明'} |\n"
+             f"| Size / 尺寸 | {facts.get('width', '?')} × {facts.get('height', '?')} px |\n"
+             f"| Length / 时长 | {facts.get('duration', '?')} s{' (idle)' if 'clips' in facts else ''} |\n"
+             f"| File / 文件 | {round(facts.get('bytes', 0) / 1024)} KB |\n")
+    if "clips" in facts:
+        walks = "walks / 会走动" if facts.get("walks") else "stays in place / 原地"
+        table += (f"| Package / 角色包 | {facts['clips']} clips / 片段, {facts.get('actions', 0)} actions / 动作, {walks} |\n")
+    return table
 
 
 def review(issue):
-    """Shared by check and publish. Returns (form, video path, facts) or None after replying."""
+    """Shared by check and publish. Returns (form, video path or package folder, facts) or None
+    after replying."""
     form, problems = parse_form(os.environ.get("ISSUE_BODY", ""))
     facts = {}
     path = None
@@ -135,7 +160,8 @@ def review(issue):
         if not path:
             problems.append("The video could not be downloaded (or is over 20 MB). 视频无法下载（或超过 20 MB）。")
         else:
-            facts = check_video(path)
+            facts, package = check_submission(path)
+            path = package or path
             problems += facts.get("problems", [])
     if problems:
         text = "### ❌ Needs changes / 需要修改\n\n" + "\n".join(f"- {p}" for p in problems)
@@ -155,20 +181,37 @@ def slug(name, issue, taken):
     return base if base not in taken else f"{base}-{issue}"
 
 
+def upload(path, key, content_type):
+    """Uploads to the public bucket and checks the public copy matches."""
+    url = f"{ORIGIN}/{key}"
+    s3("cp", str(path), f"s3://{BUCKET}/{key}", "--content-type", content_type, "--cache-control", "public, max-age=86400")
+    published = Path(tempfile.mkdtemp()) / "check"
+    run("curl", "-fsSL", "--retry", "5", "--retry-all-errors", "--retry-delay", "3", "-o", str(published), url)
+    if hashlib.sha256(published.read_bytes()).digest() != hashlib.sha256(Path(path).read_bytes()).digest():
+        sys.exit(f"{url} does not match the submitted file")
+    return url
+
+
 def publish(issue, form, path):
+    """path is the video, or the checked package folder: that is published as a clean zip
+    (characters/<id>.zip, what "Add to Cameo" downloads) and its idle clip as the gallery's
+    preview video (characters/<id>.mov)."""
     entries = json.loads((ROOT / "gallery/characters.json").read_text())
     retired = set(json.loads((ROOT / "gallery/retired.json").read_text()))
     character = slug(form["name"], issue, {e["id"] for e in entries} | retired)
-    url = f"{ORIGIN}/characters/{character}.mov"
+    url = download_url = f"{ORIGIN}/characters/{character}.mov"
 
-    run("swift", "scripts/gallery-entry.swift", str(path), character, form["name"], form["author"], url, form["category"])
-
-    s3("cp", str(path), f"s3://{BUCKET}/characters/{character}.mov",
-       "--content-type", "video/quicktime", "--cache-control", "public, max-age=86400")
-    published = Path(tempfile.mkdtemp()) / "check.mov"
-    run("curl", "-fsSL", "--retry", "5", "--retry-all-errors", "--retry-delay", "3", "-o", str(published), url)
-    if hashlib.sha256(published.read_bytes()).digest() != hashlib.sha256(path.read_bytes()).digest():
-        sys.exit(f"{url} does not match the submitted file")
+    if path.is_dir():
+        archive = Path(tempfile.mkdtemp()) / f"{character}.zip"
+        character_package.pack(path, archive, character)
+        download_url = f"{ORIGIN}/characters/{character}.zip"
+        run("swift", "scripts/gallery-entry.swift", str(path), character, form["name"], form["author"], url,
+            form["category"], download_url)
+        upload(character_package.preview(path), f"characters/{character}.mov", "video/quicktime")
+        upload(archive, f"characters/{character}.zip", "application/zip")
+    else:
+        run("swift", "scripts/gallery-entry.swift", str(path), character, form["name"], form["author"], url, form["category"])
+        upload(path, f"characters/{character}.mov", "video/quicktime")
 
     if form["video"].startswith("r2:"):
         s3("rm", f"s3://{UPLOADS}/{form['video'][3:]}")
@@ -190,7 +233,7 @@ def publish(issue, form, path):
     comment(issue, f"### 🎉 Published / 已上线\n\n**{form['name']}** is in the gallery: {gallery}\n"
                    f"(the page and its link preview go live within a few minutes; share the link anywhere / "
                    f"页面和链接预览几分钟内生效，这个链接可以直接分享)\n\n"
-                   f"Video / 视频: {url}\n\nThanks for the character! 感谢投稿！", new=True)
+                   f"Video / 视频: {download_url}\n\nThanks for the character! 感谢投稿！", new=True)
     run("gh", "issue", "close", issue, "--reason", "completed", capture=True)
 
 

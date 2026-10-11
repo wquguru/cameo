@@ -127,7 +127,9 @@ final class AppModel: ObservableObject {
             importing.append(pending)
             defer { importing.removeAll { $0.id == pending.id } }
             do {
-                insert(try await CharacterStore.isPackageFolder(url) ? store.importPackage(from: url) : store.importVideo(from: url))
+                insert(try await CharacterStore.isPackageFolder(url) ? store.importPackage(from: url)
+                       : CharacterStore.isPackageArchive(url) ? store.importPackage(fromArchive: url)
+                       : store.importVideo(from: url))
             } catch {
                 errorMessage = L("Couldn’t add “%@”: %@", url.lastPathComponent, error.localizedDescription)
             }
@@ -147,7 +149,8 @@ final class AppModel: ObservableObject {
         do {
             let file = try await link.download()
             defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
-            insert(try await store.importVideo(from: file, origin: link.source))
+            insert(try await CharacterStore.isPackageArchive(file) ? store.importPackage(fromArchive: file, origin: link.source)
+                   : store.importVideo(from: file, origin: link.source))
         } catch {
             errorMessage = L("Couldn’t add “%@”: %@", link.name, error.localizedDescription)
         }

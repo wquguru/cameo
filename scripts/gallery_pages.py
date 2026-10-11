@@ -157,7 +157,8 @@ def structured(c, url, description, og_image):
 
 def render_page(c, others, version, names):
     url = f"{SITE}/c/{c['id']}/"
-    add = f"cameo://add?url={quote(c['video'], safe='')}&name={quote(c['name'], safe='')}"
+    download = c.get("package") or c["video"]  # a walking character is added as its package .zip
+    add = f"cameo://add?url={quote(download, safe='')}&name={quote(c['name'], safe='')}"
     x = f"https://x.com/intent/post?text={quote(c['name'] + ' · Cameo', safe='')}&url={quote(url, safe='')}"
     category = c.get("category") if c.get("category") in CATEGORIES else "other"
     shown = label(c, names)
@@ -179,6 +180,9 @@ def render_page(c, others, version, names):
         "poster_w": width,
         "poster_h": height,
         "video": esc(c["video"]),
+        "download": esc(download),
+        "download_key": "zip" if c.get("package") else "mov",
+        "download_label": "Download .zip" if c.get("package") else "Download .mov",
         "category": category,
         "category_label": CATEGORIES[category],
         "author_html": author_html(c),

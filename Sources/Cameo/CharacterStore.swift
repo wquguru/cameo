@@ -21,7 +21,7 @@ struct Character: Codable, Identifiable, Equatable {
 }
 
 enum ImportError: LocalizedError {
-    case noVideo, noAlpha, download, tooLarge, badPackage
+    case noVideo, noAlpha, download, tooLarge, badPackage, badArchive
 
     var errorDescription: String? {
         switch self {
@@ -29,6 +29,7 @@ enum ImportError: LocalizedError {
         case .noAlpha: L("This video has no alpha channel. Use a .mov encoded as HEVC with Alpha or ProRes 4444.")
         case .download: L("The download failed.")
         case .badPackage: L("This folder is not a valid character package (manifest.json and clips).")
+        case .badArchive: L("This zip holds no character package (manifest.json and clips).")
         case .tooLarge: L("The file is larger than 200 MB.")
         }
     }
@@ -74,8 +75,36 @@ final class CharacterStore {
         return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
     }
 
+    static func isPackageArchive(_ url: URL) -> Bool {
+        url.pathExtension.lowercased() == "zip"
+    }
+
+    /// Unzips a package (manifest.json at the top, or in the zip's one folder, as Finder's
+    /// Compress makes it) and imports it.
+    func importPackage(fromArchive archive: URL, origin: URL? = nil) async throws -> Character {
+        let work = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: work) }
+        try await Self.unzip(archive, to: work)
+        let folders = ((try? FileManager.default.contentsOfDirectory(at: work, includingPropertiesForKeys: nil)) ?? [])
+            .filter { Self.isPackageFolder($0) && $0.lastPathComponent != "__MACOSX" }
+        let has = { (folder: URL) in FileManager.default.fileExists(atPath: folder.appendingPathComponent("manifest.json").path) }
+        guard let folder = has(work) ? work : folders.count == 1 && has(folders[0]) ? folders[0] : nil
+        else { throw ImportError.badArchive }
+        return try await importPackage(from: folder, origin: origin)
+    }
+
+    private static func unzip(_ archive: URL, to folder: URL) async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
+        process.arguments = ["-x", "-k", archive.path, folder.path]
+        try await withCheckedThrowingContinuation { (done: CheckedContinuation<Void, Error>) in
+            process.terminationHandler = { $0.terminationStatus == 0 ? done.resume() : done.resume(throwing: ImportError.badArchive) }
+            do { try process.run() } catch { done.resume(throwing: error) }
+        }
+    }
+
     /// Validates a package folder (manifest and every clip file), then copies it in.
-    func importPackage(from folder: URL) async throws -> Character {
+    func importPackage(from folder: URL, origin: URL? = nil) async throws -> Character {
         let manifest: PackageManifest
         do { manifest = try PackageLoader.manifest(in: folder) } catch { throw ImportError.badPackage }
         guard manifest.clips.allSatisfy({ FileManager.default.fileExists(atPath: folder.appendingPathComponent($0.file).path) })
@@ -84,7 +113,7 @@ final class CharacterStore {
         let destination = directory.appendingPathComponent(id.uuidString, isDirectory: true)
         try await Task.detached { try FileManager.default.copyItem(at: folder, to: destination) }.value
         let name = manifest.name.isEmpty ? folder.lastPathComponent : manifest.name
-        return Character(id: id, fileName: id.uuidString, name: name, package: true)
+        return Character(id: id, fileName: id.uuidString, name: name, source: origin, package: true)
     }
 
     func load() -> [Character] {

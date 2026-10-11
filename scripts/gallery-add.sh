@@ -2,7 +2,9 @@
 # Publishes a character to the gallery: uploads the video to Cloudflare R2 (bucket
 # cameo-characters, served at https://cameo.wqu.guru) and adds it to gallery/characters.json
 # with a poster. Commit gallery/ afterwards to deploy the page.
-# Usage: scripts/gallery-add.sh [--replace] <video.mov> <id> <name> <author> <category>
+# Usage: scripts/gallery-add.sh [--replace] <video.mov | package-folder | package.zip> <id> <name> <author> <category>
+#   A character package (docs/package-spec.md) is checked, published as a clean <id>.zip and its
+#   idle clip as <id>.mov, the gallery's preview.
 #   author: "@handle" or a name; category: animal, person or other
 #   An id names the character's share link (c/<id>/) for good: one already in the gallery is
 #   refused unless --replace (same character, new video), and one in gallery/retired.json always.
@@ -28,18 +30,33 @@ print("retired" if sys.argv[1] in retired else "taken" if sys.argv[1] in ids els
 
 BUCKET=${CAMEO_BUCKET:-cameo-characters}
 ORIGIN=${CAMEO_ASSETS:-https://cameo.wqu.guru}
-KEY="characters/$ID.mov"
-URL="$ORIGIN/$KEY"
+URL="$ORIGIN/characters/$ID.mov"
 
-# Validates the video and writes the poster and entry before anything is uploaded.
-swift scripts/gallery-entry.swift "$FILE" "$ID" "$NAME" "$AUTHOR" "$URL" "$CATEGORY"
+# Uploads a file and confirms the public copy matches it.
+put() {
+    wrangler r2 object put "$BUCKET/characters/$(basename "$3")" --file "$1" --remote \
+        --content-type "$2" --cache-control "public, max-age=86400"
+    local downloaded
+    downloaded=$(mktemp)
+    curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -o "$downloaded" "$3"
+    [[ $(shasum -a 256 < "$1") == $(shasum -a 256 < "$downloaded") ]] || { echo "uploaded file does not match $3" >&2; exit 1; }
+    rm -f "$downloaded"
+    echo "Published $3"
+}
 
-wrangler r2 object put "$BUCKET/$KEY" --file "$FILE" --remote \
-    --content-type video/quicktime --cache-control "public, max-age=86400"
-
-# Confirm the public copy matches the local file.
-DOWNLOADED=$(mktemp)
-curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 -o "$DOWNLOADED" "$URL"
-[[ $(shasum -a 256 < "$FILE") == $(shasum -a 256 < "$DOWNLOADED") ]] || { echo "uploaded file does not match $URL" >&2; exit 1; }
-rm -f "$DOWNLOADED"
-echo "Published $URL"
+PACKAGE=""
+[[ -d $FILE ]] && PACKAGE=$FILE
+[[ $FILE == *.zip ]] && PACKAGE=$(python3 scripts/character_package.py unpack "$FILE" "$(mktemp -d)")
+if [[ -n $PACKAGE ]]; then
+    swift scripts/character-check.swift "$PACKAGE" || { echo "the package fails the gallery's checks" >&2; exit 1; }
+    ARCHIVE="$(mktemp -d)/$ID.zip"
+    python3 scripts/character_package.py pack "$PACKAGE" "$ARCHIVE" "$ID"
+    # Validates the idle clip and writes the poster and entry before anything is uploaded.
+    swift scripts/gallery-entry.swift "$PACKAGE" "$ID" "$NAME" "$AUTHOR" "$URL" "$CATEGORY" "$ORIGIN/characters/$ID.zip"
+    put "$(python3 scripts/character_package.py preview "$PACKAGE")" video/quicktime "$URL"
+    put "$ARCHIVE" application/zip "$ORIGIN/characters/$ID.zip"
+else
+    # Validates the video and writes the poster and entry before anything is uploaded.
+    swift scripts/gallery-entry.swift "$FILE" "$ID" "$NAME" "$AUTHOR" "$URL" "$CATEGORY"
+    put "$FILE" video/quicktime "$URL"
+fi
