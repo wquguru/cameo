@@ -8,11 +8,14 @@ import QuartzCore
 @MainActor
 final class PackageView: FigureView {
     private var show: Show?
-    private var frames: [String: [PackageFrame]] = [:]
+    private var frames: [String: [PackedFrame]] = [:]
     private var lastTime: CFTimeInterval?
     private struct Drawn: Equatable { var clip: String, index: Int, mirrored: Bool }
     private var shown: Drawn?
     private var current: PackageFrame?
+    /// Unpacked frames of the clip on screen: loops (idle, walk) replay them without unpacking
+    /// again. Dropped when the clip changes, so at most one clip is held raw.
+    private var cache: (clip: String, frames: [Int: PackageFrame]) = ("", [:])
     private var mirrored = false
     private var canvasHeight = 1.0
     private var needsStart = false
@@ -49,6 +52,7 @@ final class PackageView: FigureView {
         show = nil
         shown = nil
         current = nil
+        cache = ("", [:])
         frames = package?.frames ?? [:]
         layer?.contents = nil
         guard let package else { return }
@@ -94,19 +98,22 @@ final class PackageView: FigureView {
         let flip = show.mirrored
         let drawn = Drawn(clip: clip, index: index, mirrored: flip)
         if shown == drawn { return }
+        if cache.clip != clip { cache = (clip, [:]) }
+        guard let frame = cache.frames[index] ?? list[index].unpack() else { return }
+        cache.frames[index] = frame
         shown = drawn
-        current = list[index]
+        current = frame
         mirrored = flip
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        layer?.contents = current?.image
+        layer?.contents = current?.surface
         layer?.transform = flip ? CATransform3DMakeScale(-1, 1, 1) : CATransform3DIdentity
         CATransaction.commit()
     }
 
     override func hasFigure(at point: NSPoint) -> Bool {
         guard let frame = current else { return false }
-        let w = frame.image.width, h = frame.image.height
+        let w = frame.width, h = frame.height
         let fit = AVMakeRect(aspectRatio: CGSize(width: w, height: h), insideRect: bounds)
         guard fit.contains(point) else { return false }
         var u = (point.x - fit.minX) / fit.width
