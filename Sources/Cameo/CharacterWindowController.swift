@@ -23,6 +23,13 @@ final class CharacterWindowController {
     /// Where the figure was put (dragged, walked, restored). The window may stand elsewhere while
     /// this doesn't fit on screen, so growing and shrinking it back returns it to the same spot.
     private var feet: NSPoint?
+    /// The window a package stands on (top edge as ground), or nil for the screen bottom.
+    private var ledge: Ledge?
+    /// Ticks left of following the ledge every tick after it last moved (then a few times a second).
+    private var ledgeHot = 0
+    /// Checks in a row the ledge was missing or covered.
+    private var ledgeMisses = 0
+    private var falling = false
     private var loadedID: UUID?
     private var cancellables: Set<AnyCancellable> = []
     private var pollTimer: Timer?
@@ -113,6 +120,7 @@ final class CharacterWindowController {
             }
         }
         if character != nil { restored = true }
+        if ledge != nil, !model.perch || figureView !== packageView { dropOffLedge(below: nil) }
         layout()
         if model.visible && character != nil {
             panel.orderFrontRegardless()
@@ -129,6 +137,11 @@ final class CharacterWindowController {
             aspect = CGFloat(package.manifest.width) / CGFloat(package.manifest.height)
             layout()
             packageView.load(package, entering: entering)
+            if !entering, ledge == nil, let saved = feet {
+                // Left standing on a window: back on it if that window is still there.
+                ledge = landing(x: saved.x, y: saved.y + 2)
+                layout()
+            }
         } catch {
             model.errorMessage = L("Couldn’t add “%@”: %@", character.name, error.localizedDescription)
         }
@@ -160,7 +173,13 @@ final class CharacterWindowController {
         feet = wanted
         // A package walks the screen bottom: it stands on the ground unless it is being dragged.
         let walker = figureView === packageView
-        let shown = Self.keepVisible(wanted, size: size, walker: walker, grounded: walker && !figureView.isDragging)
+        let grounded = walker && !figureView.isDragging
+        var shown = Self.keepVisible(wanted, size: size, walker: walker, grounded: grounded)
+        if grounded, let ledge {
+            // On a window: its top is the ground, and the body stays over it.
+            let reach = size.width * packageView.reach
+            shown = NSPoint(x: min(max(wanted.x, ledge.minX + reach), max(ledge.minX + reach, ledge.maxX - reach)), y: ledge.top)
+        }
         panel.setFrame(NSRect(x: shown.x - size.width / 2, y: shown.y, width: size.width, height: size.height), display: true)
     }
 
@@ -169,6 +188,7 @@ final class CharacterWindowController {
     private func dropped() {
         feet = shownFeet
         let from = panel.frame
+        ledge = landing(x: shownFeet.x, y: shownFeet.y)
         layout()
         feet = shownFeet
         saveAnchor()
@@ -179,13 +199,62 @@ final class CharacterWindowController {
         let to = panel.frame
         panel.setFrame(from, display: false)
         packageView.held = true
+        falling = true
         NSAnimationContext.runAnimationGroup { context in
             context.duration = min(0.5, 0.15 + (from.minY - to.minY) / 2000)
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().setFrame(to, display: true)
         } completionHandler: { [weak self] in
-            MainActor.assumeIsolated { self?.packageView.held = false }
+            MainActor.assumeIsolated {
+                self?.packageView.held = false
+                self?.falling = false
+            }
         }
+    }
+
+    // MARK: Standing on windows
+
+    /// The window top a package dropped with its feet at (x, y) lands on, if any.
+    private func landing(x: CGFloat, y: CGFloat) -> Ledge? {
+        guard figureView === packageView, model.perch else { return nil }
+        let point = NSPoint(x: x, y: y)
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? panel.screen else { return nil }
+        return Ledges.landing(x: x, y: y, halfWidth: panel.frame.width * packageView.reach, height: panel.frame.height,
+                              ceiling: screen.visibleFrame.maxY, windows: WindowList.ledges())
+    }
+
+    /// Keeps a package on its window: moves with it, and falls to whatever is below once the
+    /// window has been gone, too narrow or covered for a few checks in a row.
+    private func followLedge(_ current: Ledge) {
+        let reach = panel.frame.width * packageView.reach
+        let found = Ledges.track(current, x: panel.frame.midX, halfWidth: reach, windows: WindowList.ledges())
+        ledgeMisses = found == nil || found!.covered ? ledgeMisses + 1 : 0
+        if ledgeMisses >= 4 {
+            ledgeMisses = 0
+            dropOffLedge(below: current)
+            return
+        }
+        guard let next = found?.window else { return }
+        ledge = next
+        let dx = next.minX - current.minX, dy = next.top - current.top
+        if dx != 0 || dy != 0 || next.maxX != current.maxX {
+            ledgeHot = 30
+            var origin = panel.frame.origin
+            origin.x += dx
+            origin.y = next.top
+            panel.setFrameOrigin(origin)
+            feet = shownFeet
+            if next.maxX - next.minX < current.maxX - current.minX { layout() }   // narrower: keep the body on it
+        }
+    }
+
+    /// Leaves the ledge and falls onto the next window below it, or the ground.
+    private func dropOffLedge(below current: Ledge?) {
+        let from = panel.frame
+        ledge = current.flatMap { landing(x: from.midX, y: $0.top - 3) }
+        layout()
+        feet = shownFeet
+        if from.minY - panel.frame.minY > 1 { fall(from: from) }
     }
 
     private var shownFeet: NSPoint { NSPoint(x: panel.frame.midX, y: panel.frame.minY) }
@@ -248,6 +317,10 @@ final class CharacterWindowController {
         guard let screen = panel.screen ?? NSScreen.main else { return nil }
         let visible = screen.visibleFrame, frame = screen.frame
         let reach = panel.frame.width * packageView.reach
+        if let ledge {
+            let lo = ledge.minX + reach
+            return (panel.frame.midX, lo...max(lo, ledge.maxX - reach), [])
+        }
         let lo = visible.minX + reach, hi = max(lo, visible.maxX - reach)
         func open(_ x: CGFloat) -> Bool {
             !NSScreen.screens.contains { $0 != screen && $0.frame.contains(NSPoint(x: x, y: visible.minY + 1)) }
@@ -289,6 +362,11 @@ final class CharacterWindowController {
             if panel.ignoresMouseEvents == hit { panel.ignoresMouseEvents = !hit }
         }
         pollCount += 1
+        if let current = ledge, view === packageView, !view.isDragging, !falling {
+            // Every tick while the window moves, a few times a second otherwise.
+            if ledgeHot > 0 || pollCount % 4 == 0 { followLedge(current) }
+            ledgeHot = max(0, ledgeHot - 1)
+        }
         if pollCount % 150 == 1 {
             let rate: Float = Self.onBattery() ? 30 : 60
             playerView.maxFrameRate = rate

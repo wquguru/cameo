@@ -54,6 +54,17 @@ struct PopoverView: View {
                 }
             }
             separator
+            MenuRow(action: { model.perch.toggle() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .opacity(model.perch ? 1 : 0)
+                        .frame(width: 14)
+                    Text(L("Can Stand on Windows"))
+                }
+            }
+            .help(L("Drop a walking character on a window and it stays up there, riding along when the window moves."))
+            .accessibilityAddTraits(model.perch ? .isSelected : [])
             MenuRow(action: { model.setLaunchAtLogin(!model.launchAtLogin) }) {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark")

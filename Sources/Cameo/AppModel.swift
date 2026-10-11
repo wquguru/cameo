@@ -44,6 +44,10 @@ final class AppModel: ObservableObject {
         didSet { defaults.set(hideHintSeen, forKey: "hideHintSeen") }
     }
     @Published private(set) var launchAtLogin: Bool
+    /// Packages may land on and walk along other windows' top edges.
+    @Published var perch: Bool {
+        didSet { defaults.set(perch, forKey: "perch") }
+    }
     @Published var errorMessage: String?
     /// What the built-in cat should do; nil lets it wander on its own.
     @Published var catAction: CatAction?
@@ -68,11 +72,12 @@ final class AppModel: ObservableObject {
 
     init() {
         characters = [.builtInCat] + store.load()
-        defaults.register(defaults: ["scale": 0.8, "visible": true])
+        defaults.register(defaults: ["scale": 0.8, "visible": true, "perch": true])
         lastUsed = defaults.dictionary(forKey: "lastUsed") as? [String: Double] ?? [:]
         scale = defaults.double(forKey: "scale")
         visible = defaults.bool(forKey: "visible")
         hideHintSeen = defaults.bool(forKey: "hideHintSeen")
+        perch = defaults.bool(forKey: "perch")
         launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = defaults.string(forKey: "selectedID").flatMap(UUID.init(uuidString:))
         // CAMEO_PACKAGE=/path/to/package shows that folder without importing it.

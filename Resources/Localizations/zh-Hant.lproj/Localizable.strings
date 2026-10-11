@@ -96,3 +96,5 @@
 "Actual Size" = "實際大小";
 
 "This folder is not a valid character package (manifest.json and clips)." = "此資料夾不是有效的角色包（需要 manifest.json 和片段）。";
+"Can Stand on Windows" = "可以站到視窗上";
+"Drop a walking character on a window and it stays up there, riding along when the window moves." = "把會走路的角色放到視窗上，角色會待在上面，視窗移動時跟著走。";
