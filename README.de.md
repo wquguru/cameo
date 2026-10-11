@@ -24,12 +24,15 @@ Cameo spielt ein Video mit Alphakanal in Endlosschleife als frei schwebende Figu
 ## Funktionen
 
 - **Eine Katze ist schon dabei** — Chaofei, eine silber getigerte Britisch Kurzhaar, in Code gezeichnet nach dem Vorbild der Katze des Autors, streift am unteren Bildschirmrand umher: Sie läuft, sitzt, legt sich hin und döst ein, steht auf und rollt sich. Klick sie an, damit sie sich rollt, zieh sie, um sie hochzuheben, oder leg im Popover eine feste Aktion fest.
-- **Figuren, die laufen** — ein Figurenpaket läuft am unteren Bildschirmrand, dreht sich um und zeigt Aktionen. Lass es auf einem Fenster los, dann steht es oben drauf und fährt mit, wenn du das Fenster bewegst.
+- **Figuren, die laufen** — ein Figurenpaket läuft am unteren Bildschirmrand, dreht sich um und zeigt Aktionen. Lass es auf einem Fenster los, dann steht es oben drauf und fährt mit, wenn du das Fenster bewegst. Klick darauf für eine zufällige Aktion, oder wähle eine im Popover.
+- **Bis zu drei gleichzeitig** — ⌘-Klick auf Figuren im Popover oder in der Bibliothek holt mehrere auf den Schreibtisch.
 - **Wirklich transparent** — nur die sichtbaren Pixel der Figur reagieren auf die Maus; alles andere lässt Klicks durch.
 - **Immer im Vordergrund** — schwebt in jedem Space über allen Fenstern.
 - **Native Formate** — HEVC with Alpha und ProRes 4444 (`.mov`), dekodiert von AVFoundation. Kein FFmpeg, keine mitgelieferten Codecs.
 - **Ressourcenschonend** — pausiert, wenn eine Vollbild-App sie verdeckt oder der Bildschirm im Ruhezustand ist, und begrenzt im Batteriebetrieb auf 30 fps.
 - **Minimal** — ein Menüleisten-Popover und eine schlichte Figurenbibliothek. Keine Einstellungen, keine Abhängigkeiten.
+
+Was sich in jeder Version geändert hat: [Änderungsprotokoll](https://wquguru.github.io/cameo/#changelog).
 
 ## Voraussetzungen
 
@@ -71,7 +74,7 @@ Menüleiste zu voll und das Symbol hinter der Notch versteckt? Öffne Cameo erne
 
 Solange die Figur ausgeblendet ist, steht Cameo auch im Dock: Klick darauf öffnet das Popover, ein daraufgezogenes Video wird hinzugefügt.
 
-Sobald du mehr als eine Handvoll Figuren hast, öffne die Bibliothek, um sie zu suchen, umzubenennen oder zu entfernen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert.
+Sobald du mehr als eine Handvoll Figuren hast, öffne die Bibliothek, um sie zu suchen, umzubenennen oder zu entfernen. Importierte Videos werden nach `~/Library/Application Support/Cameo/Characters` kopiert. Bis zu drei Figuren können gleichzeitig auf dem Schreibtisch stehen: ⌘-Klick auf eine Figur im Popover oder in der Bibliothek fügt sie hinzu (erneuter ⌘-Klick nimmt sie wieder weg).
 
 ## Figuren
 
@@ -81,7 +84,7 @@ Stöbere auf **[wquguru.github.io/cameo](https://wquguru.github.io/cameo/)** dur
 
 ### Eine Figur erstellen
 
-Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alpha oder ProRes 4444). Am einfachsten lässt du das deinen Coding-Agent mit einem der mitgelieferten Skills erledigen:
+Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alpha oder ProRes 4444). Eine Figur, die läuft, ist dagegen ein Paket: ein Ordner solcher Clips mit einer `manifest.json` ([Spezifikation](docs/package-spec.md)). Am einfachsten lässt du das deinen Coding-Agent mit einem der mitgelieferten Skills erledigen:
 
 | Du hast | Skill |
 | --- | --- |

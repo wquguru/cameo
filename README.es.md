@@ -24,12 +24,15 @@ Cameo reproduce en bucle un vídeo con canal alfa como una figura flotante que p
 ## Funciones
 
 - **Incluye un gato** — Chaofei, un británico de pelo corto atigrado plateado dibujado en código a partir del gato del autor, deambula por la parte inferior de la pantalla: camina, se sienta, se tumba y se queda dormido, se pone de pie y rueda. Haz clic en él para que ruede, arrástralo para cogerlo en brazos o fija una acción desde el popover.
-- **Personajes que caminan** — un paquete de personaje camina por la parte inferior de la pantalla, se gira y actúa. Suéltalo sobre una ventana y se queda encima, moviéndose con ella.
+- **Personajes que caminan** — un paquete de personaje camina por la parte inferior de la pantalla, se gira y actúa. Suéltalo sobre una ventana y se queda encima, moviéndose con ella. Haz clic en él para una acción al azar, o elige una en el menú emergente.
+- **Hasta tres a la vez** — haz ⌘ clic en personajes del menú emergente o de la biblioteca para tener varios en el escritorio.
 - **Transparencia real** — solo los píxeles visibles de la figura reciben el ratón; el resto deja pasar los clics.
 - **Siempre visible** — flota por encima de todas las ventanas en todos los espacios.
 - **Formatos nativos** — HEVC with Alpha y ProRes 4444 (`.mov`), decodificados por AVFoundation. Sin FFmpeg ni códecs incluidos.
 - **Ligero** — se pausa cuando una app a pantalla completa lo oculta o mientras la pantalla está en reposo, y se limita a 30 fps con batería.
 - **Minimalista** — un popover en la barra de menús y una biblioteca de personajes sencilla. Sin ajustes ni dependencias.
+
+Qué cambió en cada versión: [registro de cambios](https://wquguru.github.io/cameo/#changelog).
 
 ## Requisitos
 
@@ -71,7 +74,7 @@ Desactiva **Abrir al iniciar sesión** en el panel, cierra Cameo y muévelo a la
 
 Mientras la figura está oculta, Cameo también aparece en el Dock: haz clic para abrir el panel o suelta un vídeo encima para añadirlo.
 
-Cuando tengas más de unos pocos personajes, abre la biblioteca para buscarlos, renombrarlos o eliminarlos. Los vídeos importados se copian en `~/Library/Application Support/Cameo/Characters`.
+Cuando tengas más de unos pocos personajes, abre la biblioteca para buscarlos, renombrarlos o eliminarlos. Los vídeos importados se copian en `~/Library/Application Support/Cameo/Characters`. Puede haber hasta tres personajes a la vez en el escritorio: haz ⌘ clic en uno en el menú emergente o en la biblioteca para añadirlo (otro ⌘ clic lo quita).
 
 ## Personajes
 
@@ -81,7 +84,7 @@ Explora personajes gratuitos en **[wquguru.github.io/cameo](https://wquguru.gith
 
 ### Crear un personaje
 
-Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProRes 4444). La forma más fácil es pedírselo a tu agente de programación con una de las skills incluidas:
+Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProRes 4444). Un personaje que camina es, en cambio, un paquete: una carpeta con esos clips y un `manifest.json` ([especificación](docs/package-spec.md)). La forma más fácil es pedírselo a tu agente de programación con una de las skills incluidas:
 
 | Tienes | Skill |
 | --- | --- |

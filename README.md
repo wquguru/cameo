@@ -24,12 +24,15 @@ Cameo plays a looping video with an alpha channel as a free-floating figure that
 ## Features
 
 - **A cat comes built in** — Chaofei, a silver tabby British Shorthair drawn in code after the author's own cat, wanders along the bottom of your screen: it walks, sits, lies down and dozes off, stands and rolls. Click it to make it roll, drag it to pick it up, or pin an action from the popover.
-- **Characters that walk** — a character package walks along the bottom of the screen, turns and performs. Drop it on a window and it stands on top, riding along when you move the window.
+- **Characters that walk** — a character package walks along the bottom of the screen, turns and performs. Drop it on a window and it stands on top, riding along when you move the window. Click it for a random action, or pick one from the popover.
+- **Up to three at once** — ⌘-click characters in the popover or the library to put several on the desktop.
 - **Truly transparent** — only the visible pixels of the figure catch the mouse; everything else is click-through.
 - **Always on top** — floats above all windows on every Space.
 - **Native formats** — HEVC with Alpha and ProRes 4444 (`.mov`), decoded by AVFoundation. No FFmpeg, no bundled codecs.
 - **Light on resources** — pauses when hidden by a full-screen app or while the screen sleeps, and caps at 30 fps on battery.
 - **Minimal** — a menu bar popover and a plain character library. No settings, no dependencies.
+
+What changed in each release: [changelog](https://wquguru.github.io/cameo/#changelog).
 
 ## Requirements
 
@@ -71,7 +74,7 @@ Menu bar too full and the icon hidden behind the notch? Open Cameo again (Spotli
 
 While the figure is hidden, Cameo also stays in the Dock: click it for the popover, or drop a video on it to add one.
 
-With more than a handful of characters, open the library to search, rename or remove them. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`.
+With more than a handful of characters, open the library to search, rename or remove them. Imported videos are copied to `~/Library/Application Support/Cameo/Characters`. Up to three characters can be on the desktop at once: ⌘-click one in the popover or the library to add it (⌘-click again to take it off).
 
 ## Characters
 
@@ -81,7 +84,7 @@ Browse free characters at **[wquguru.github.io/cameo](https://wquguru.github.io/
 
 ### Make a character
 
-A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). The easiest route is to let your coding agent make it with a bundled skill:
+A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). A character that walks is a package instead: a folder of such clips and a `manifest.json` ([spec](docs/package-spec.md)). The easiest route is to let your coding agent make it with a bundled skill:
 
 | You have | Skill |
 | --- | --- |

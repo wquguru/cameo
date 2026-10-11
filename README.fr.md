@@ -24,12 +24,15 @@ Cameo lit en boucle une vidéo dotée d’une couche alpha sous la forme d’un 
 ## Fonctionnalités
 
 - **Un chat intégré** — Chaofei, un British Shorthair tabby argenté dessiné en code d’après le chat de l’auteur, se promène en bas de l’écran : il marche, s’assoit, se couche et s’assoupit, se lève et se roule par terre. Cliquez dessus pour qu’il se roule, faites-le glisser pour le prendre, ou fixez une action depuis la fenêtre contextuelle.
-- **Des personnages qui marchent** — un paquet de personnage marche en bas de l’écran, se retourne et fait des actions. Déposez-le sur une fenêtre : il reste dessus et suit la fenêtre quand vous la déplacez.
+- **Des personnages qui marchent** — un paquet de personnage marche en bas de l’écran, se retourne et fait des actions. Déposez-le sur une fenêtre : il reste dessus et suit la fenêtre quand vous la déplacez. Cliquez dessus pour une action au hasard, ou choisissez-en une dans le popover.
+- **Jusqu’à trois à la fois** — ⌘-cliquez sur des personnages dans le panneau ou la bibliothèque pour en mettre plusieurs sur le bureau.
 - **Vraiment transparent** — seuls les pixels visibles du personnage captent la souris ; tout le reste laisse passer les clics.
 - **Toujours au premier plan** — flotte au-dessus de toutes les fenêtres, dans chaque Space.
 - **Formats natifs** — HEVC with Alpha et ProRes 4444 (`.mov`), décodés par AVFoundation. Pas de FFmpeg, aucun codec embarqué.
 - **Économe en ressources** — se met en pause lorsqu’une app en plein écran le masque ou pendant la suspension de l’écran, et se limite à 30 ips sur batterie.
 - **Minimaliste** — une fenêtre contextuelle dans la barre des menus et une bibliothèque de personnages toute simple. Aucun réglage, aucune dépendance.
+
+Ce qui a changé à chaque version : [journal des modifications](https://wquguru.github.io/cameo/#changelog).
 
 ## Configuration requise
 
@@ -71,7 +74,7 @@ Barre des menus pleine et icône cachée derrière l’encoche ? Rouvrez Cameo (
 
 Tant que le personnage est masqué, Cameo apparaît aussi dans le Dock : cliquez dessus pour le panneau, ou déposez-y une vidéo pour l’ajouter.
 
-Au-delà de quelques personnages, ouvrez la bibliothèque pour les rechercher, les renommer ou les supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`.
+Au-delà de quelques personnages, ouvrez la bibliothèque pour les rechercher, les renommer ou les supprimer. Les vidéos importées sont copiées dans `~/Library/Application Support/Cameo/Characters`. Jusqu’à trois personnages peuvent être sur le bureau en même temps : ⌘-cliquez sur l’un d’eux dans le panneau ou la bibliothèque pour l’ajouter (un nouveau ⌘-clic le retire).
 
 ## Personnages
 
@@ -81,7 +84,7 @@ Parcourez des personnages gratuits sur **[wquguru.github.io/cameo](https://wqugu
 
 ### Créer un personnage
 
-Un personnage est un seul `.mov` en boucle avec couche alpha (HEVC with Alpha ou ProRes 4444). Le plus simple est de confier la tâche à votre agent de code avec l’une des skills fournies :
+Un personnage est un seul `.mov` en boucle avec couche alpha (HEVC with Alpha ou ProRes 4444). Un personnage qui marche est, lui, un paquet : un dossier de tels clips avec un `manifest.json` ([spécification](docs/package-spec.md)). Le plus simple est de confier la tâche à votre agent de code avec l’une des skills fournies :
 
 | Vous avez | Skill |
 | --- | --- |
