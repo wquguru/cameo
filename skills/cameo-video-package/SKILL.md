@@ -5,7 +5,7 @@ description: Make a Cameo character that walks along the desktop, turns, lies do
 
 # Make a walking Cameo character (package)
 
-A package is a folder Cameo plays like iStripper: a library of short clips joined at shared poses (`front` standing, `side` walking, `lie` lying), picked by Cameo's scheduler, while the window walks along the screen bottom. Spec: `docs/package-spec.md` in the Cameo repo; method and lessons: `docs/character-packages.md`.
+A package is a folder Cameo plays like iStripper: a library of short clips joined at shared poses (`front` standing, `side` walking, `lie` lying), picked by Cameo's scheduler, while the window walks along the screen bottom. How it is made (prompting, cutting, packaging, what was tried): [references/method.md](references/method.md). All prompts, readable without running anything: [references/prompts.md](references/prompts.md).
 
 Several clips are generated in one video ("chain") and cut apart afterwards. That is cheaper (no repeated warm-up seconds) and the seams match, since both sides of a cut come from the same video. Every chain starts and ends standing still, facing the viewer, with a standing beat between steps; walking happens in place.
 

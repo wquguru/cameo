@@ -1,6 +1,6 @@
 # Character packages: how they are made
 
-A single looping video can only stand in one place. A character that walks along the desktop, turns, lies down and performs needs what iStripper does: a library of short clips that start and end on shared poses, and a player that strings them into a show. This page records how such a library is produced and what was learned doing it. The format is in [package-spec.md](package-spec.md); the steps are in the `cameo-video-package` skill.
+A single looping video can only stand in one place. A character that walks along the desktop, turns, lies down and performs needs what iStripper does: a library of short clips that start and end on shared poses, and a player that strings them into a show. This page records how such a library is produced (prompting, cutting, packaging) and what was learned doing it. The steps are in [../SKILL.md](../SKILL.md), the prompts in [prompts.md](prompts.md); the player's side of the format is `docs/package-spec.md` in the Cameo repo (https://github.com/wquguru/cameo/blob/main/docs/package-spec.md).
 
 ## The method
 
@@ -32,6 +32,38 @@ Cutting (`cut_clips.py`) finds the parts without labels: frames like the first a
 ### Image frames (experimental)
 
 Before video, packages were drawn as sprite sheets by a local image model (WAI-ANIMA on ComfyUI): a turnaround sheet, a 6-frame walk sheet and a 4-frame sheet per action, split into figures and aligned. One sheet keeps a character consistent within itself, but sheets differ from each other (accessories come and go), actions are 4 frames played back and forth, and turns are faked by squashing. It works offline at no cost and is good for trying out the player; video is better in every other way. The tooling lives outside this repo.
+
+## Cutting a chain video
+
+`scripts/cut_clips.py`, per video, in this order:
+
+1. **Preflight** (seconds): cut out the first frame only. Stop unless the figure stands (taller than 1.5× its width) with the whole body in frame; note a non-chroma background. `--force` overrides.
+2. **Cut out every frame** at 12 fps with BiRefNet-portrait, soft alpha, on the CPU (~10 s/frame; cached next to the video). On a flat chroma background, also drop key-coloured patches inside the mask and unmix the key colour from a 3 px edge band, then cap the key channel there (despill).
+3. **One transform for the whole video** (the camera is static): scale = standing height (95th percentile of feet-to-head, raised hands ignored) → 680 px; floor = 95th percentile of the lowest opaque row; anchor = torso centre of the first frame. The package canvas is 832 high and as wide as the widest pose needs (≥ 512, one width for every clip).
+4. **Label frames without labels**: *rest* = close to frame 0 (premultiplied colour + alpha at 1/8 size, adaptive threshold, runs shorter than 0.25 s smoothed away); *side* = left/right mirror overlap of the upper body below 0.8 and upright at standing height; *lying* = under 0.75 of standing height and wider than tall.
+5. **Cut by chain mode**:
+   - walk: the longest side stretch; a stride loop of 0.6–1.6 s between its two best-matching frames; turn_to_side runs from the last rest frame to the loop's closest-matching phase, turn_to_front from the frame that matches the loop start again to the next rest. Speed from the stride, clamped to 220–480 px/s. Facing left → mirrored to face right.
+   - lie: the same around the longest lying stretch (loop 0.8–2.5 s, or forward-and-back when it is short); lie_idle is an action on `lie` with `repeat: 3`.
+   - lie_mid: the lying part as one `lie → lie` action, its ends blended into lie_idle's first frame.
+   - actions: the non-rest runs between rest beats, merged pairwise when an action paused midway, two frames of rest kept at each end.
+6. **Seams**: every clip that ends standing blends its last 3 frames into one shared standing frame (the idle loop's first frame); every clip that starts there blends in from it. Loops repeat their first frame at the end (the player drops it).
+7. **Report** `<-- CHECK` for a non-standing start, a wrong action count or a figure touching the canvas side.
+
+## Packaging
+
+A package is a folder: `manifest.json`, `clips/<id>.mov` (ProRes 4444 with alpha, `yuva444p10le`), optional `poster.png`. The canvas is the same for every clip, feet on the bottom row, torso centre at `width/2`, side views facing right (the player mirrors). Each clip in the manifest: `id`, `file`, `kind` (`idle`, `walk`, `transition`, `action`), `from`/`to` pose, `loop`, `fps`, plus `speed` for walk and `repeat` for actions. The player picks clips by pose: any clip may follow one that ends on its `from`, and it routes through transitions to reach an action's pose, so every pose must be reachable from `front` (`scripts/check.py` tests this, idle presence and every clip's alpha). Without a walk clip the character stays in place.
+
+Minimal manifest:
+
+```json
+{"spec": 1, "name": "Mia", "width": 512, "height": 832, "facing": "right", "clips": [
+  {"id": "idle", "file": "clips/idle.mov", "kind": "idle", "from": "front", "to": "front", "loop": true, "fps": 12},
+  {"id": "turn_to_side", "file": "clips/turn_to_side.mov", "kind": "transition", "from": "front", "to": "side", "loop": false, "fps": 12},
+  {"id": "walk", "file": "clips/walk.mov", "kind": "walk", "from": "side", "to": "side", "loop": true, "fps": 12, "speed": 320},
+  {"id": "turn_to_front", "file": "clips/turn_to_front.mov", "kind": "transition", "from": "side", "to": "front", "loop": false, "fps": 12},
+  {"id": "wave", "file": "clips/wave.mov", "kind": "action", "from": "front", "to": "front", "loop": false, "fps": 12}
+]}
+```
 
 ## Cut-out: what works
 

@@ -1,6 +1,6 @@
 # Character package spec v1
 
-A character is a folder. Production (frames → clips) and the player only meet here. How to produce one: [character-packages.md](character-packages.md) and the `cameo-video-package` skill.
+A character is a folder. Production (frames → clips) and the player only meet here. How to produce one: the `cameo-video-package` skill ([method](../skills/cameo-video-package/references/method.md), [prompts](../skills/cameo-video-package/references/prompts.md)).
 
 ```
 <name>/

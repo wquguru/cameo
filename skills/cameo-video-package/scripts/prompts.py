@@ -1,6 +1,7 @@
 """Make the start image and the copy-paste prompts for one character.
 
     prompts.py character.png <work-dir> [--duo]
+    prompts.py --reference [out.md]      # rewrite references/prompts.md from chains.py
 Writes <work-dir>/start.png (the figure cut out and put on a flat chroma background, feet low,
 headroom above for jumps) and <work-dir>/prompts.md (one prompt per chain video, see chains.py).
 """
@@ -67,6 +68,30 @@ def main(src, work, duo=False):
     print(f"{work / 'start.png'} ({key} screen)\n{work / 'prompts.md'}")
 
 
+def reference(out):
+    """The generic prompts as a readable reference (references/prompts.md), no image needed."""
+    def table(specs):
+        return ("| Video | Seconds | Clips |\n| --- | --- | --- |\n" +
+                "\n".join(f"| `{k}` | {c['seconds']:g} | {', '.join(c['cuts'])} |" for k, c in specs.items()) + "\n")
+    out_lines = ["# Chain video prompts\n",
+                 "Generated from `scripts/chains.py` by `prompts.py --reference`; edit the beats there, not here. "
+                 "Use them image-to-video with the start image from `prompts.py` (flat chroma background, figure "
+                 "standing neutrally). Every chain starts and ends standing still facing the viewer, with standing "
+                 "beats between steps, and walking happens in place: that is what the cutter relies on.\n",
+                 "Every prompt ends with:\n\n```\n" + TAIL + "\n```\n",
+                 "Negative prompt (if the tool has one):\n\n```\n" + NEG + "\n```\n",
+                 "## One character\n", table({**CHAINS, **OPTIONAL})]
+    out_lines += [f"### {k}\n\n```\n{c['prompt']}\n```\n" for k, c in {**CHAINS, **OPTIONAL}.items()]
+    out_lines += ["## Two characters\n", "Start image: the first idle frame of a composed duo package "
+                  "(`compose_duo.py`), flattened onto the chroma colour.\n", table(DUO_CHAINS)]
+    out_lines += [f"### {k}\n\n```\n{c['prompt']}\n```\n" for k, c in DUO_CHAINS.items()]
+    Path(out).write_text("\n".join(out_lines))
+    print(out)
+
+
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    main(*args[:2], duo="--duo" in sys.argv)
+    if "--reference" in sys.argv:
+        reference(args[0] if args else Path(__file__).resolve().parent.parent / "references" / "prompts.md")
+    else:
+        main(*args[:2], duo="--duo" in sys.argv)
