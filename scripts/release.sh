@@ -10,6 +10,16 @@ VERSION=${1:?usage: scripts/release.sh <version, e.g. 0.2.0>}
 [[ -z "$(git status --porcelain)" ]] || { echo "working tree is not clean" >&2; exit 1; }
 [[ "$(git branch --show-current)" == main ]] || { echo "release from main" >&2; exit 1; }
 git rev-parse "v$VERSION" >/dev/null 2>&1 && { echo "tag v$VERSION already exists" >&2; exit 1; }
+# Its notes come from gallery/changelog.json (scripts/release_notes.py): it needs an entry, dated today.
+python3 - "$VERSION" <<'PY' || exit 1
+import json, sys, datetime
+releases = json.load(open("gallery/changelog.json"))
+entry = next((r for r in releases if r["version"] == sys.argv[1]), None)
+if not entry:
+    sys.exit(f"add {sys.argv[1]} to gallery/changelog.json first")
+if entry.get("date") != datetime.date.today().isoformat():
+    sys.exit(f"set {sys.argv[1]}'s date in gallery/changelog.json to today")
+PY
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Resources/Info.plist
 git commit -m "Release v$VERSION" Resources/Info.plist

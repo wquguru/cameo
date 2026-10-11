@@ -101,15 +101,23 @@
   .hero-cta .text-link { font-weight: 650; text-decoration: none; }
   .hero-cta .text-link:hover { color: var(--amber-ink); }
   .hero-meta { font-size: 13px; color: #7A6F63; }
-  .hero-art { flex: 1 1 420px; min-width: 0; min-height: 340px; position: relative; }
-  .desk { position: absolute; inset: 40px 40px 0 24px; border-radius: 16px 16px 0 0; overflow: hidden; background: #CFDDEA; box-shadow: 0 20px 50px rgba(120,80,20,.16); }
-  .menubar { height: 22px; background: rgba(255,255,255,.6); display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 12px; font-size: 11px; }
-  .window { position: absolute; left: 34px; right: 34px; top: 150px; bottom: 0; border-radius: 10px 10px 0 0; background: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,.14); }
-  .window .bar { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px; border-bottom: 1px solid #EEEEEE; }
-  .window .bar i { width: 9px; height: 9px; border-radius: 50%; }
-  .window .lines { padding: 16px; display: flex; flex-direction: column; gap: 9px; }
-  .window .lines i { height: 7px; border-radius: 4px; background: #F1F1F3; }
-  .desk .pet { position: absolute; left: 50%; top: 28px; width: 180px; transform: translateX(-35%); }
+  .hero-art { flex: 1 1 480px; min-width: 0; min-height: 440px; position: relative; }
+  .desk { position: absolute; inset: 32px 28px 0 20px; border-radius: 16px 16px 0 0; overflow: hidden; background: linear-gradient(160deg, #BFD3E6, #9DB6CF); box-shadow: 0 20px 50px rgba(120,80,20,.18); }
+  .menubar { height: 26px; background: rgba(246,246,248,.82); display: flex; align-items: center; gap: 15px; padding: 0 14px; font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; }
+  .menubar .dot { flex: none; width: 11px; height: 11px; border-radius: 50%; background: var(--ink); }
+  .menubar b { font-weight: 700; }
+  .menubar .fill { flex: 1; }
+  .menubar svg { flex: none; }
+  .browser { position: absolute; left: 6%; width: min(330px, 62%); top: 210px; bottom: 0; border-radius: 10px 10px 0 0; background: #FFFFFF; box-shadow: 0 12px 34px rgba(0,0,0,.18); display: flex; flex-direction: column; }
+  .browser .bar { height: 34px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #F2F2F5; border-radius: 10px 10px 0 0; }
+  .browser .bar i { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+  .browser .url { flex: 1; min-width: 0; margin-left: 10px; height: 20px; border-radius: 6px; background: #FFFFFF; font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+  .browser .page { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 34px; }
+  .browser .word { font-size: 30px; font-weight: 500; letter-spacing: -.02em; color: #5F6368; }
+  .browser .search { width: 78%; height: 30px; border-radius: 15px; border: 1px solid #DADCE0; }
+  .desk .on-window { position: absolute; left: calc(6% + 110px); top: 46px; height: 164px; }
+  .desk .walker { position: absolute; right: 26%; bottom: 0; height: 236px; }
+  .desk .pet { position: absolute; right: 2%; bottom: 0; width: 150px; }
 
   /* Characters */
   .tabs-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
@@ -179,6 +187,40 @@
   footer { border-top: 1px solid var(--line); }
   footer .wrap { padding-top: 24px; padding-bottom: 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
   footer nav { display: flex; gap: 20px; }
+
+  .make-card.is-new { background: var(--hero); box-shadow: 0 0 0 2px var(--amber); }
+  .make-art .walk { width: 44px; background: #FFFFFF; box-shadow: 0 0 0 1px #E3DED5; }
+  .new-tag { font-style: normal; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--amber); color: var(--ink); font-size: 11px; font-weight: 750; vertical-align: 2px; }
+  .make-note { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+
+  /* Changelog: rounded and a bit playful, Chaofei peeking over the top. */
+  .log { position: relative; margin-top: 24px; border-radius: 32px; background: #FFF7EC; padding: 40px 36px 32px; display: flex; flex-direction: column; gap: 22px; scroll-margin-top: 110px; font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
+  .log-cat { position: absolute; right: 36px; top: -64px; width: 120px; }
+  .log-bubble { position: absolute; right: 150px; top: -26px; padding: 8px 14px; border-radius: 16px 16px 4px 16px; background: #FFFFFF; box-shadow: 0 4px 14px rgba(178,106,0,.14); font-size: 14px; font-weight: 650; color: var(--hero-ink); white-space: nowrap; }
+  .log-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  .log-head h2 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -.01em; }
+  .log-head a { font-size: 14px; font-weight: 700; text-decoration: none; color: var(--amber-ink); }
+  .log-body { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .log-latest { flex: 2 1 480px; min-width: 0; padding: 24px; border-radius: 26px; background: #FFFFFF; box-shadow: 0 10px 30px rgba(178,106,0,.1); display: flex; flex-direction: column; gap: 12px; }
+  .log-version { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .log-version b { padding: 5px 16px; border-radius: 999px; background: var(--amber); font-size: 22px; font-weight: 800; color: #3A2400; }
+  .log-version span { font-size: 13px; font-weight: 700; color: #B26A00; }
+  .log-latest ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .log-latest li { display: flex; gap: 12px; align-items: baseline; padding: 10px 12px; border-radius: 16px; font-size: 15px; line-height: 1.55; color: #3A3530; }
+  .log-latest li.new { background: #FFFAF1; } .log-latest li.improved { background: #F6FBF7; } .log-latest li.fixed { background: #F7F9FF; }
+  .kind { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+  .kind svg { width: 12px; height: 12px; }
+  .kind.new { background: #FFE7BF; color: #8A5200; } .kind.improved { background: #DDF1E4; color: #1F6B3A; } .kind.fixed { background: #E3EBFF; color: #2F4FA8; }
+  .log-older { flex: 1 1 280px; min-width: 0; margin: 0; padding: 4px 0 0; list-style: none; display: flex; flex-direction: column; }
+  .log-older li { display: flex; gap: 14px; }
+  .log-older .pin { flex: none; display: flex; flex-direction: column; align-items: center; }
+  .log-older .pin::before { content: ""; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; background: #FFFFFF; border: 3px solid #FFC978; }
+  .log-older .pin::after { content: ""; width: 2px; flex: 1; background: repeating-linear-gradient(180deg, #FFD9A0 0 4px, transparent 4px 8px); }
+  .log-older li:last-child .pin::after { visibility: hidden; }
+  .log-older .entry { display: flex; flex-direction: column; gap: 2px; padding-bottom: 16px; font-size: 13px; line-height: 1.5; color: var(--hero-ink); }
+  .log-older .entry strong { font-size: 15px; font-weight: 800; color: var(--ink); }
+  .log-older .entry time { margin-left: 8px; font-size: 12px; font-weight: 400; color: #9A8F82; }
+  @media (max-width: 640px) { .log { padding: 32px 20px 24px; } .log-bubble { display: none; } .log-cat { width: 96px; top: -52px; right: 20px; } }
 
   /* Submit */
   .submit-section { border-radius: 28px; background: var(--soft); padding: 44px 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px 48px; scroll-margin-top: 90px; }
@@ -276,6 +318,7 @@
       <a href="./" aria-current="page" data-t="navCharacters"></a>
       <a href="#make" data-t="navMake"></a>
       <a href="#submit" data-t="navSubmit"></a>
+      <a href="#changelog" data-t="navLog"></a>
       <a href="https://github.com/wquguru/cameo">GitHub</a>
     </nav>
     <div class="nav-actions">
@@ -307,12 +350,18 @@
     <div class="hero-art" aria-hidden="true">
       <div class="desk">
         <div class="menubar">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 4.5H4.5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1.3"/><circle cx="8" cy="3.4" r="1.8" fill="currentColor" stroke="none"/><path d="M5.5 14.5v-2.2a2.5 2.5 0 0 1 5 0v2.2"/></svg>
+          <span class="dot"></span><b>Safari</b><span data-t="mFile"></span><span data-t="mEdit"></span><span data-t="mView"></span><span data-t="mWindow"></span>
+          <span class="fill"></span>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 4.5H4.5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1.3"/><circle cx="8" cy="3.4" r="1.8" fill="currentColor" stroke="none"/><path d="M5.5 14.5v-2.2a2.5 2.5 0 0 1 5 0v2.2"/></svg>
+          <svg width="15" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1.5 4.5a9 9 0 0 1 13 0M4 7a5.5 5.5 0 0 1 8 0M6.5 9.5a2 2 0 0 1 3 0"/></svg>
+          <span data-t="mClock"></span>
         </div>
-        <div class="window">
-          <div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></div>
-          <div class="lines"><i style="width:55%;background:#EBEBED"></i><i style="width:85%"></i><i style="width:75%"></i></div>
+        <div class="browser">
+          <div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i><span class="url">google.com</span></div>
+          <div class="page"><span class="word">Google</span><span class="search"></span></div>
         </div>
+        <img class="on-window" src="posters/nina.png" alt="">
+        <img class="walker" src="posters/mei.png" alt="">
         <img class="pet" src="posters/chaofei.png" alt="">
       </div>
     </div>
@@ -349,6 +398,28 @@
         <div class="prompt"><p data-t="promptText"></p><button type="button" data-copy data-t="copy"></button></div>
         <div class="cli"><span data-t="cli"></span><code>npx skills add wquguru/cameo --skill cameo-image-loop</code><button type="button" data-copy data-t="copy"></button></div>
       </div>
+      <div class="make-card is-new">
+        <div class="make-top">
+          <span class="make-art" aria-hidden="true"><span class="tile alpha"><svg width="20" height="34" viewBox="0 0 40 72" fill="#5A5148"><circle cx="20" cy="11" r="8"/><path d="M6 72C6 46 10 24 20 24s14 22 14 48Z"/></svg></span><svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5h11M9 2l3 3-3 3"/></svg><span class="tile walk"><svg width="30" height="34" viewBox="0 0 60 72" fill="#5A5148"><circle cx="30" cy="11" r="8"/><path d="M22 24h14l4 22-6 2-3-12-3 14 8 22h-7l-7-18-6 18h-7l9-30Z"/></svg></span></span>
+          <div><strong><span data-t="makePkg"></span> <em class="new-tag" data-t="tagNew"></em></strong><span data-t="makePkgB"></span></div>
+        </div>
+        <div class="prompt"><p data-t="promptPkg"></p><button type="button" data-copy data-t="copy"></button></div>
+        <div class="cli"><span data-t="cli"></span><code>npx skills add wquguru/cameo --skill cameo-video-package</code><button type="button" data-copy data-t="copy"></button></div>
+        <small class="make-note" data-t="makePkgNote"></small>
+      </div>
+    </div>
+  </section>
+
+  <section class="log" id="changelog" aria-labelledby="log-title">
+    <img class="log-cat" src="posters/chaofei.png" alt="" aria-hidden="true">
+    <span class="log-bubble" data-t="logAsk" aria-hidden="true"></span>
+    <div class="log-head">
+      <h2 id="log-title" data-t="logTitle"></h2>
+      <a href="https://github.com/wquguru/cameo/releases" data-t="logAll"></a>
+    </div>
+    <div class="log-body">
+      <article class="log-latest" id="log-latest"></article>
+      <ol class="log-older" id="log-older"></ol>
     </div>
   </section>
 
@@ -371,7 +442,7 @@
 
     <form class="upload" id="upload" novalidate>
       <label class="drop" id="drop">
-        <input type="file" id="file" accept=".mov,video/quicktime">
+        <input type="file" id="file" accept=".mov,video/quicktime,.zip,application/zip">
         <span class="drop-icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V3M5 6l3-3 3 3M3 13h10"/></svg>
         </span>
@@ -435,42 +506,45 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script type="module">
   import { inspectFile, problems } from "./mov.js";
+  import { inspectPackage, inspectZipFile, zipProblems } from "./zip.js";
   import { shareButton } from "./share.js";
   const strings = {
     en: {
-      navCharacters: "Characters", navMake: "Make your own", navSubmit: "Submit", navDownload: "Download for Mac",
+      navCharacters: "Characters", navMake: "Make your own", navSubmit: "Submit", navLog: "What's new", navDownload: "Download for Mac",
       title: "Free characters for your Mac desktop",
-      lede: "Pick one, click Add to Cameo, and it lives on top of your windows. Transparent, click-through and light on battery.",
+      lede: "Pick one, click Add to Cameo, and it lives on top of your windows. Walking characters can stand on a window and ride along; ⌘-click to bring up to three at once.",
+      mFile: "File", mEdit: "Edit", mView: "View", mWindow: "Window", mClock: "Sun 10:24",
       download: "Download for macOS", make: "Make your own",
       requirements: "macOS 14+ · Apple silicon & Intel · Free and open source",
       all: "All", animal: "Animals", person: "People", other: "Other",
       count: n => n === 1 ? "1 character" : `${n} characters`,
-      add: "Add to Cameo", by: "by", mov: "Download .mov",
+      add: "Add to Cameo", by: "by", mov: "Download .mov", zip: "Download .zip",
+      walks: "walks", actions: n => n === 1 ? "1 action" : `${n} actions`, clips: n => `${n} clips`,
       submitTitle: "Your character here",
       submitBody: "A few seconds of video with a transparent background. Every submission is reviewed.",
       submitLink: "Submit a character ›",
       step1: "Install Cameo", step1b: "Open the .dmg and drag Cameo into Applications. It lives in your menu bar.",
       step2: "Add to Cameo", step2b: "One click on a character here downloads it straight into the app.",
       step3: "It's on your desktop", step3b: "Drag it anywhere. Clicks pass through its transparent parts.",
-      footer: "Add to Cameo needs Cameo 0.3 or later. Characters are CC BY 4.0; Cameo is Apache 2.0.",
+      footer: "Add to Cameo needs Cameo 0.3 or later (0.6 for walking characters). Characters are CC BY 4.0; Cameo is Apache 2.0.",
       releases: "Releases", switch: "中文",
       subTitle: "Submit your character",
       subLede: "Made something that would look good on a desktop? Send it in and it can appear here with your name on it.",
-      req1: "A .mov in HEVC with Alpha or ProRes 4444, with a transparent background",
+      req1: "A .mov in HEVC with Alpha or ProRes 4444 with a transparent background, or a walking character's package folder as a .zip",
       req2: "Up to 10 seconds, looping without a visible jump",
       req3: "At most 1080 px tall; under 20 MB here (10 MB through GitHub)",
       req4: "Made by you, or you hold the rights; it is published under CC BY 4.0",
       subButton: "Open the submission form", subNote: "Needs a free GitHub account.",
       flow1: "Make it", flow1b: "Let your coding agent do it with a skill above, or export any clip with transparency.", flowGuide: "Skills ↑",
-      flow2: "Try it in Cameo", flow2b: "Drop the .mov on Cameo's menu bar popover and check it loops cleanly.",
-      flow3: "Submit", flow3b: "Fill in the form, attach the .mov and say how to credit you.",
+      flow2: "Try it in Cameo", flow2b: "Drop the .mov or package folder on Cameo's menu bar popover and check it loops cleanly.",
+      flow3: "Submit", flow3b: "Fill in the form, attach the .mov or .zip and say how to credit you.",
       flow4: "Review", flow4b: "Each submission is checked by hand; once approved it appears here.",
       openTitle: "Opening Cameo…", openBody: "Your browser may ask to open Cameo. Allow it to add the character.",
       sentTitle: "Sent to Cameo", sentBody: "The character is downloading. Find it in the Cameo menu bar popover.",
-      missTitle: "Cameo didn't open", missBody: "Install Cameo 0.3 or later and click Add to Cameo again, or download the .mov and drop it on Cameo's popover.",
-      getApp: "Download Cameo", getMov: "Download .mov", close: "Close",
+      missTitle: "Cameo didn't open", missBody: "Install the latest Cameo and click Add to Cameo again, or download the file and drop it on Cameo's popover.",
+      getApp: "Download Cameo", getMov: "Download .mov", getZip: "Download .zip", close: "Close",
       animalOne: "Animal", personOne: "Person",
-      dropTitle: "Choose a .mov or drop it here", dropHint: "Up to 20 MB. It's checked right here before uploading.",
+      dropTitle: "Choose a .mov or package .zip, or drop it here", dropHint: "Up to 20 MB. It's checked right here before uploading.",
       fName: "Character name", fAuthor: "Credit as", fCategory: "Category",
       agreeOwn: "I made this character (drawn, filmed or AI-generated by me) and it uses no one else's IP.",
       agreeLicense: "I agree to publish it under CC BY 4.0.",
@@ -478,20 +552,29 @@
       altText: "Prefer GitHub?", altLink: "Use the submission form ›",
       ok: "transparent", seconds: "s",
       pNo_alpha: "no transparent background", pLength: "longer than 10 s", pHeight: "taller than 1080 px", pToo_large: "over 20 MB", pNot_mov: "not a QuickTime .mov",
+      pNot_zip: "not a readable .zip", pUnsafe: "unsafe paths or links in the zip", pToo_many: "too many or too large files in the zip",
+      pNo_manifest: "no manifest.json (zip the package folder)", pManifest: "manifest.json or a clip it lists is missing or unreadable",
+      pNo_idle: "no idle clip", pUnreachable: "a pose can't be reached from standing", pCanvas: "a clip isn't the manifest's size",
       done: "Thanks! It's in the review queue. Once approved it appears here with your credit.",
       eCaptcha: "The robot check failed or expired. Please try again.", eLimit_you: "You've reached today's upload limit. Please try again tomorrow.",
       eLimit_all: "Uploads are paused for today. Please try again tomorrow.", eToo_large: "The file is over 20 MB.",
       ePaused: "Uploads are paused right now. Please try again later.", eQueue_full: "The review queue is full right now. Please try again in a few days.",
       eDuplicate: "This exact file was already submitted.", eSlow_down: "Too many attempts. Please wait a minute and try again.",
       eRefused: "This upload can't be accepted.",
-      eInvalid: "The video doesn't meet the requirements:", eFields: "Please fill in every field and tick both boxes.",
+      eInvalid: "The file doesn't meet the requirements:", eFields: "Please fill in every field and tick both boxes.",
       eNetwork: "The upload didn't go through. Check your connection and try again.",
       eStalled: "The upload stalled.",
-      slowTitle: "Uploading slowly…", slowBody: "Your connection to the upload server is barely moving. You can keep waiting, or submit through GitHub instead: the form opens with your details filled in, then drag the same .mov into it.",
-      stuckTitle: "The upload stalled", stuckBody: "Nothing moved for 30 seconds, which happens on some networks. Try again, or submit through GitHub: the form opens with your details filled in, then drag the same .mov into it (GitHub allows up to 10 MB).",
+      slowTitle: "Uploading slowly…", slowBody: "Your connection to the upload server is barely moving. You can keep waiting, or submit through GitHub instead: the form opens with your details filled in, then drag the same file into it.",
+      stuckTitle: "The upload stalled", stuckBody: "Nothing moved for 30 seconds, which happens on some networks. Try again, or submit through GitHub: the form opens with your details filled in, then drag the same file into it (GitHub allows up to 10 MB for a .mov).",
       makeTitle: "Make your own", makeAgent: "Paste this to your coding agent", makeSubmit: "then submit it ↓",
       makeVideo: "From a video", makeVideoB: "A green-screen or alpha clip becomes a character.",
       makeText: "From a description", makeTextB: "Describe someone; get a looping character.",
+      makePkg: "From one image: a character that walks", makePkgB: "One character image plus any image-to-video tool gives a character that walks, turns, lies down and performs.",
+      makePkgNote: "You get a folder: add it with + in Cameo or drop it on the popover. To submit it, zip the folder (Compress in Finder) and upload the .zip below.",
+      promptPkg: "Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-video-package, then make me a walking Cameo character from this image.",
+      tagNew: "New",
+      logTitle: "What's new", logAll: "All releases ›", logAsk: "What's new this time?", logSoon: "Coming soon", logLatest: "Latest",
+      kNew: "New", kImproved: "Better", kFixed: "Fixed",
       copy: "Copy", copied: "Copied",
       promptVideo: "Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video, then turn my green-screen clip into a Cameo character.",
       promptText: "Install the Cameo skill at https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop, then make me a Cameo character from a description.",
@@ -499,39 +582,41 @@
       retry: "Try again", useGithub: "Submit on GitHub ↗", solveFirst: "Please complete the check above, then try again.",
     },
     zh: {
-      navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navDownload: "下载 Mac 版",
-      title: "给你的 Mac 桌面，添一位免费角色",
-      lede: "挑一个，点「添加到 Cameo」，它就会待在你的窗口上面。背景透明、点击穿透，也很省电。",
+      navCharacters: "角色库", navMake: "制作角色", navSubmit: "投稿", navLog: "更新日志", navDownload: "下载 Mac 版",
+      title: "给你的 Mac 桌面，添几位免费角色",
+      lede: "挑一个，点「添加到 Cameo」，它就会待在你的窗口上面。会走的角色还能站到窗口顶上，跟着窗口走；按住 ⌘ 再点，最多三位同时出场。",
+      mFile: "文件", mEdit: "编辑", mView: "显示", mWindow: "窗口", mClock: "周日 10:24",
       download: "下载 macOS 版", make: "制作自己的角色",
       requirements: "macOS 14 及以上 · Apple 芯片与 Intel 通用 · 免费开源",
       all: "全部", animal: "动物", person: "人物", other: "其他",
       count: n => `共 ${n} 个角色`,
-      add: "添加到 Cameo", by: "作者", mov: "下载 .mov",
+      add: "添加到 Cameo", by: "作者", mov: "下载 .mov", zip: "下载 .zip",
+      walks: "会走动", actions: n => `${n} 个动作`, clips: n => `${n} 个片段`,
       submitTitle: "你的角色可以出现在这里",
       submitBody: "几秒钟、背景透明的视频即可。每个投稿都会经过审核。",
       submitLink: "投稿角色 ›",
       step1: "安装 Cameo", step1b: "打开 .dmg，把 Cameo 拖进「应用程序」。它会出现在菜单栏里。",
       step2: "添加到 Cameo", step2b: "在这里点一下角色，就会直接下载到应用里。",
       step3: "出现在桌面上", step3b: "随意拖到任何位置，透明的地方点击会直接穿透。",
-      footer: "「添加到 Cameo」需要 Cameo 0.3 或更高版本。角色以 CC BY 4.0 授权，Cameo 以 Apache 2.0 开源。",
+      footer: "「添加到 Cameo」需要 Cameo 0.3 或更高版本（会走的角色需要 0.6）。角色以 CC BY 4.0 授权，Cameo 以 Apache 2.0 开源。",
       releases: "版本发布", switch: "English",
       subTitle: "投稿你的角色",
       subLede: "做了一个放在桌面上会很好看的角色？投稿后，它会署上你的名字出现在这里。",
-      req1: "HEVC with Alpha 或 ProRes 4444 编码的 .mov，背景透明",
+      req1: "HEVC with Alpha 或 ProRes 4444 编码的 .mov，背景透明；或把会走的角色包文件夹压缩成 .zip",
       req2: "最长 10 秒，循环时没有明显跳变",
       req3: "高度不超过 1080 像素；在这里上传小于 20 MB（GitHub 表单为 10 MB）",
       req4: "由你创作或你拥有版权；将以 CC BY 4.0 发布",
       subButton: "打开投稿表单", subNote: "需要一个免费的 GitHub 账号。",
       flow1: "制作", flow1b: "用上面的 skill 交给编程 Agent 来做，或自己导出带透明通道的视频。", flowGuide: "制作方式 ↑",
-      flow2: "在 Cameo 里试试", flow2b: "把 .mov 拖到 Cameo 的菜单栏弹窗上，看看循环是否自然。",
-      flow3: "提交", flow3b: "填写表单，附上 .mov，并写明署名方式。",
+      flow2: "在 Cameo 里试试", flow2b: "把 .mov 或角色包文件夹拖到 Cameo 的菜单栏弹窗上，看看循环是否自然。",
+      flow3: "提交", flow3b: "填写表单，附上 .mov 或 .zip，并写明署名方式。",
       flow4: "审核", flow4b: "每个投稿都会人工检查，通过后就会出现在这里。",
       openTitle: "正在打开 Cameo…", openBody: "浏览器可能会询问是否打开 Cameo，请允许，以便添加角色。",
       sentTitle: "已发送到 Cameo", sentBody: "角色正在下载，稍后在 Cameo 的菜单栏弹窗里就能看到。",
-      missTitle: "Cameo 没有打开", missBody: "请安装 Cameo 0.3 或更高版本后再点一次「添加到 Cameo」；也可以下载 .mov，拖到 Cameo 的弹窗上。",
-      getApp: "下载 Cameo", getMov: "下载 .mov", close: "关闭",
+      missTitle: "Cameo 没有打开", missBody: "请安装最新版 Cameo 后再点一次「添加到 Cameo」；也可以下载文件，拖到 Cameo 的弹窗上。",
+      getApp: "下载 Cameo", getMov: "下载 .mov", getZip: "下载 .zip", close: "关闭",
       animalOne: "动物", personOne: "人物",
-      dropTitle: "选择或拖入一个 .mov 文件", dropHint: "最大 20 MB，上传前会先在这里检查。",
+      dropTitle: "选择或拖入一个 .mov 或角色包 .zip", dropHint: "最大 20 MB，上传前会先在这里检查。",
       fName: "角色名", fAuthor: "署名", fCategory: "分类",
       agreeOwn: "角色由我本人制作（手绘、拍摄或 AI 生成），不含他人 IP。",
       agreeLicense: "我同意以 CC BY 4.0 发布。",
@@ -539,20 +624,29 @@
       altText: "习惯用 GitHub？", altLink: "使用投稿表单 ›",
       ok: "透明背景", seconds: "秒",
       pNo_alpha: "没有透明背景", pLength: "超过 10 秒", pHeight: "高度超过 1080 像素", pToo_large: "超过 20 MB", pNot_mov: "不是 QuickTime .mov",
+      pNot_zip: "不是可读取的 .zip", pUnsafe: "压缩包里有不安全的路径或链接", pToo_many: "压缩包里的文件太多或太大",
+      pNo_manifest: "没有 manifest.json（请压缩角色包文件夹）", pManifest: "manifest.json 或其中的片段缺失、无法读取",
+      pNo_idle: "没有 idle 片段", pUnreachable: "有姿势无法从站立过渡到", pCanvas: "有片段尺寸与 manifest 不符",
       done: "谢谢！已进入审核队列，通过后会署上你的名字出现在这里。",
       eCaptcha: "人机验证失败或已过期，请重试。", eLimit_you: "你今天的上传次数已用完，请明天再试。",
       eLimit_all: "今天的上传已暂停，请明天再试。", eToo_large: "文件超过 20 MB。",
       ePaused: "上传暂时关闭，请稍后再试。", eQueue_full: "待审核队列已满，请过几天再试。",
       eDuplicate: "这个文件已经投稿过了。", eSlow_down: "尝试次数太多，请等一分钟再试。",
       eRefused: "无法接收这次上传。",
-      eInvalid: "视频不符合要求：", eFields: "请填写所有信息并勾选两项确认。",
+      eInvalid: "文件不符合要求：", eFields: "请填写所有信息并勾选两项确认。",
       eNetwork: "上传没有成功，请检查网络后重试。",
       eStalled: "上传卡住了。",
-      slowTitle: "上传很慢…", slowBody: "到上传服务器的连接几乎没有进展。可以继续等待，也可以改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可。",
-      stuckTitle: "上传卡住了", stuckBody: "30 秒内没有任何进展，某些网络下会出现这种情况。可以重试，或改用 GitHub 投稿：表单会自动填好你的信息，再把同一个 .mov 拖进去即可（GitHub 限 10 MB）。",
+      slowTitle: "上传很慢…", slowBody: "到上传服务器的连接几乎没有进展。可以继续等待，也可以改用 GitHub 投稿：表单会自动填好你的信息，再把同一个文件拖进去即可。",
+      stuckTitle: "上传卡住了", stuckBody: "30 秒内没有任何进展，某些网络下会出现这种情况。可以重试，或改用 GitHub 投稿：表单会自动填好你的信息，再把同一个文件拖进去即可（GitHub 对 .mov 限 10 MB）。",
       makeTitle: "自己做一个", makeAgent: "把这句话发给你的编程 Agent", makeSubmit: "做好再来投稿 ↓",
       makeVideo: "从视频开始", makeVideoB: "绿幕或带透明通道的视频，变成一个角色。",
       makeText: "从一句描述开始", makeTextB: "描述一个人，得到一个循环动画角色。",
+      makePkg: "从一张图开始：会走的角色", makePkgB: "一张角色图，加任意图生视频工具，做出会走、转身、躺下、表演的角色。",
+      makePkgNote: "做好的是一个文件夹：在 Cameo 里用 + 导入，或拖到弹窗上。想投稿就把文件夹压缩（访达里「压缩」）后在下方上传 .zip。",
+      promptPkg: "安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-video-package 这个 Cameo skill，然后用这张图给我做一个会走的 Cameo 角色。",
+      tagNew: "新",
+      logTitle: "更新日志", logAll: "全部版本 ›", logAsk: "这次有什么新东西？", logSoon: "即将发布", logLatest: "最新",
+      kNew: "新", kImproved: "改进", kFixed: "修复",
       copy: "复制", copied: "已复制",
       promptVideo: "安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-from-video 这个 Cameo skill，然后把我的绿幕视频做成 Cameo 角色。",
       promptText: "安装 https://github.com/wquguru/cameo/tree/main/skills/cameo-image-loop 这个 Cameo skill，然后根据一段描述给我做一个 Cameo 角色。",
@@ -567,6 +661,7 @@
   if (asked in strings) lang = asked;
   let filter = "all";
   let characters = [];
+  let changelog = [];
 
   function el(tag, attrs, ...children) {
     const node = document.createElement(tag);
@@ -581,9 +676,12 @@
   const size = b => !b ? "" : b < 1e6 ? `${Math.ceil(b / 1e3)} KB` : `${(b / 1e6).toFixed(1)} MB`;
 
   function card(c, t) {
-    const add = `cameo://add?url=${encodeURIComponent(c.video)}&name=${encodeURIComponent(c.name)}`;
+    // A walking character is a package: Add to Cameo and the download take its .zip.
+    const file = c.package || c.video;
+    const add = `cameo://add?url=${encodeURIComponent(file)}&name=${encodeURIComponent(c.name)}`;
     const author = c.authorURL ? el("a", { href: c.authorURL, textContent: c.author }) : c.author;
-    const facts = [c.duration ? `${Math.round(c.duration)} s` : "", size(c.bytes)].filter(Boolean).join(" · ");
+    const facts = (c.package ? [t.actions(c.actions || 0), c.walks ? t.walks : "", size(c.bytes)]
+      : [c.duration ? `${Math.round(c.duration)} s` : "", size(c.bytes)]).filter(Boolean).join(" · ");
     // The build adds a small .webp beside each .png poster (scripts/gallery_pages.py).
     const poster = el("img", { src: c.poster.replace(/\.png$/, ".webp"), alt: c.name, loading: "lazy" });
     poster.addEventListener("error", () => { poster.src = c.poster; }, { once: true });
@@ -595,8 +693,8 @@
       el("div", { className: "meta" },
         el("div", {}, el("div", { className: "name" }, el("a", { href: `c/${c.id}/`, textContent: c.name })), el("div", { className: "by" }, `${t.by} `, author)),
         el("div", { className: "actions" },
-          addButton(add, c.video, t),
-          el("a", { className: "btn btn-soft btn-sm", href: c.video, "aria-label": t.mov, title: t.mov }, svg(downloadIcon)))));
+          addButton(add, file, t),
+          el("a", { className: "btn btn-soft btn-sm", href: file, "aria-label": c.package ? t.zip : t.mov, title: c.package ? t.zip : t.mov }, svg(downloadIcon)))));
   }
 
   // Opens the cameo:// link and tells the person what happened: the page losing focus within
@@ -627,7 +725,7 @@
           show(t.sentTitle, t.sentBody, false, [close]);
         } else {
           show(t.missTitle, t.missBody, false, [
-            el("a", { className: "btn btn-soft btn-sm", href: video, textContent: t.getMov }),
+            el("a", { className: "btn btn-soft btn-sm", href: video, textContent: /\.zip$/.test(video) ? t.getZip : t.getMov }),
             el("a", { className: "btn btn-dark btn-sm", href: "https://github.com/wquguru/cameo/releases/latest", textContent: t.getApp }),
           ]);
         }
@@ -665,7 +763,32 @@
     // Until characters.json arrives, keep the build's static links rather than an empty grid.
     const grid = document.getElementById("grid");
     if (characters.length || !grid.querySelector(".card")) grid.replaceChildren(...shown.map(c => card(c, t)), submit);
+    renderChangelog(t);
     externalLinks();
+  }
+
+  /** gallery/changelog.json: the newest release in full, the five before it one line each. */
+  const kindIcons = {
+    new: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 1v3M6 8v3M1 6h3M8 6h3"/></svg>',
+    improved: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10V2M2.5 5.5 6 2l3.5 3.5"/></svg>',
+    fixed: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5 9.5 2.5M3 3l6 6"/></svg>',
+  };
+  function renderChangelog(t) {
+    const section = document.getElementById("changelog");
+    section.hidden = !changelog.length;
+    if (!changelog.length) return;
+    const [latest, ...older] = changelog;
+    const label = { new: t.kNew, improved: t.kImproved, fixed: t.kFixed };
+    document.getElementById("log-latest").replaceChildren(
+      el("div", { className: "log-version" }, el("b", { textContent: latest.version }), el("span", { textContent: latest.date ? `${latest.date} · ${t.logLatest}` : t.logSoon })),
+      el("ul", {}, ...latest.items.map(item => el("li", { className: item.kind },
+        el("span", { className: `kind ${item.kind}` }, svg(kindIcons[item.kind] || kindIcons.new), label[item.kind] || ""),
+        el("span", { textContent: item[lang] || item.en })))));
+    document.getElementById("log-older").replaceChildren(...older.slice(0, 5).map(release => el("li", {},
+      el("span", { className: "pin", "aria-hidden": "true" }),
+      el("span", { className: "entry" },
+        el("strong", {}, release.version, el("time", { textContent: release.date || t.logSoon })),
+        release.items.map(item => item[lang] || item.en).join(" ")))));
   }
 
   /** Opens links to other sites in a new tab, so the gallery stays open behind them. */
@@ -715,9 +838,20 @@
     $("drop-title").textContent = file.name;
     status("");
     let found = [], info = null;
-    if (!/\.mov$/i.test(file.name)) found = ["not_mov"];
+    const zip = /\.zip$/i.test(file.name);
+    let pkg = null;
+    if (!zip && !/\.mov$/i.test(file.name)) found = ["not_mov"];
     else if (file.size > MAX_BYTES) found = ["too_large"];
-    else {
+    else if (zip) {
+      try {
+        const contents = inspectZipFile(new Uint8Array(await file.arrayBuffer()));
+        found = zipProblems(contents, file.size);
+        if (!found.length) {
+          info = pkg = await inspectPackage(contents);
+          found = pkg.problems;
+        }
+      } catch { found = ["not_zip"]; }
+    } else {
       try {
         info = inspectFile(new Uint8Array(await file.arrayBuffer()));
         found = problems(info, file.size);
@@ -725,13 +859,15 @@
     }
     // Show the measured value next to each problem, so a wrong verdict is easy to spot.
     const measured = {
-      length: info && `${info.duration} ${t.seconds}`,
+      length: info && !pkg && `${info.duration} ${t.seconds}`,
       height: info && `${info.height} px`,
       too_large: size(file.size),
     };
     const chips = found.map(code => [measured[code] ? `${t["p" + cap(code)]} (${measured[code]})` : t["p" + cap(code)], true]);
     if (!found.length) {
-      chips.push([`✓ ${t.ok}`], [`${info.duration} ${t.seconds}`], [`${info.width} × ${info.height}`], [size(file.size)]);
+      if (pkg) chips.push([`✓ ${t.ok}`], [[t.clips(pkg.clips), t.actions(pkg.actions), pkg.walks ? t.walks : ""].filter(Boolean).join(" · ")],
+        [`${pkg.width} × ${pkg.height}`], [size(file.size)]);
+      else chips.push([`✓ ${t.ok}`], [`${info.duration} ${t.seconds}`], [`${info.width} × ${info.height}`], [size(file.size)]);
       chosen = file;
     }
     showFacts(chips);
@@ -802,7 +938,7 @@
     if ($("send").disabled) return status(t.eFields, "err");
     const xhr = new XMLHttpRequest();
     xhr.open("POST", ENDPOINT);
-    xhr.setRequestHeader("Content-Type", "video/quicktime");
+    xhr.setRequestHeader("Content-Type", /\.zip$/i.test(chosen.name) ? "application/zip" : "video/quicktime");
     xhr.setRequestHeader("X-Turnstile", token);
     xhr.setRequestHeader("X-Name", encodeURIComponent($("f-name").value.trim()));
     xhr.setRequestHeader("X-Author", encodeURIComponent($("f-author").value.trim()));
@@ -859,6 +995,10 @@
   });
 
   render();
+  fetch("changelog.json", { cache: "no-cache" })
+    .then(r => r.json())
+    .then(list => { changelog = list; render(); })
+    .catch(() => {});
   fetch("characters.json", { cache: "no-cache" })
     .then(r => r.json())
     .then(list => {

@@ -1,0 +1,104 @@
+[
+  {
+    "version": "0.6.0",
+    "date": null,
+    "items": [
+      {
+        "kind": "new",
+        "en": "Characters that walk: a character package strolls along the bottom of the screen, turns, lies down and performs. Poke it for a random move, or pick one from the popover.",
+        "zh": "会走的角色：角色包沿屏幕底边散步、转身、躺下、表演；戳她一下随机来一个，弹窗里也能点名要哪个。"
+      },
+      {
+        "kind": "new",
+        "en": "Standing on windows: drop a walking character on a window and it stays up there, riding along wherever the window goes.",
+        "zh": "站在窗口上：把会走的角色放到窗口顶上，她就站在那儿，窗口挪到哪跟到哪。"
+      },
+      {
+        "kind": "new",
+        "en": "Up to three on stage: ⌘-click characters in the popover or the library.",
+        "zh": "最多三位同台：在弹窗或角色库里按住 ⌘ 再点角色。"
+      },
+      {
+        "kind": "new",
+        "en": "A third skill, cameo-video-package, makes a walking character from one image and any image-to-video tool.",
+        "zh": "第三个 skill：cameo-video-package，用一张图和任意图生视频工具做出会走的角色。"
+      },
+      {
+        "kind": "new",
+        "en": "Walking characters travel as a .zip: open or drop one on Cameo, add one from the gallery, or submit yours there.",
+        "zh": "会走的角色可以打包成 .zip：直接打开或拖给 Cameo，从画廊一键添加，也能在画廊投稿。"
+      },
+      {
+        "kind": "improved",
+        "en": "A little stage at the top of the library shows who is on the desktop, and right-click menus spell out their shortcuts.",
+        "zh": "角色库顶上多了个小舞台，谁在桌面上一眼就知道；右键菜单写上了快捷操作。"
+      }
+    ]
+  },
+  {
+    "version": "0.5.3",
+    "date": "2026-10-10",
+    "items": [
+      {
+        "kind": "fixed",
+        "en": "Clicks on the cat land where it is drawn, and right-clicks stay on the figure.",
+        "zh": "猫的点击区域和画出来的一致，右键始终落在角色上。"
+      }
+    ]
+  },
+  {
+    "version": "0.5.2",
+    "date": "2026-10-10",
+    "items": [
+      {
+        "kind": "improved",
+        "en": "Right-clicking the figure opens its popover when you let go.",
+        "zh": "右键角色，松开时才弹出面板。"
+      }
+    ]
+  },
+  {
+    "version": "0.5.1",
+    "date": "2026-10-10",
+    "items": [
+      {
+        "kind": "fixed",
+        "en": "The popover stays put while the figure resizes.",
+        "zh": "调整大小时，面板不再跟着跳。"
+      }
+    ]
+  },
+  {
+    "version": "0.5.0",
+    "date": "2026-10-10",
+    "items": [
+      {
+        "kind": "new",
+        "en": "The library shows characters as a Finder-like lineup; a hidden Cameo waits in the Dock.",
+        "zh": "角色库换成 Finder 式的一排角色；隐藏时留在程序坞。"
+      }
+    ]
+  },
+  {
+    "version": "0.4.0",
+    "date": "2026-10-10",
+    "items": [
+      {
+        "kind": "new",
+        "en": "A character library window, in-place updates and 11 languages.",
+        "zh": "角色库窗口、原地更新，以及 11 种语言。"
+      }
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "date": "2026-10-09",
+    "items": [
+      {
+        "kind": "new",
+        "en": "The character gallery and one-click Add to Cameo.",
+        "zh": "角色画廊上线，一键「添加到 Cameo」。"
+      }
+    ]
+  }
+]

@@ -22,7 +22,8 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
       - name: Publish the release
         run: |
+          python3 scripts/release_notes.py "$GITHUB_REF_NAME" > build/notes.md
           gh release create "$GITHUB_REF_NAME" build/Cameo-*.dmg build/Cameo-*.zip build/checksums.txt \
-            --title "Cameo ${GITHUB_REF_NAME#v}" --generate-notes --notes-file .github/release-notes.md
+            --title "Cameo ${GITHUB_REF_NAME#v}" --generate-notes --notes-file build/notes.md
         env:
           GH_TOKEN: ${{ github.token }}
