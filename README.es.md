@@ -86,6 +86,7 @@ Un personaje es un único `.mov` en bucle con canal alfa (HEVC with Alpha o ProR
 | --- | --- |
 | Un clip con croma verde o un vídeo con alfa | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Solo una descripción (requiere una clave de API de OpenRouter) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| Una imagen del personaje + una herramienta de imagen a vídeo, para un personaje que camina, se gira, se tumba y actúa | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 Pega una de estas frases en tu agente de programación (Claude Code, Codex, Cursor…):
 

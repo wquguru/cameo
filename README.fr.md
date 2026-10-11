@@ -86,6 +86,7 @@ Un personnage est un seul `.mov` en boucle avec couche alpha (HEVC with Alpha ou
 | --- | --- |
 | Un clip sur fond vert ou une vidéo avec alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Seulement une description (clé d’API OpenRouter requise) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| Une image du personnage + un outil image-vers-vidéo, pour un personnage qui marche, se retourne, s’allonge et fait des actions | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 Collez l’une de ces phrases dans votre agent de code (Claude Code, Codex, Cursor…) :
 

@@ -86,6 +86,7 @@ A character is one looping `.mov` with alpha (HEVC with Alpha or ProRes 4444). T
 | --- | --- |
 | A green-screen clip, or a video with alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Only a description (needs an OpenRouter API key) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| One character image + an image-to-video tool, for a character that walks, turns, lies down and performs | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 Paste one of these into your coding agent (Claude Code, Codex, Cursor…):
 

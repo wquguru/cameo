@@ -86,6 +86,7 @@ open build/Cameo.app
 | --- | --- |
 | 一段绿幕视频，或带透明通道的视频 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 只有一句描述（需要 OpenRouter API key） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| 一张角色图 + 一个图生视频工具，做会走路、转身、趴下、做动作的角色 | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 把下面一句话发给你的编程 Agent（Claude Code、Codex、Cursor 等）：
 

@@ -86,6 +86,7 @@ open build/Cameo.app
 | --- | --- |
 | 一段綠幕影片，或帶 Alpha 通道的影片 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 只有一段描述（需要 OpenRouter API key） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| 一張角色圖 + 一個圖生影片工具，做會走路、轉身、趴下、做動作的角色 | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 把下面一句話傳給你的程式設計 Agent（Claude Code、Codex、Cursor 等）：
 

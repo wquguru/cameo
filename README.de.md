@@ -86,6 +86,7 @@ Eine Figur ist eine einzelne `.mov`-Endlosschleife mit Alphakanal (HEVC with Alp
 | --- | --- |
 | Einen Greenscreen-Clip oder ein Video mit Alpha | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | Nur eine Beschreibung (braucht einen OpenRouter-API-Schlüssel) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| Ein Bild der Figur + ein Bild-zu-Video-Tool, für eine Figur, die läuft, sich umdreht, sich hinlegt und Aktionen zeigt | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 Füge einen dieser Sätze in deinen Coding-Agent ein (Claude Code, Codex, Cursor …):
 

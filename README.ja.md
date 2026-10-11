@@ -86,6 +86,7 @@ open build/Cameo.app
 | --- | --- |
 | グリーンバックの動画、またはアルファ付きの動画 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 説明文だけ（OpenRouter の API キーが必要） | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| キャラクター画像1枚 + 画像から動画を作るツールで、歩く・振り向く・寝そべる・動作するキャラクター | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 次のどちらかをコーディングエージェント（Claude Code、Codex、Cursor など）に貼り付けます：
 

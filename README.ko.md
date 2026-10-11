@@ -86,6 +86,7 @@ open build/Cameo.app
 | --- | --- |
 | 그린 스크린 영상 또는 알파가 있는 영상 | [`cameo-from-video`](skills/cameo-from-video/SKILL.md) |
 | 설명뿐 (OpenRouter API 키 필요) | [`cameo-image-loop`](skills/cameo-image-loop/SKILL.md) |
+| 캐릭터 이미지 한 장 + 이미지→동영상 도구로, 걷고 돌아서고 엎드리고 동작하는 캐릭터 | [`cameo-video-package`](skills/cameo-video-package/SKILL.md) |
 
 아래 중 하나를 코딩 에이전트(Claude Code, Codex, Cursor 등)에 붙여 넣으세요:
 
