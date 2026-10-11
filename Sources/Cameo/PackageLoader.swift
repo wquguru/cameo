@@ -7,6 +7,8 @@ struct PackageFrame {
     let image: CGImage
     let data: CFData
     let bytesPerRow: Int
+    /// The columns holding opaque pixels, or nil for an empty frame.
+    let opaque: ClosedRange<Int>?
 
     func alpha(x: Int, y: Int) -> UInt8 {
         guard x >= 0, y >= 0, x < image.width, y < image.height else { return 0 }
@@ -17,6 +19,24 @@ struct PackageFrame {
 struct LoadedPackage {
     var manifest: PackageManifest
     var frames: [String: [PackageFrame]]
+
+    /// How far the figure reaches either side of the canvas centre, in canvas widths (0...0.5),
+    /// over every frame of every clip, so its body can stand flush with a screen edge whichever
+    /// way it faces.
+    var reach: Double {
+        var lo = Int.max, hi = Int.min, width = 1
+        for list in frames.values {
+            for frame in list {
+                width = frame.image.width
+                guard let o = frame.opaque else { continue }
+                lo = min(lo, o.lowerBound)
+                hi = max(hi, o.upperBound)
+            }
+        }
+        guard lo <= hi else { return 0.5 }
+        let w = Double(width)
+        return min(0.5, max(0.5 - Double(lo) / w, Double(hi + 1) / w - 0.5, 0))
+    }
 }
 
 /// Reads a character package and decodes every clip once into memory (premultiplied BGRA),
@@ -71,13 +91,24 @@ enum PackageLoader {
         guard let base = CVPixelBufferGetBaseAddress(buffer) else { return nil }
         let w = CVPixelBufferGetWidth(buffer), h = CVPixelBufferGetHeight(buffer)
         let stride = CVPixelBufferGetBytesPerRow(buffer)
-        let data = CFDataCreate(nil, base.assumingMemoryBound(to: UInt8.self), stride * h)!
+        let bytes = base.assumingMemoryBound(to: UInt8.self)
+        let data = CFDataCreate(nil, bytes, stride * h)!
+        // Opaque column range, from every other row.
+        var lo = w, hi = -1, y = 0
+        while y < h {
+            let row = bytes + y * stride
+            var x = 0
+            while x < lo { if row[x * 4 + 3] > 24 { lo = x; break }; x += 1 }
+            x = w - 1
+            while x > hi { if row[x * 4 + 3] > 24 { hi = x; break }; x -= 1 }
+            y += 2
+        }
         guard let provider = CGDataProvider(data: data),
               let image = CGImage(width: w, height: h, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: stride,
                                   space: CGColorSpaceCreateDeviceRGB(),
                                   bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue),
                                   provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent)
         else { return nil }
-        return PackageFrame(image: image, data: data, bytesPerRow: stride)
+        return PackageFrame(image: image, data: data, bytesPerRow: stride, opaque: lo <= hi ? lo...hi : nil)
     }
 }

@@ -28,6 +28,8 @@ final class CharacterWindowController {
     private var pollTimer: Timer?
     private var pollCount = 0
     private var screensAsleep = false
+    /// The selection restored at launch has been loaded; packages chosen after that walk in.
+    private var restored = false
     /// A right-click on the figure, with the view to show the popover beside.
     var onSecondaryClick: ((NSView) -> Void)?
 
@@ -99,7 +101,8 @@ final class CharacterWindowController {
             if character?.isBuiltIn == true {
                 aspect = CatRig.canvas.width / CatRig.canvas.height
             } else if let character, character.isPackage {
-                Task { await loadPackage(character) }
+                let entering = restored
+                Task { await loadPackage(character, entering: entering) }
             } else {
                 let url = character.map(model.url(for:))
                 playerView.load(url)
@@ -109,6 +112,7 @@ final class CharacterWindowController {
                 panel.contentView = figureView
             }
         }
+        if character != nil { restored = true }
         layout()
         if model.visible && character != nil {
             panel.orderFrontRegardless()
@@ -118,16 +122,13 @@ final class CharacterWindowController {
         updatePlayback()
     }
 
-    private func loadPackage(_ character: Character) async {
+    private func loadPackage(_ character: Character, entering: Bool) async {
         do {
             let package = try await PackageLoader.load(model.packageFolder(for: character))
             guard character.id == loadedID else { return }
             aspect = CGFloat(package.manifest.width) / CGFloat(package.manifest.height)
-            // Stand on the bottom of the screen the figure is on, like the cat.
-            let screen = (panel.screen ?? NSScreen.main ?? NSScreen.screens[0]).visibleFrame
-            feet = NSPoint(x: shownFeet.x, y: screen.minY)
             layout()
-            packageView.load(package)
+            packageView.load(package, entering: entering)
         } catch {
             model.errorMessage = L("Couldn’t add “%@”: %@", character.name, error.localizedDescription)
         }
@@ -157,16 +158,34 @@ final class CharacterWindowController {
         if figureView.isDragging { feet = shownFeet }
         let wanted = anchor()
         feet = wanted
-        let shown = Self.keepVisible(wanted, size: size)
+        // A package walks the screen bottom: it stands on the ground unless it is being dragged.
+        let walker = figureView === packageView
+        let shown = Self.keepVisible(wanted, size: size, walker: walker, grounded: walker && !figureView.isDragging)
         panel.setFrame(NSRect(x: shown.x - size.width / 2, y: shown.y, width: size.width, height: size.height), display: true)
     }
 
-    /// A drag puts the figure where it was dropped, moved back on screen if it went off.
+    /// A drag puts the figure where it was dropped, moved back on screen if it went off; a
+    /// package dropped in the air falls back to the ground.
     private func dropped() {
         feet = shownFeet
+        let from = panel.frame
         layout()
         feet = shownFeet
         saveAnchor()
+        if figureView === packageView, from.minY - panel.frame.minY > 1 { fall(from: from) }
+    }
+
+    private func fall(from: NSRect) {
+        let to = panel.frame
+        panel.setFrame(from, display: false)
+        packageView.held = true
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = min(0.5, 0.15 + (from.minY - to.minY) / 2000)
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            panel.animator().setFrame(to, display: true)
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated { self?.packageView.held = false }
+        }
     }
 
     private var shownFeet: NSPoint { NSPoint(x: panel.frame.midX, y: panel.frame.minY) }
@@ -183,8 +202,10 @@ final class CharacterWindowController {
     }
 
     /// Moves feet that ended up off every screen (dragged away, a display unplugged) back so the
-    /// feet stay on a screen and at least half the figure is below its menu bar.
-    private static func keepVisible(_ feet: NSPoint, size: NSSize) -> NSPoint {
+    /// feet stay on a screen and at least half the figure is below its menu bar. A `walker` may
+    /// stand off the side of the screen (walking in, or dropped there: it walks back);
+    /// `grounded`, it stands on the bottom of the visible frame.
+    private static func keepVisible(_ feet: NSPoint, size: NSSize, walker: Bool = false, grounded: Bool = false) -> NSPoint {
         let screens = NSScreen.screens
         guard !screens.isEmpty else { return feet }
         func distance(_ frame: NSRect) -> CGFloat {
@@ -192,9 +213,10 @@ final class CharacterWindowController {
         }
         let screen = screens.min { distance($0.frame) < distance($1.frame) }!
         let visible = screen.visibleFrame
-        let x = min(max(feet.x, visible.minX), visible.maxX)
+        let side = walker ? size.width / 2 : 0
+        let x = min(max(feet.x, visible.minX - side), visible.maxX + side)
         let top = visible.maxY - min(size.height, visible.height) / 2
-        let y = min(max(feet.y, screen.frame.minY), max(top, screen.frame.minY))
+        let y = grounded ? visible.minY : min(max(feet.y, screen.frame.minY), max(top, screen.frame.minY))
         return NSPoint(x: x, y: y)
     }
 
@@ -219,12 +241,22 @@ final class CharacterWindowController {
         return blocked
     }
 
-    /// Where a package's feet are and how far they may walk (the empty sides of the canvas may
-    /// hang off-screen).
-    private func walkPosition() -> (x: CGFloat, bounds: ClosedRange<CGFloat>)? {
-        guard let visible = (panel.screen ?? NSScreen.main)?.visibleFrame else { return nil }
-        let slack = panel.frame.width * 0.15
-        return (panel.frame.midX, (visible.minX + slack)...(visible.maxX - slack))
+    /// Where a package's feet are, how far they may walk with the body still on screen (the
+    /// empty sides of the canvas may hang off), and where it can walk in from: just off each
+    /// side of the screen that has no display beyond it.
+    private func walkPosition() -> (x: CGFloat, bounds: ClosedRange<CGFloat>, entries: [CGFloat])? {
+        guard let screen = panel.screen ?? NSScreen.main else { return nil }
+        let visible = screen.visibleFrame, frame = screen.frame
+        let reach = panel.frame.width * packageView.reach
+        let lo = visible.minX + reach, hi = max(lo, visible.maxX - reach)
+        func open(_ x: CGFloat) -> Bool {
+            !NSScreen.screens.contains { $0 != screen && $0.frame.contains(NSPoint(x: x, y: visible.minY + 1)) }
+        }
+        // Keep a sliver of the canvas on this screen so the panel still belongs to it.
+        var entries: [CGFloat] = []
+        if open(frame.minX - 1) { entries.append(frame.minX - reach + 2) }
+        if open(frame.maxX + 1) { entries.append(frame.maxX + reach - 2) }
+        return (panel.frame.midX, lo...hi, entries)
     }
 
     private func movePackage(by dx: CGFloat) {
@@ -233,7 +265,7 @@ final class CharacterWindowController {
         feet?.x = shownFeet.x
     }
 
-    /// The show starts with the figure walking in from a screen edge.
+    /// Puts the figure off-screen where it walks in from.
     private func enter(at x: CGFloat) {
         let size = panel.frame.size
         panel.setFrameOrigin(NSPoint(x: x - size.width / 2, y: panel.frame.minY))

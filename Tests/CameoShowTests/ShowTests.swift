@@ -28,9 +28,10 @@ private func seeded(_ seed: UInt64) -> () -> Double {
 }
 
 /// Runs a show for `seconds`, returning the plays in order and the x positions visited.
-private func run(_ show: Show, seconds: Double, bounds: ClosedRange<Double> = 0...1000,
+private func run(_ show: Show, seconds: Double, bounds: ClosedRange<Double> = 0...1000, entering: Double? = nil,
                  onTick: ((Show) -> Void)? = nil) -> (plays: [Play], xs: [Double]) {
-    var x = show.start(bounds: bounds, x: 500)
+    show.start(bounds: bounds, x: 500, entering: entering)
+    var x = entering ?? 500
     var plays = [show.play], xs = [x]
     var index = show.playIndex
     var t = 0.0
@@ -72,30 +73,78 @@ private func run(_ show: Show, seconds: Double, bounds: ClosedRange<Double> = 0.
         #expect(ClipGraph(clips: clips).path(from: "p", to: "r")?.map(\.id) == ["c"])
     }
 
-    @Test func walkerTurnsAtEdges() {
+    @Test func walkerStopsAtEdges() {
         let b = 0.0...100.0
         let right = Walker.advance(x: 95, direction: 1, distance: 10, bounds: b)
-        #expect(right.x == 100 && right.direction == -1 && right.bounced)
+        #expect(right.x == 100 && right.bounced)
         let left = Walker.advance(x: 4, direction: -1, distance: 10, bounds: b)
-        #expect(left.x == 0 && left.direction == 1 && left.bounced)
+        #expect(left.x == 0 && left.bounced)
         let free = Walker.advance(x: 50, direction: -1, distance: 10, bounds: b)
-        #expect(free.x == 40 && free.direction == -1 && !free.bounced)
+        #expect(free.x == 40 && !free.bounced)
+        // Outside the bounds: walking back in is free, walking further out doesn't move or jump.
+        let back = Walker.advance(x: -30, direction: 1, distance: 10, bounds: b)
+        #expect(back.x == -20 && !back.bounced)
+        let out = Walker.advance(x: 130, direction: 1, distance: 10, bounds: b)
+        #expect(out.x == 130 && out.bounced)
     }
 
-    @Test func wanderingFlipsAtEdges() {
-        // Force wandering plays by making the random source always small.
-        let show = Show(clips: basic, random: { 0.01 })
-        var flips = 0
-        var last = false
-        var started = false
-        let (_, xs) = run(show, seconds: 60) { s in
-            if s.play.clip.kind == .walk {
-                if started && s.facingLeft != last { flips += 1 }
-                last = s.facingLeft; started = true
+    @Test func walksStopBeforeEdgesWithoutTurningMidStride() {
+        for seed in 1...5 as ClosedRange<UInt64> {
+            let show = Show(clips: basic, random: seeded(seed))
+            var walking: (index: Int, left: Bool)?
+            var hardStops = 0
+            let (_, xs) = run(show, seconds: 600) { s in
+                guard s.play.clip.kind == .walk else { walking = nil; return }
+                if let w = walking, w.index == s.playIndex { #expect(w.left == s.facingLeft) }
+                walking = (s.playIndex, s.facingLeft)
+            }
+            #expect(xs.allSatisfy { (0...1000).contains($0) })
+            for (a, b) in zip(xs, xs.dropFirst()) where (a == 0 || a == 1000) && a == b { hardStops += 1 }
+            #expect(hardStops == 0, "seed \(seed) pressed against an edge")
+        }
+    }
+
+    @Test func entersFromOffScreenAndStartsStillOtherwise() {
+        let show = Show(clips: basic, random: seeded(4))
+        let (plays, xs) = run(show, seconds: 20, entering: -80)
+        #expect(plays[0].clip.kind == .walk && plays[0].direction == 1)
+        #expect(xs.contains { $0 >= 250 })
+        let still = Show(clips: basic, random: seeded(4))
+        still.start(bounds: 0...1000, x: 600)
+        #expect(still.play.clip.kind == .idle)
+        #expect(still.tick(dt: 0.05, x: 600, bounds: 0...1000) == 0)
+    }
+
+    @Test func droppedOutsideWalksBackWithoutJumping() {
+        var x = 980.0
+        let s = Show(clips: basic, random: seeded(7))
+        s.start(bounds: 100...900, x: x)
+        var maxStep = 0.0
+        for _ in 0..<4000 {
+            let dx = s.tick(dt: 0.05, x: x, bounds: 100...900)
+            maxStep = max(maxStep, abs(dx))
+            x += dx
+        }
+        #expect(maxStep <= 100 * 0.05 + 1e-9)
+        #expect((100...900).contains(x))
+    }
+
+    @Test func stopsNearTarget() {
+        // A target-bound walk ends within half a stride (speed × cycle / 2) of where it aimed,
+        // unless the target is within a stride of an edge (stopping short of the edge wins).
+        for seed in 1...5 as ClosedRange<UInt64> {
+            let show = Show(clips: basic, random: seeded(seed))
+            var current: Play?
+            var x = 500.0
+            show.start(bounds: 0...1000, x: x)
+            for _ in 0..<12000 {
+                x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+                if current?.clip.kind == .walk, let target = current?.target, (100...900).contains(target), show.play != current {
+                    #expect(abs(x - target) <= 100 * 1.0 / 2 + 5 + 1e-6, "seed \(seed): stopped at \(x) for \(target)")
+                }
+                current = show.play
             }
         }
-        #expect(flips >= 1)
-        #expect(xs.allSatisfy { (0...1000).contains($0) })
     }
 
     @Test func mirroringFollowsDirectionButNotFront() {
@@ -115,7 +164,9 @@ private func run(_ show: Show, seconds: Double, bounds: ClosedRange<Double> = 0.
 
     @Test func heldFreezesAndPokeQueuesAction() {
         let show = Show(clips: basic, random: seeded(9))
-        var x = show.start(bounds: 0...1000, x: 500)
+        var x = 500.0
+        show.start(bounds: 0...1000, x: x, entering: -50)
+        x = -50
         for _ in 0..<5 { x += show.tick(dt: 0.05, x: x, bounds: 0...1000) }
         let frozen = (show.playIndex, show.elapsed)
         show.held = true

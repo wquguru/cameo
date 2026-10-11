@@ -7,7 +7,7 @@ public struct Play: Equatable {
     public var repeats: Int?
     /// Looping clips: minimum seconds before ending (at the end of a cycle).
     public var holdTime: Double?
-    /// Walk: the x to stop at, or nil to wander until `holdTime`, turning at the edges.
+    /// Walk: the x to stop near, or nil to wander until `holdTime` or an edge.
     public var target: Double?
     /// Walk: +1 right, -1 left.
     public var direction: Double = 1
@@ -18,8 +18,9 @@ public struct Play: Equatable {
 }
 
 /// The scheduler: strings clips into an iStripper-style show (enter walking, stop, turn to front,
-/// idle, act, idle, turn, walk on) using only legal pose transitions. Pure logic; the host feeds
-/// it time and screen position and draws `play.clip` at `frameIndex`, mirrored when `mirrored`.
+/// idle, act, idle, turn, walk on) using only legal pose transitions; a walk stops short of the
+/// screen edge rather than turning mid-stride. Pure logic; the host feeds it time and screen
+/// position and draws `play.clip` at `frameIndex`, mirrored when `mirrored`.
 public final class Show {
     public let clips: [ClipSpec]
     public let graph: ClipGraph
@@ -76,26 +77,22 @@ public final class Show {
 
     // MARK: Control
 
-    /// Starts the show; returns where the figure should stand: at a screen edge when it can walk in.
-    public func start(bounds: ClosedRange<Double>, x: Double) -> Double {
+    /// Starts the show with the figure at `x`, standing still; with `entering`, an x off-screen,
+    /// it walks in from there instead.
+    public func start(bounds: ClosedRange<Double>, x: Double, entering: Double? = nil) {
         self.bounds = bounds
-        var startX = x
-        if let walk = walkClip {
-            let fromLeft = random() < 0.5
-            startX = fromLeft ? bounds.lowerBound : bounds.upperBound
-            let dir: Double = fromLeft ? 1 : -1
-            let span = bounds.upperBound - bounds.lowerBound
-            let target = startX + dir * span * (0.25 + 0.5 * random())
+        self.x = entering ?? x
+        if let from = entering, let walk = walkClip, idleClip != nil {
+            let dir: Double = from < (bounds.lowerBound + bounds.upperBound) / 2 ? 1 : -1
+            let edge = dir > 0 ? bounds.lowerBound : bounds.upperBound
+            let target = edge + dir * (bounds.upperBound - bounds.lowerBound) * (0.25 + 0.5 * random())
             pose = walk.from
             planStroll(direction: dir, target: target, maxTime: nil)
         } else {
-            startX = (bounds.lowerBound + bounds.upperBound) / 2
             pose = (idleClip ?? clips[0]).from
             planStill()
         }
-        self.x = startX
         activateNext()
-        return startX
     }
 
     /// A click on the figure: play a random action at the next opportunity.
@@ -116,18 +113,24 @@ public final class Show {
         let cycle = play.clip.cycle
 
         if play.clip.kind == .walk {
-            let step = play.clip.speed * pointsPerPixel * dt
-            let moved = Walker.advance(x: x, direction: direction, distance: step, bounds: bounds)
+            let speed = play.clip.speed * pointsPerPixel
+            // Don't walk past the planned stop within this tick.
+            let time = stopAt.map { max(0, min(dt, $0 - (elapsed - dt))) } ?? dt
+            let moved = Walker.advance(x: x, direction: direction, distance: speed * time, bounds: bounds)
             dx = moved.x - x
-            direction = moved.direction
-            facingLeft = direction < 0
-            if stopAt == nil {
+            if moved.bounced {
+                // The edge came sooner than planned (bounds shrank, dropped outside): stop here.
+                stopAt = elapsed
+            } else if stopAt == nil {
+                // Walks end at a cycle end, so look ahead to the next one: stop at the last one
+                // before the edge, and at the one nearest the target.
+                let cycleEnd = (elapsed / cycle).rounded(.up) * cycle
+                let atEnd = moved.x + direction * speed * (cycleEnd - elapsed)
+                let edge = direction > 0 ? bounds.upperBound : bounds.lowerBound
                 var done = pokePending || (play.holdTime.map { elapsed >= $0 } ?? false)
-                if let target = play.target {
-                    if (play.direction > 0 && moved.x >= target) || (play.direction < 0 && moved.x <= target) { done = true }
-                    if moved.bounced { done = true }
-                }
-                if done { stopAt = (elapsed / cycle).rounded(.up) * cycle }
+                if (edge - atEnd) * direction < speed * cycle { done = true }
+                if let target = play.target, (target - atEnd) * direction < speed * cycle / 2 { done = true }
+                if done { stopAt = cycleEnd }
             }
         } else if play.repeats == nil, stopAt == nil, pokePending || elapsed >= (play.holdTime ?? 0) {
             stopAt = (elapsed / cycle).rounded(.up) * cycle
@@ -169,7 +172,9 @@ public final class Show {
         guard walkClip != nil, idleClip != nil else { return planStill() }
         let span = bounds.upperBound - bounds.lowerBound
         if random() < 0.2 {
-            planStroll(direction: random() < 0.5 ? 1 : -1, target: nil, maxTime: 6 + 8 * random())
+            // Wander away from a nearby edge.
+            let dir: Double = x < bounds.lowerBound + span * 0.25 ? 1 : x > bounds.upperBound - span * 0.25 ? -1 : random() < 0.5 ? 1 : -1
+            planStroll(direction: dir, target: nil, maxTime: 6 + 8 * random())
         } else {
             var target = bounds.lowerBound + span * random()
             if abs(target - x) < span * 0.15 { target = x < bounds.lowerBound + span / 2 ? x + span * 0.3 : x - span * 0.3 }

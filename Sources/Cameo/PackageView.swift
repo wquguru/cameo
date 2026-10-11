@@ -14,13 +14,23 @@ final class PackageView: FigureView {
     private var shown: Drawn?
     private var current: PackageFrame?
     private var mirrored = false
+    private var canvasHeight = 1.0
+    private var needsStart = false
+    private var entering = false
 
-    /// The figure's feet x and the walkable range of that x, in screen points.
-    var position: (() -> (x: CGFloat, bounds: ClosedRange<CGFloat>)?)?
+    /// How far the figure reaches either side of the canvas centre, in canvas widths.
+    private(set) var reach: CGFloat = 0.5
+    /// Where the figure stands, in screen points: feet x, the range of feet x that keeps the body
+    /// on screen, and feet x just off-screen on each side with no display beyond it.
+    var position: (() -> (x: CGFloat, bounds: ClosedRange<CGFloat>, entries: [CGFloat])?)?
     /// Moves the window sideways by `dx` points.
     var onMove: ((CGFloat) -> Void)?
-    /// Starts a show at the screen edge it chose (feet x).
+    /// Puts the feet at the x the figure walks in from.
     var onStart: ((CGFloat) -> Void)?
+    /// Freezes the show (dragged, falling).
+    var held = false {
+        didSet { show?.held = held }
+    }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -29,12 +39,13 @@ final class PackageView: FigureView {
         layer?.contentsGravity = .resizeAspect
         layer?.isOpaque = false
         onClick = { [weak self] in self?.show?.poke() }
-        onDragChanged = { [weak self] dragging in self?.show?.held = dragging }
+        onDragChanged = { [weak self] dragging in self?.held = dragging }
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func load(_ package: LoadedPackage?) {
+    /// Shows a package standing where the window is, or, `entering`, walking in from off-screen.
+    func load(_ package: LoadedPackage?, entering: Bool = false) {
         show = nil
         shown = nil
         current = nil
@@ -42,16 +53,12 @@ final class PackageView: FigureView {
         layer?.contents = nil
         guard let package else { return }
         show = Show(clips: package.manifest.clips, facingLeft: package.manifest.facingLeft)
+        show?.held = held
+        canvasHeight = Double(package.manifest.height)
+        reach = CGFloat(package.reach)
         lastTime = nil
         needsStart = true
-    }
-
-    private var needsStart = false
-
-    /// Screen points per canvas pixel at the current window size.
-    private var pointsPerPixel: Double {
-        guard let image = frames.values.first?.first?.image, image.height > 0 else { return 1 }
-        return Double(bounds.height) / Double(image.height)
+        self.entering = entering
     }
 
     override func setPlaying(_ playing: Bool) {
@@ -63,11 +70,16 @@ final class PackageView: FigureView {
         guard let show, let place = position?() else { return }
         let dt = lastTime.map { min(0.1, link.timestamp - $0) } ?? 0
         lastTime = link.timestamp
-        show.pointsPerPixel = pointsPerPixel
+        show.pointsPerPixel = Double(bounds.height) / canvasHeight
         let range = Double(place.bounds.lowerBound)...Double(place.bounds.upperBound)
         if needsStart {
             needsStart = false
-            onStart?(CGFloat(show.start(bounds: range, x: Double(place.x))))
+            if entering, let from = place.entries.randomElement() {
+                onStart?(from)
+                show.start(bounds: range, x: Double(place.x), entering: Double(from))
+            } else {
+                show.start(bounds: range, x: Double(place.x))
+            }
             return
         }
         let dx = show.tick(dt: dt, x: Double(place.x), bounds: range)
