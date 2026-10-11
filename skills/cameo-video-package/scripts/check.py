@@ -21,9 +21,10 @@ def main(pkg, preview=None):
     clips = m["clips"]
     errors = []
     kinds = {c["kind"] for c in clips}
-    for need in ("idle", "walk"):
-        if need not in kinds:
-            errors.append(f"no {need} clip")
+    if "idle" not in kinds:
+        errors.append("no idle clip")
+    if "walk" not in kinds:
+        print("note: no walk clip, the character stays in place")
     poses = {p for c in clips for p in (c.get("from", "front"), c.get("to", "front"))}
     trans = [(c.get("from", "front"), c.get("to", "front")) for c in clips if c["kind"] == "transition"]
     reach, frontier = {"front"}, ["front"]

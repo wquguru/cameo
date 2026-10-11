@@ -21,7 +21,9 @@ def cutout(src, model="birefnet-portrait", soft=True):
     the default hard mask suits splitting sprite sheets."""
     from rembg import new_session, remove
     if model not in _sessions:
-        _sessions[model] = new_session(model)
+        # CPU only: in a fresh venv onnxruntime prefers CoreML, whose Neural Engine compile can hang
+        # for good at 0% CPU on these large models.
+        _sessions[model] = new_session(model, providers=["CPUExecutionProvider"])
     im = (src if isinstance(src, Image.Image) else Image.open(src)).convert("RGB")
     out = remove(im, session=_sessions[model], post_process_mask=not soft)
     a = np.array(out)

@@ -2,6 +2,7 @@
 
     cut_clips.py <videos-dir> <package-dir> <Name>          # one character: builds a new package
     cut_clips.py <videos-dir> <duo-package-dir> X --duo     # duo: adds the cut actions to an existing duo package
+    --force     cut even when the first frames don't look like a chain start (see preflight)
     --model M   rembg model (default birefnet-portrait: cleanest edges, ~10 s/frame;
                 isnet-general-use ~1 s/frame; isnet-anime for flat anime art)
 Expects <chain>.mp4 files named after chains.py keys (walk.mp4, lie.mp4, ...); missing chains are skipped.
@@ -20,6 +21,7 @@ from chains import CHAINS, OPTIONAL, DUO_CHAINS
 
 FPS = 12
 MODEL = "birefnet-portrait"
+FORCE = False
 
 
 def read_video(path):
@@ -30,6 +32,29 @@ def read_video(path):
                           "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
     arr = np.frombuffer(raw, np.uint8).reshape(-1, h, w, 3)
     return [Image.fromarray(a) for a in arr]
+
+
+def preflight(path, duo=False):
+    """Seconds-long look at the first frame before the slow cut: the cutter relies on every chain
+    starting with the full figure standing on a flat background. Returns problems (empty = fine)."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-frames:v", "1", "-f", "image2pipe",
+                          "-vcodec", "png", "-"], capture_output=True, check=True).stdout
+    import io
+    first = Image.open(io.BytesIO(raw)).convert("RGB")
+    fig = C.cutout(first, MODEL, soft=True)
+    x0, y0, x1, y1 = C.bbox(fig)
+    w, h = first.size
+    problems = []
+    if y0 <= 2 or y1 >= h - 2:
+        problems.append("the figure touches the top or bottom of the frame (close-up?): the whole body, "
+                        "with room above the head, must stay in frame")
+    if not duo and (y1 - y0) < 1.5 * (x1 - x0):
+        problems.append("the first frame is not a standing figure (sitting, lying or crouching?): every chain "
+                        "must start standing still, facing the viewer")
+    if C.key_color(first) is None:
+        problems.append("note: the background is not a flat chroma colour, so edges get no colour clean-up "
+                        "(use the start.png from prompts.py)")
+    return problems
 
 
 class Video:
@@ -50,10 +75,24 @@ class Video:
                 c.save(cache / f"{k:04d}.png")
         ref = cut[0]
         x0, y0, x1, y1 = C.bbox(ref)
-        hgt = (y1 - y0) if duo else C.body_height(ref)
         ax = (x0 + x1) / 2 if duo else C.anchor_x(ref)
-        k = C.FIG_H / hgt
-        self.frames = [C.place(c, C.W, C.H, k, ax=ax, ground=y1) for c in cut]
+        # Scale from the standing height, not the first frame: a video may start sitting or crouched.
+        # The camera is static, so the floor is the lowest the feet get.
+        boxes = [C.bbox(c) for c in cut]
+        heights = [(b[3] - b[1]) if duo else C.body_height(c) for b, c in zip(boxes, cut)]
+        hgt = float(np.percentile(heights, 95))
+        ground = int(np.percentile([b[3] for b in boxes], 95))
+        self.notes = []
+        if heights[0] < 0.85 * hgt:
+            self.notes.append("first frame is not standing (sitting/crouching start image?): front clips "
+                              "start and end on that pose; regenerate from a standing start image for clean seams")
+        self.cut, self.k, self.ax, self.ground = cut, C.FIG_H / hgt, ax, ground
+        # Half the canvas width this video needs around the anchor (lying figures are long).
+        self.half = max(max(ax - b[0], b[2] - ax) for b in boxes) * self.k
+
+    def place(self):
+        """Put every frame on the package canvas (C.W, chosen once for all videos) and measure it."""
+        self.frames = [C.place(c, C.W, C.H, self.k, ax=self.ax, ground=self.ground) for c in self.cut]
         small = [np.asarray(f.resize((C.W // 8, C.H // 8), Image.BILINEAR), np.float32) / 255 for f in self.frames]
         # Premultiplied so the background colour of transparent pixels doesn't count.
         self.feat = np.stack([np.concatenate([s[..., :3] * s[..., 3:], s[..., 3:]], -1).ravel() for s in small])
@@ -177,26 +216,35 @@ def cut_walk(v, ref, cuts):
 
 
 def lying_height(f):
+    """Below 1 when the figure lies: well under standing height and long rather than tall
+    (sitting is short too, but taller than wide)."""
     x0, y0, x1, y1 = C.bbox(f)
-    return (y1 - y0) / C.FIG_H
+    return max((y1 - y0) / C.FIG_H / 0.75, (y1 - y0) / max(1, x1 - x0) / 1.1)
 
 
 def cut_lie(v, ref, cuts):
-    st = side_stretch(v, lying_height, 0.6)
+    st = side_stretch(v, lying_height, 1.0)
     if not st:
         raise SystemExit("lie: no lying frames found")
     r0, a, b, r1 = st
     pad = FPS // 3
-    i, j = v.best_loop(a + pad, b - pad, 0.8, 2.5)
-    t, lie, e = enter_exit(v, a, b, i, j)
+    loop = v.best_loop(a + pad, b - pad, 0.8, 2.5)
+    if loop:
+        i, j = loop
+        t, lie, e = enter_exit(v, a, b, i, j)
+        how = f"loop {i}-{j}"
+    else:   # too little lying for a loop: play the lying stretch forward and back
+        t, e = a + pad // 2, max(a + pad // 2 + 1, b - pad // 2)
+        lie = v.frames[t:e + 1] + v.frames[t + 1:e][::-1]
+        how = f"ping-pong {t}-{e} (short lying stretch {b - a + 1}f)"
     out = [clip("lie_down", "transition", "front", "lie", v.frames[r0:t] + [lie[0]]),
            clip("lie_idle", "action", "lie", "lie", lie + [lie[0]], repeat=3),
            clip("get_up", "transition", "lie", "front", xfade([lie[0]] + v.frames[e + 1:r1 + 1], ref))]
-    return out, f"lie: down {r0}-{t}, loop {i}-{j}, up {e}-{r1}"
+    return out, f"lie: down {r0}-{t}, {how}, up {e}-{r1}"
 
 
 def cut_lie_mid(v, ref, cuts, lie_ref=None):
-    st = side_stretch(v, lying_height, 0.6)
+    st = side_stretch(v, lying_height, 1.0)
     if not st:
         raise SystemExit("lie_mid: no lying frames found")
     r0, a, b, r1 = st
@@ -232,12 +280,25 @@ def main(src, out, name, duo=False):
         idle = next(c for c in m["clips"] if c["kind"] == "idle")
         ref = C.load_clip(out / idle["file"], m["width"], m["height"])[0]
     order = sorted(specs, key=lambda k: {"walk": 0, "lie": 1}.get(k, 2))   # ref and lie_ref come first
-    for cid in order:
-        p = src / f"{cid}.mp4"
-        if not p.exists():
-            continue
+    found = [cid for cid in order if (src / f"{cid}.mp4").exists()]
+    if not found:
+        raise SystemExit(f"no chain videos in {src} (expected {', '.join(k + '.mp4' for k in order)})")
+    blocking = []
+    for cid in found:
+        for msg in preflight(src / f"{cid}.mp4", duo):
+            print(f"{cid}.mp4: {msg}")
+            if not msg.startswith("note:"):
+                blocking.append(cid)
+    if blocking and not FORCE:
+        raise SystemExit("Stopped before the slow cut. Regenerate those videos from prompts.py's start.png "
+                         "and prompt, or rerun with --force to cut anyway (expect a wrong scale and bad seams).")
+    videos = {cid: Video(src / f"{cid}.mp4", duo) for cid in found}
+    if not duo:   # one canvas for the whole package, wide enough for the widest pose (lying)
+        C.W = max(C.W, int(np.ceil((2 * max(v.half for v in videos.values()) + 16) / 32) * 32))
+    for v in videos.values():
+        v.place()
+    for cid, v in videos.items():
         spec = specs[cid]
-        v = Video(p, duo)
         if ref is None:
             ref = v.frames[0]
         if spec["mode"] == "walk":
@@ -252,6 +313,15 @@ def main(src, out, name, duo=False):
             cs, note = cut_actions(v, ref, spec["cuts"])
         clips += cs
         report.append(f"{cid}.mp4 ({v.n}f): {note}")
+        report += [f"  <-- CHECK {cid}: {n}" for n in v.notes]
+    if not duo and not any(c["kind"] == "idle" for c in clips):
+        # No walk video: idle comes from the standing (or sitting) start of the first video.
+        v = next(iter(videos.values()))
+        r = runs(v.rest)[0] if runs(v.rest) else (0, 0)
+        loop = v.best_loop(r[0], r[1], 0.8, 3) if r[1] - r[0] >= FPS else None
+        idle = v.frames[loop[0]:loop[1]] + [v.frames[loop[0]]] if loop else C.breathe(ref)
+        clips.insert(0, clip("idle", "idle", "front", "front", idle))
+        report.append("  no walk.mp4: the character stays in place (idle from the start of the first video)")
     for c in clips:   # lying figures are wide: say so when the canvas cuts them off
         hit = sum(np.asarray(f)[:, [0, -1], 3].max() > 24 for f in c["frames"])
         if hit:
@@ -269,14 +339,14 @@ def main(src, out, name, duo=False):
             m["clips"].append(c)
         json.dump(m, open(out / "manifest.json", "w"), indent=1)
         return
-    if not any(c["kind"] == "walk" for c in clips):
-        raise SystemExit("no walk.mp4: a package needs idle + walk")
     poster = clips[0]["frames"][0]
-    C.write_package(out, name, clips)
+    C.write_package(out, name, clips, width=C.W)
     poster.save(out / "poster.png")
 
 
 if __name__ == "__main__":
     if "--model" in sys.argv:
         MODEL = sys.argv[sys.argv.index("--model") + 1]
-    main(*sys.argv[1:4], duo="--duo" in sys.argv)
+    FORCE = "--force" in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith("--") and a != MODEL]
+    main(*args[:3], duo="--duo" in sys.argv)

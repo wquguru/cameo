@@ -49,6 +49,9 @@ Before video, packages were drawn as sprite sheets by a local image model (WAI-A
 
 - **Walk speed** comes from the stride (feet apart at contact minus a foot, two steps per cycle) and is clamped to 220–480 canvas px/s: a bad estimate (few frames, three-quarter views) makes the figure skate.
 - **Two characters drawn together blend** (outfits swap between them, figures merge), with image and video models alike. A duo is staged from two single packages on a 1024-wide canvas, with scripted shoves, hops and chases on top; real contact needs duo chain videos started from that composed frame.
-- **Lying needs room.** A prone figure with raised lower legs is about as long as it is tall standing; the cutter reports clips whose figure touches the canvas side.
+- **Lying needs room.** A prone figure with raised lower legs is about as long as it is tall standing, wider than a 512 canvas; the cutter widens the package canvas to the widest pose (one width for every clip).
+- **Scale from standing, not from the first frame.** A video that starts sitting would otherwise be scaled up to standing height; the cutter takes the standing height across the whole video and the lowest foot position as the floor.
+- **Fail fast.** Cutting costs about 10 s per frame, so the cutter first checks each video's first frame (standing, whole body in frame, flat background) and stops in seconds when a video doesn't start like a chain.
+- **Run matting on the CPU.** In a fresh environment onnxruntime picks CoreML first, and its Neural Engine compile can hang indefinitely at 0% CPU on BiRefNet.
 - **Memory.** A package is decoded once and kept LZ4-packed; only the clip on screen is unpacked, as IOSurfaces Core Animation shows without CPU colour conversion. A two-character package went from 595 MB to about 250 MB this way.
 - **Review cheaply.** Contact sheets of every clip at ~120 px rows catch almost every problem (halos, missing limbs, a loop that jumps) without watching anything.

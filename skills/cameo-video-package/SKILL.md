@@ -37,7 +37,15 @@ Writes `work/<id>/start.png` (figure cut out, on flat green #00B140, or blue #00
 | `actions_a.mp4` | 7 | wave, bow |
 | `actions_b.mp4` | 6.5 | jump, spin |
 
-Only `walk.mp4` is required; each other video adds clips. Tool tips: feed `start.png`, never a transparent PNG (some tools paint transparency as a checkerboard); round fixed lengths up; if a tool caps below the length, split the timeline at a standing beat into two videos from the same image. A user who already has a video: look at a few frames (`ffmpeg -i in.mp4 -vf fps=1,scale=-1:200,tile=10x1 -frames:v 1 strip.jpg`), decide which chain it matches and copy it in under that name.
+Each video adds clips. Without `walk.mp4` the character stays in place (idle comes from the start of another video), so make `walk` first. Tool tips: feed `start.png`, never a transparent PNG (some tools paint transparency as a checkerboard); round fixed lengths up; if a tool caps below the length, split the timeline at a standing beat into two videos from the same image.
+
+A user who already has a video: look at a few frames (`ffmpeg -i in.mp4 -vf fps=1,scale=-1:200,tile=10x1 -frames:v 1 strip.jpg`), decide which chain it matches and copy it in under that name. It can only be cut if it fits the chain rules:
+
+- starts (and ends) standing still, facing the viewer; not sitting, crouching or waving
+- the whole body stays in frame the whole time, with room above the head (no close-ups)
+- the steps of one chain, in order, with standing beats between them
+
+If it doesn't fit, say so and have them regenerate it from `start.png` with the matching prompt: cutting a misfit video gives a wrong scale and bad seams. A flat chroma background is strongly preferred (cleaner edges) but not required.
 
 ## 3. Cut into a package
 
@@ -45,11 +53,11 @@ Only `walk.mp4` is required; each other video adds clips. Tool tips: feed `start
 $PY <skill-dir>/scripts/cut_clips.py work/<id> work/<id>/package "<Name>"
 ```
 
-About 10 s per frame of video (BiRefNet; cached in `<video>.birefnet-portrait.cut/`, so reruns are instant), so run it in the background for several videos. `--model isnet-general-use` is ten times faster with softer edges; `--model isnet-anime` suits flat anime art.
+It first checks each video's first frame (seconds) and stops if a video doesn't start with a standing, fully framed figure; `--force` cuts anyway. Then about 10 s per frame of video (BiRefNet on the CPU; cached in `<video>.birefnet-portrait.cut/`, so reruns are instant), so run it in the background for several videos. `--model isnet-general-use` is ten times faster with softer edges; `--model isnet-anime` suits flat anime art.
 
 How it cuts: frames like the first one are "standing", lopsided frames are "side", short figures are "lying"; loops run between their best-matching frames, transitions enter and leave a loop at its closest phase, and clips ending on the standing pose blend into the same standing frame. On a flat chroma background it also removes leftover background patches and colour spill from the edges.
 
-Read its report. `<-- CHECK` means: action count differs from the prompt (an action was skipped or split) or a figure touches the canvas side (lying too long: use a start image with more side room, or accept it). `walk: no profile frames found` means the video never turned sideways: regenerate.
+Read its report. The canvas widens by itself when a pose (lying) needs it. `<-- CHECK` means: the first frame isn't standing, action count differs from the prompt (an action was skipped or split) or a figure touches the canvas side (lying too long: use a start image with more side room, or accept it). `walk: no profile frames found` means the video never turned sideways: regenerate.
 
 ## 4. Check
 
@@ -65,7 +73,7 @@ Must end with `OK` (idle and walk present, every pose reachable from standing, e
 open -a Cameo work/<id>/package
 ```
 
-Cameo copies the folder in and switches to it. To try a package without importing (development build): `CAMEO_PACKAGE=/abs/path/package .build/debug/Cameo`. Not installed: https://github.com/wquguru/cameo/releases/latest (package support needs a build with the package player).
+Cameo copies the folder in and switches to it. To try a package without importing (development build): `CAMEO_PACKAGE=/abs/path/package .build/debug/Cameo`. With a locally built app: `open -a /path/to/Cameo.app work/<id>/package`. Not installed: https://github.com/wquguru/cameo/releases/latest (package support needs a build with the package player).
 
 ## Two characters together (optional)
 
