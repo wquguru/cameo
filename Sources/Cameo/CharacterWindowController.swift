@@ -238,7 +238,7 @@ final class CharacterWindowController {
         packageView.held = true
         falling = true
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = min(0.5, 0.15 + (from.minY - to.minY) / 2000)
+            context.duration = min(0.5, 0.15 + Double(from.minY - to.minY) / 2000)
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
             panel.animator().setFrame(to, display: true)
         } completionHandler: { [weak self] in
