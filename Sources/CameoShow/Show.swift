@@ -11,6 +11,8 @@ public struct Play: Equatable {
     public var target: Double?
     /// Walk: +1 right, -1 left.
     public var direction: Double = 1
+    /// Ends a request (see `Show.request`).
+    public var fulfils = false
 
     public init(clip: ClipSpec, repeats: Int? = nil, holdTime: Double? = nil, target: Double? = nil, direction: Double = 1) {
         self.clip = clip; self.repeats = repeats; self.holdTime = holdTime; self.target = target; self.direction = direction
@@ -38,11 +40,15 @@ public final class Show {
     public private(set) var facingLeft = false
     /// Counts started plays, so a host can notice changes.
     public private(set) var playIndex = 0
+    /// The action (clip id, or `Show.walkRequest`) asked for with `request`, until it has played.
+    public private(set) var requested: String?
+    public static let walkRequest = "walk"
 
     private let nativeLeft: Bool
     private var queue: [Play] = []
     private var stopAt: Double?
-    private var pokePending = false
+    private enum Pending { case random, action(String), walk }
+    private var pending: Pending?
     private var x: Double = 0
     private var bounds: ClosedRange<Double> = 0...1
     private var direction: Double = 1
@@ -95,10 +101,38 @@ public final class Show {
         activateNext()
     }
 
-    /// A click on the figure: play a random action at the next opportunity.
+    /// A click on the figure: play a random action at the next opportunity (not while a requested
+    /// one is on its way).
     public func poke() {
-        guard !held, clips.contains(where: { $0.kind == .action }) else { return }
-        pokePending = true
+        guard !held, requested == nil, clips.contains(where: { $0.kind == .action }) else { return }
+        pending = .random
+    }
+
+    /// Clip ids of the actions `request` can play: reachable from idle and back.
+    public var actions: [ClipSpec] {
+        let rest = idleClip?.from ?? pose
+        return clips.filter { $0.kind == .action && graph.path(from: rest, to: $0.from) != nil && graph.path(from: $0.to, to: rest) != nil }
+    }
+
+    /// Plays this action (or `walkRequest`: a stroll) once at the next opportunity, going through
+    /// whatever transitions it needs, then carries on as before. nil cancels one not yet started.
+    public func request(_ id: String?) {
+        guard let id else {
+            // Back to the show: what is playing finishes, what was lined up for the request goes.
+            if case .random = pending {} else { pending = nil }
+            if queue.contains(where: \.fulfils) { queue.removeAll() }
+            play.fulfils = false
+            requested = nil
+            return
+        }
+        if id == Self.walkRequest {
+            guard walkClip != nil, idleClip != nil else { return }
+            pending = .walk
+        } else {
+            guard actions.contains(where: { $0.id == id }) else { return }
+            pending = .action(id)
+        }
+        requested = id
     }
 
     /// Advances the show by `dt` seconds with the figure standing at `x`; returns how far (points,
@@ -127,12 +161,12 @@ public final class Show {
                 let cycleEnd = (elapsed / cycle).rounded(.up) * cycle
                 let atEnd = moved.x + direction * speed * (cycleEnd - elapsed)
                 let edge = direction > 0 ? bounds.upperBound : bounds.lowerBound
-                var done = pokePending || (play.holdTime.map { elapsed >= $0 } ?? false)
+                var done = pending != nil || (play.holdTime.map { elapsed >= $0 } ?? false)
                 if (edge - atEnd) * direction < speed * cycle { done = true }
                 if let target = play.target, (target - atEnd) * direction < speed * cycle / 2 { done = true }
                 if done { stopAt = cycleEnd }
             }
-        } else if play.repeats == nil, stopAt == nil, pokePending || elapsed >= (play.holdTime ?? 0) {
+        } else if play.repeats == nil, stopAt == nil, pending != nil || elapsed >= (play.holdTime ?? 0) {
             stopAt = (elapsed / cycle).rounded(.up) * cycle
         }
 
@@ -146,11 +180,35 @@ public final class Show {
     // MARK: Planning
 
     private func finishPlay(carry: Double) {
-        pose = play.clip.to
-        if pokePending {
-            pokePending = false
+        let ended = play
+        pose = ended.clip.to
+        if ended.fulfils { requested = nil }
+        if let next = pending {
+            pending = nil
             queue.removeAll()
-            planAction()
+            let id: String?
+            switch next {
+            case .random:
+                id = nil
+                appendAction(from: pose)
+            case .action(let action):
+                id = action
+                appendAction(from: pose, only: action)
+            case .walk:
+                id = Self.walkRequest
+                planRequestedStroll(after: ended)
+            }
+            // Mark the play that answers the request (none yet while it is still turning out of a walk).
+            if let id {
+                if pending != nil {
+                    requested = id
+                } else if let last = queue.lastIndex(where: { id == Self.walkRequest ? $0.clip.kind == .walk : $0.clip.id == id }) {
+                    queue[last].fulfils = true
+                    requested = id
+                } else {
+                    requested = nil
+                }
+            }
         }
         if queue.isEmpty { plan() }
         activateNext()
@@ -182,8 +240,27 @@ public final class Show {
         }
     }
 
+    /// A stroll asked for with `request`: away from the nearer edge. Cut short mid-walk, it keeps
+    /// going the same way while there is room; to turn back it first leaves the walk (still facing
+    /// the old way) and plans the stroll from there, so the figure never flips mid-stride.
+    private func planRequestedStroll(after ended: Play) {
+        let span = bounds.upperBound - bounds.lowerBound
+        var dir: Double = x < bounds.lowerBound + span / 2 ? 1 : -1
+        if ended.clip.kind == .walk, let idle = idleClip {
+            let room = direction > 0 ? bounds.upperBound - x : x - bounds.lowerBound
+            if room > span * 0.25 {
+                dir = direction
+            } else if let out = graph.path(from: pose, to: idle.from), !out.isEmpty {
+                queue += out.map { Play(clip: $0, repeats: 1) }
+                pending = .walk
+                return
+            }
+        }
+        planStroll(direction: dir, target: nil, maxTime: 4 + 4 * random(), act: false)
+    }
+
     /// Walk (to a point, or wandering), settle into idle, maybe act.
-    private func planStroll(direction dir: Double, target: Double?, maxTime: Double?) {
+    private func planStroll(direction dir: Double, target: Double?, maxTime: Double?, act: Bool = true) {
         guard let walk = walkClip, let idle = idleClip,
               let toWalk = graph.path(from: pose, to: walk.from),
               let fromWalk = graph.path(from: walk.to, to: idle.from) else { return planStill() }
@@ -192,7 +269,7 @@ public final class Show {
         queue.append(Play(clip: walk, holdTime: maxTime, target: target, direction: dir))
         queue += fromWalk.map { Play(clip: $0, repeats: 1) }
         queue.append(Play(clip: idle, holdTime: 2 + 3 * random()))
-        if random() < 0.7 { appendAction(from: idle.to) }
+        if act, random() < 0.7 { appendAction(from: idle.to) }
     }
 
     /// Stay put: idle, maybe act (also the fallback when the walk cannot be linked up).
@@ -206,14 +283,11 @@ public final class Show {
         if random() < 0.7 { appendAction(from: idle.to) }
     }
 
-    private func planAction() {
-        appendAction(from: pose)
-    }
-
-    /// Path to a random reachable action, the action, and back to idle for a moment.
-    private func appendAction(from start: String, then idle: ClipSpec? = nil) {
-        let idle = idle ?? idleClip
-        let options: [(ClipSpec, [ClipSpec])] = clips.filter { $0.kind == .action }.compactMap { action in
+    /// Path to a random reachable action (or the one with id `only`), the action, and back to idle
+    /// for a moment.
+    private func appendAction(from start: String, only: String? = nil) {
+        let idle = idleClip
+        let options: [(ClipSpec, [ClipSpec])] = clips.filter { $0.kind == .action && (only == nil || $0.id == only) }.compactMap { action in
             guard let there = graph.path(from: start, to: action.from) else { return nil }
             if let idle, graph.path(from: action.to, to: idle.from) == nil { return nil }
             return (action, there)

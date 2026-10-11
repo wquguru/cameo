@@ -9,7 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private let thumbnails = Thumbnails()
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
-    private var characterWindow: CharacterWindowController!
+    private var figures: StageWindows!
     private var library: LibraryWindowController!
     private var updateBadge: AnyCancellable?
     private var dockIcon: AnyCancellable?
@@ -46,10 +46,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.behavior = .transient
         popover.delegate = self
 
-        characterWindow = CharacterWindowController(model: model)
-        // Right-clicking the figure toggles the popover above it, clear of the pointer.
-        characterWindow.onSecondaryClick = { [weak self] view in
+        figures = StageWindows(model: model)
+        // Right-clicking a figure chooses her and toggles the popover above her, clear of the pointer.
+        figures.onSecondaryClick = { [weak self] id, view in
             guard let self else { return }
+            self.model.selectedID = id
             // A transient popover may already be closing from this very click.
             let justClosed = self.lastClose.map { Date().timeIntervalSince($0) < 0.4 } ?? false
             if self.popoverAnchor === view && (self.popover.isShown || justClosed) {

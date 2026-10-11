@@ -8,6 +8,9 @@ import QuartzCore
 @MainActor
 final class PackageView: FigureView {
     private var show: Show?
+    /// Holds the frame. Mirrored with its own transform: the view's layer turns about its corner,
+    /// which would flip the figure out of the window.
+    private let content = CALayer()
     private var frames: [String: [PackedFrame]] = [:]
     private var lastTime: CFTimeInterval?
     private struct Drawn: Equatable { var clip: String, index: Int, mirrored: Bool }
@@ -20,6 +23,11 @@ final class PackageView: FigureView {
     private var canvasHeight = 1.0
     private var needsStart = false
     private var entering = false
+    /// A request made before the show started.
+    private var waiting: String?
+    private var requested: String?
+    /// The requested action has played, or couldn't be.
+    var onRequestEnded: (() -> Void)?
 
     /// How far the figure reaches either side of the canvas centre, in canvas widths.
     private(set) var reach: CGFloat = 0.5
@@ -39,22 +47,36 @@ final class PackageView: FigureView {
         super.init(frame: frame)
         layer = CALayer()
         wantsLayer = true
-        layer?.contentsGravity = .resizeAspect
         layer?.isOpaque = false
+        content.contentsGravity = .resizeAspect
+        content.isOpaque = false
+        layer?.addSublayer(content)
         onClick = { [weak self] in self?.show?.poke() }
         onDragChanged = { [weak self] dragging in self?.held = dragging }
     }
 
     required init?(coder: NSCoder) { fatalError() }
 
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        content.transform = CATransform3DIdentity
+        content.frame = CGRect(origin: .zero, size: newSize)
+        content.transform = mirrored ? CATransform3DMakeScale(-1, 1, 1) : CATransform3DIdentity
+        CATransaction.commit()
+    }
+
     /// Shows a package standing where the window is, or, `entering`, walking in from off-screen.
     func load(_ package: LoadedPackage?, entering: Bool = false) {
         show = nil
+        waiting = nil
+        requested = nil
         shown = nil
         current = nil
         cache = ("", [:])
         frames = package?.frames ?? [:]
-        layer?.contents = nil
+        content.contents = nil
         guard let package else { return }
         show = Show(clips: package.manifest.clips, facingLeft: package.manifest.facingLeft)
         show?.held = held
@@ -65,9 +87,28 @@ final class PackageView: FigureView {
         self.entering = entering
     }
 
+    /// Plays an action (clip id or `Show.walkRequest`) once, then carries on; nil carries on now.
+    func request(_ id: String?) {
+        guard let show, !needsStart else {
+            waiting = id
+            return
+        }
+        show.request(id)
+        requested = show.requested
+        if id != nil, requested == nil { onRequestEnded?() }
+    }
+
     override func setPlaying(_ playing: Bool) {
         super.setPlaying(playing)
-        if !playing { lastTime = nil }
+        guard !playing else { return }
+        lastTime = nil
+        // Paused (hidden, covered, asleep): a requested action would never play, so drop it.
+        if waiting != nil || requested != nil {
+            waiting = nil
+            show?.request(nil)
+            requested = nil
+            onRequestEnded?()
+        }
     }
 
     override func step(_ link: CADisplayLink) {
@@ -84,9 +125,17 @@ final class PackageView: FigureView {
             } else {
                 show.start(bounds: range, x: Double(place.x))
             }
+            if let id = waiting {
+                waiting = nil
+                request(id)
+            }
             return
         }
         let dx = show.tick(dt: dt, x: Double(place.x), bounds: range)
+        if requested != nil, show.requested == nil {
+            requested = nil
+            onRequestEnded?()
+        }
         if dx != 0 { onMove?(CGFloat(dx)) }
         draw(show)
     }
@@ -106,8 +155,8 @@ final class PackageView: FigureView {
         mirrored = flip
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        layer?.contents = current?.surface
-        layer?.transform = flip ? CATransform3DMakeScale(-1, 1, 1) : CATransform3DIdentity
+        content.contents = current?.surface
+        content.transform = flip ? CATransform3DMakeScale(-1, 1, 1) : CATransform3DIdentity
         CATransaction.commit()
     }
 

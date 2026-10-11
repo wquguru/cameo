@@ -1,3 +1,4 @@
+import CameoShow
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -9,6 +10,8 @@ struct PopoverView: View {
     var onAdd: () -> Void
     var onOpenLibrary: () -> Void
     @State private var dropTargeted = false
+    /// Nudges the cards sideways when a ⌘-click finds the desktop full.
+    @State private var shaking = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -26,6 +29,8 @@ struct PopoverView: View {
                 cards
                 if model.selected?.isBuiltIn == true {
                     catActions
+                } else if let selected = model.selected, let actions = model.packageActions(for: selected) {
+                    packageActions(actions)
                 }
                 if model.characters.count == 1 {
                     Text(L("Drop in a .mov with alpha (HEVC with Alpha or ProRes 4444)"))
@@ -54,17 +59,6 @@ struct PopoverView: View {
                 }
             }
             separator
-            MenuRow(action: { model.perch.toggle() }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 11, weight: .semibold))
-                        .opacity(model.perch ? 1 : 0)
-                        .frame(width: 14)
-                    Text(L("Can Stand on Windows"))
-                }
-            }
-            .help(L("Drop a walking character on a window and it stays up there, riding along when the window moves."))
-            .accessibilityAddTraits(model.perch ? .isSelected : [])
             MenuRow(action: { model.setLaunchAtLogin(!model.launchAtLogin) }) {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark")
@@ -130,7 +124,8 @@ struct PopoverView: View {
 
     private var status: String {
         guard model.visible, let name = model.selected?.name else { return L("Hidden") }
-        return L("Showing · %@", name)
+        let others = model.stage.count - 1
+        return others > 0 ? L("Showing · %@ and %d more", name, others) : L("Showing · %@", name)
     }
 
     /// "检查更新…" with the current version; becomes the update itself once one is found,
@@ -274,14 +269,22 @@ struct PopoverView: View {
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
+    private func toggle(_ character: Character) {
+        guard !model.toggleOnStage(character.id) else { return }
+        withAnimation(.interpolatingSpring(stiffness: 900, damping: 8)) { shaking = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            withAnimation(.interpolatingSpring(stiffness: 900, damping: 8)) { shaking = false }
+        }
+    }
+
     private var cards: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), alignment: .leading, spacing: 8) {
             ForEach(model.recent.prefix(Self.recentCount)) { character in
-                let lit = character.id == model.selectedID
+                let lit = model.stage.contains(character.id)
                 VStack(spacing: 4) {
                     CharacterCard(image: thumbnails.image(for: character, url: model.url(for: character)), lit: lit) {
-                        model.selectedID = character.id
-                        model.visible = true
+                        // As in Finder: a click shows only her, ⌘-click adds her or takes her off.
+                        if NSEvent.modifierFlags.contains(.command) { toggle(character) } else { model.show(character.id) }
                     }
                     Text(character.name)
                         .font(.system(size: 11, weight: lit ? .medium : .regular))
@@ -289,11 +292,15 @@ struct PopoverView: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
-                .help(character.name)
+                .help(lit ? L("%@ · ⌘-click to take off the Desktop", character.name)
+                          : L("%@ · ⌘-click to also show on the Desktop", character.name))
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(character.name)
                 .contextMenu {
+                    Button(L("Show on Desktop")) { model.show(character.id) }
+                    Button(lit ? L("Take off the Desktop (⌘-Click)") : L("Also Show on Desktop (⌘-Click)")) { toggle(character) }
                     if !character.isBuiltIn {
+                        Divider()
                         Button(L("Move “%@” to Trash", character.name), role: .destructive) { model.moveToTrash(character) }
                     }
                 }
@@ -311,39 +318,26 @@ struct PopoverView: View {
                 Text(L("Add")).font(.system(size: 11)).foregroundStyle(.secondary)
             }
         }
+        .offset(x: shaking ? -8 : 0)
     }
 
     /// What the built-in cat does: on its own (Auto), or one action held until changed.
-    /// Drawn like a small segmented control, but with equal segments whose labels shrink to fit,
-    /// so longer translations never widen the popover (NSSegmentedControl won't compress).
     private var catActions: some View {
-        let choices: [(CatAction?, String)] = [(nil, L("Auto"))] + CatAction.allCases.map { ($0, $0.label) }
-        return HStack(spacing: 2) {
-            ForEach(choices, id: \.1) { action, label in
-                let selected = model.catAction == action
-                Button { model.catAction = action } label: {
-                    Text(label)
-                        .font(.system(size: 12, weight: selected ? .medium : .regular))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                        .padding(.horizontal, 3)
-                        .frame(maxWidth: .infinity, minHeight: 22)
-                        .background {
-                            if selected {
-                                RoundedRectangle(cornerRadius: 5).fill(Color(nsColor: .controlBackgroundColor))
-                                    .shadow(color: .black.opacity(0.14), radius: 1, y: 1)
-                            }
-                        }
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected ? .isSelected : [])
-            }
-        }
-        .padding(2)
-        .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.06)))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(L("Chaofei’s action"))
+        ActionChips(choices: [(nil, L("Auto"))] + CatAction.allCases.map { ($0.rawValue, $0.label) },
+                    selected: model.catAction?.rawValue,
+                    pick: { model.catAction = $0.flatMap(CatAction.init(rawValue:)) })
+            .accessibilityLabel(L("Chaofei’s action"))
+    }
+
+    /// What a package can do, from its manifest: a click plays one once, then it carries on by
+    /// itself (Auto), going through whatever transitions the action needs.
+    private func packageActions(_ actions: PackageActions) -> some View {
+        let walk: [(String?, String)] = actions.walks ? [(Show.walkRequest, L("Walk"))] : []
+        return ActionChips(choices: [(nil, L("Auto"))] + walk + actions.actions.map { ($0.id, $0.label) },
+                           selected: model.packageAction,
+                           pick: { model.perform($0) })
+            .help(L("Click to play it once, then back to Auto"))
+            .accessibilityLabel(L("Actions"))
     }
 
     private var sizeSlider: some View {
@@ -356,6 +350,39 @@ struct PopoverView: View {
                 .accessibilityValue("\(Int(model.scale * 100))%")
             FigureShape().fill(.secondary).frame(width: 13, height: 26)
         }
+    }
+}
+
+/// Action buttons in equal cells, one row for up to six, else rows of four, so the popover keeps
+/// its width; labels shrink to fit longer translations. The chosen one is filled with the accent.
+private struct ActionChips: View {
+    let choices: [(String?, String)]
+    let selected: String?
+    let pick: (String?) -> Void
+
+    var body: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: choices.count <= 6 ? choices.count : 4)
+        LazyVGrid(columns: columns, spacing: 4) {
+            // By position: manifest labels may repeat.
+            ForEach(Array(choices.enumerated()), id: \.offset) { _, choice in
+                let (id, label) = choice
+                let on = selected == id
+                Button { pick(id) } label: {
+                    Text(label)
+                        .font(.system(size: 12, weight: on ? .medium : .regular))
+                        .foregroundStyle(on ? Color.white : Color.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .padding(.horizontal, 3)
+                        .frame(maxWidth: .infinity, minHeight: 24)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(on ? Color.accentColor : Color.primary.opacity(0.07)))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+        .accessibilityElement(children: .contain)
     }
 }
 

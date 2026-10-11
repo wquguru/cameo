@@ -4,9 +4,11 @@ import CameoShow
 import Combine
 import IOKit.ps
 
-/// The transparent, always-on-top panel that shows the selected character: a video in a
-/// `PlayerView`, or the built-in cat in a `CatView`. Its anchor is the figure's feet
-/// (bottom-centre), so resizing keeps it standing in place.
+/// The transparent, always-on-top panel that shows one character on the desktop: a video in a
+/// `PlayerView`, a package in a `PackageView`, or the built-in cat in a `CatView`. Its anchor is
+/// the figure's feet (bottom-centre), so resizing keeps it standing in place. `StageWindows` keeps
+/// one per character on the stage; swapping a character keeps her window, so the new one stands
+/// where the old one stood.
 @MainActor
 final class CharacterWindowController {
     /// Height of a video character at 100 % scale, in points.
@@ -15,6 +17,12 @@ final class CharacterWindowController {
     static let catHeightFactor: CGFloat = 0.75
 
     private let model: AppModel
+    /// The character shown; changing it swaps the figure in place.
+    var characterID: UUID {
+        didSet { if characterID != oldValue { update() } }
+    }
+    /// Where on the stage it came on, to spread out figures that have no saved place yet.
+    private let slot: Int
     private let panel: NSPanel
     private let playerView = PlayerView(frame: .zero)
     private let catView = CatView(frame: .zero)
@@ -35,18 +43,24 @@ final class CharacterWindowController {
     private var pollTimer: Timer?
     private var pollCount = 0
     private var screensAsleep = false
-    /// The selection restored at launch has been loaded; packages chosen after that walk in.
-    private var restored = false
+    /// Loaded once; packages chosen after that (or put on the stage after launch) walk in.
+    private var restored: Bool
     /// A right-click on the figure, with the view to show the popover beside.
     var onSecondaryClick: ((NSView) -> Void)?
 
+    private var character: Character? { model.characters.first { $0.id == characterID } }
+
     private var figureView: FigureView {
-        if model.selected?.isBuiltIn == true { return catView }
-        return model.selected?.isPackage == true ? packageView : playerView
+        if character?.isBuiltIn == true { return catView }
+        return character?.isPackage == true ? packageView : playerView
     }
 
-    init(model: AppModel) {
+    /// `entering`: put on the stage after launch, so a package walks in.
+    init(model: AppModel, characterID: UUID, slot: Int, entering: Bool) {
         self.model = model
+        self.characterID = characterID
+        self.slot = slot
+        restored = entering
         panel = NSPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -66,6 +80,10 @@ final class CharacterWindowController {
         packageView.position = { [weak self] in self?.walkPosition() }
         packageView.onMove = { [weak self] dx in self?.movePackage(by: dx) }
         packageView.onStart = { [weak self] x in self?.enter(at: x) }
+        packageView.onRequestEnded = { [weak self] in
+            guard let self, self.model.selectedID == self.characterID else { return }
+            self.model.packageActionEnded()
+        }
 
         model.objectWillChange
             .receive(on: DispatchQueue.main)
@@ -96,10 +114,28 @@ final class CharacterWindowController {
         update()
     }
 
+    /// Takes the figure off the desktop for good.
+    func close() {
+        saveAnchor()
+        pollTimer?.invalidate()
+        cancellables.removeAll()
+        playerView.load(nil)
+        packageView.load(nil)
+        playerView.setPlaying(false)
+        catView.setPlaying(false)
+        packageView.setPlaying(false)
+        panel.orderOut(nil)
+    }
+
+    /// Plays a package action once (see `PackageView.request`).
+    func request(_ action: String?) {
+        packageView.request(action)
+    }
+
     // MARK: State
 
     private func update() {
-        let character = model.selected
+        let character = self.character
         catView.brain.manual = model.catAction
         if character?.id != loadedID {
             loadedID = character?.id
@@ -120,7 +156,7 @@ final class CharacterWindowController {
             }
         }
         if character != nil { restored = true }
-        if ledge != nil, !model.perch || figureView !== packageView { dropOffLedge(below: nil) }
+        if ledge != nil, figureView !== packageView { dropOffLedge(below: nil) }
         layout()
         if model.visible && character != nil {
             panel.orderFrontRegardless()
@@ -143,6 +179,7 @@ final class CharacterWindowController {
                 layout()
             }
         } catch {
+            if model.selectedID == characterID { model.packageActionEnded() }
             model.errorMessage = L("Couldn’t add “%@”: %@", character.name, error.localizedDescription)
         }
     }
@@ -165,7 +202,7 @@ final class CharacterWindowController {
     // MARK: Geometry
 
     private func layout() {
-        let factor = model.selected?.isBuiltIn == true ? Self.catHeightFactor : 1
+        let factor = character?.isBuiltIn == true ? Self.catHeightFactor : 1
         let height = Self.baseHeight * model.scale * factor
         let size = NSSize(width: (height * aspect).rounded(), height: height.rounded())
         if figureView.isDragging { feet = shownFeet }
@@ -216,7 +253,7 @@ final class CharacterWindowController {
 
     /// The window top a package dropped with its feet at (x, y) lands on, if any.
     private func landing(x: CGFloat, y: CGFloat) -> Ledge? {
-        guard figureView === packageView, model.perch else { return nil }
+        guard figureView === packageView else { return nil }
         let point = NSPoint(x: x, y: y)
         guard let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? panel.screen else { return nil }
         return Ledges.landing(x: x, y: y, halfWidth: panel.frame.width * packageView.reach, height: panel.frame.height,
@@ -259,15 +296,20 @@ final class CharacterWindowController {
 
     private var shownFeet: NSPoint { NSPoint(x: panel.frame.midX, y: panel.frame.minY) }
 
+    /// Where the figure stands: where it was, else where this character was last saved (or, for
+    /// the first on the stage, where the single figure of earlier versions was), else the bottom
+    /// right, the next ones further left.
     private func anchor() -> NSPoint {
         if let feet { return feet }
         let defaults = UserDefaults.standard
-        if let saved = defaults.array(forKey: "anchor") as? [Double], saved.count == 2 {
+        let anchors = defaults.dictionary(forKey: "anchors") as? [String: [Double]] ?? [:]
+        let legacy = slot == 0 ? defaults.array(forKey: "anchor") as? [Double] : nil
+        if let saved = anchors[characterID.uuidString] ?? legacy, saved.count == 2 {
             let point = NSPoint(x: saved[0], y: saved[1])
             if NSScreen.screens.contains(where: { $0.frame.insetBy(dx: -1, dy: -1).contains(point) }) { return point }
         }
         let visible = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
-        return NSPoint(x: visible.maxX - 220, y: visible.minY)
+        return NSPoint(x: visible.maxX - 220 - CGFloat(slot) * 260, y: visible.minY)
     }
 
     /// Moves feet that ended up off every screen (dragged away, a display unplugged) back so the
@@ -290,8 +332,11 @@ final class CharacterWindowController {
     }
 
     private func saveAnchor() {
-        guard panel.frame.width > 0 else { return }
-        UserDefaults.standard.set([shownFeet.x, shownFeet.y], forKey: "anchor")
+        guard panel.frame.width > 0, character != nil else { return }
+        let defaults = UserDefaults.standard
+        var anchors = defaults.dictionary(forKey: "anchors") as? [String: [Double]] ?? [:]
+        anchors[characterID.uuidString] = [shownFeet.x, shownFeet.y]
+        defaults.set(anchors, forKey: "anchors")
     }
 
     /// Walks the cat's window sideways, keeping it on its screen. Returns true at an edge.

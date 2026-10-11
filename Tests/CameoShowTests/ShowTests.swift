@@ -185,15 +185,148 @@ private func run(_ show: Show, seconds: Double, bounds: ClosedRange<Double> = 0.
         #expect(show.play.clip.from == "front")
     }
 
+    @Test func requestPlaysThatActionOnceThroughTransitions() {
+        let clips = basic + [clip("lie_down", .transition, "front", "lie"), clip("get_up", .transition, "lie", "front"),
+                             clip("phone", .action, "lie", "lie")]
+        for seed in 1...5 as ClosedRange<UInt64> {
+            let show = Show(clips: clips, random: seeded(seed))
+            #expect(show.actions.map(\.id) == ["wave", "bow", "phone"])
+            var x = 500.0
+            show.start(bounds: 0...1000, x: x)
+            show.request("phone")
+            #expect(show.requested == "phone")
+            var ids: [String] = []
+            var index = show.playIndex
+            var clearedAfter: Int?
+            for _ in 0..<4000 {
+                x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+                if show.playIndex != index { index = show.playIndex; ids.append(show.play.clip.id) }
+                if clearedAfter == nil, show.requested == nil { clearedAfter = ids.count }
+            }
+            let at = ids.firstIndex(of: "phone")
+            #expect(at != nil, "seed \(seed): \(ids.prefix(8))")
+            guard let at, at > 0, at + 1 < ids.count else { continue }
+            #expect(ids[at - 1] == "lie_down" && ids[at + 1] == "get_up")
+            #expect(ids.prefix(at).filter { $0 == "phone" || $0 == "wave" || $0 == "bow" }.isEmpty)
+            // Cleared once the action is over, not before.
+            #expect(clearedAfter == at + 2)
+        }
+    }
+
+    @Test func secondRequestDuringTheFirstStillPlays() {
+        let clips = basic + [clip("lie_down", .transition, "front", "lie"), clip("get_up", .transition, "lie", "front"),
+                             clip("phone", .action, "lie", "lie")]
+        for seed in 1...5 as ClosedRange<UInt64> {
+            let show = Show(clips: clips, random: seeded(seed))
+            var x = 500.0
+            show.start(bounds: 0...1000, x: x)
+            show.request("phone")
+            var asked = false
+            var ids: [String] = []
+            var index = show.playIndex
+            for _ in 0..<4000 {
+                x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+                if show.playIndex != index { index = show.playIndex; ids.append(show.play.clip.id) }
+                if !asked, show.play.clip.id == "phone" { show.request("wave"); asked = true }
+                if asked, !ids.contains("wave") { #expect(show.requested == "wave", "seed \(seed) dropped the second request") }
+            }
+            #expect(ids.contains("wave"))
+            #expect(show.requested == nil)
+        }
+    }
+
+    @Test func pokeWaitsForARequest() {
+        for seed in 1...5 as ClosedRange<UInt64> {
+            let show = Show(clips: basic, random: seeded(seed))
+            var x = 500.0
+            show.start(bounds: 0...1000, x: x)
+            show.request("bow")
+            show.poke()
+            var actions: [String] = []
+            var index = show.playIndex
+            for _ in 0..<400 {
+                x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+                if show.playIndex != index, show.play.clip.kind == .action { actions.append(show.play.clip.id) }
+                index = show.playIndex
+            }
+            #expect(actions.first == "bow", "seed \(seed): \(actions)")
+        }
+    }
+
+    @Test func walkRequestMidWalkNeverReversesInStride() {
+        for seed in 1...8 as ClosedRange<UInt64> {
+            for entering in [-50.0, 1050.0] {
+                let show = Show(clips: basic, random: seeded(seed))
+                var x = entering
+                show.start(bounds: 0...1000, x: 500, entering: entering)
+                var last = show.play
+                var walkTicks = 0
+                var waiting = false
+                for _ in 0..<3000 {
+                    if show.play.clip.kind == .walk {
+                        walkTicks += 1
+                        // Ask again and again while walking, near the edges too.
+                        if walkTicks % 15 == 0 { show.request(Show.walkRequest); waiting = true }
+                    }
+                    x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+                    if show.play != last, show.play.fulfils { waiting = false }
+                    // Turning out of the walk first still counts as on its way.
+                    if waiting { #expect(show.requested == Show.walkRequest, "seed \(seed): request dropped") }
+                    if show.play != last {
+                        if last.clip.kind == .walk, show.play.clip.kind == .walk {
+                            #expect(last.direction == show.play.direction, "seed \(seed): reversed mid-stride at \(x)")
+                        }
+                        #expect(last.clip.to == show.play.clip.from)
+                        last = show.play
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func requestNilCancelsAndUnknownIsIgnored() {
+        let show = Show(clips: basic, random: seeded(2))
+        show.start(bounds: 0...1000, x: 500)
+        show.request("nope")
+        #expect(show.requested == nil)
+        show.request("wave")
+        show.request(nil)
+        #expect(show.requested == nil)
+        var x = 500.0
+        var index = show.playIndex
+        var plays: [Play] = []
+        for _ in 0..<200 {
+            x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+            if show.playIndex != index { index = show.playIndex; plays.append(show.play) }
+        }
+        #expect(!plays.contains { $0.fulfils })
+    }
+
+    @Test func walkRequestStrolls() {
+        let show = Show(clips: basic, random: seeded(5))
+        var x = 500.0
+        show.start(bounds: 0...1000, x: x)
+        show.request(Show.walkRequest)
+        var walked = false
+        for _ in 0..<2000 {
+            x += show.tick(dt: 0.05, x: x, bounds: 0...1000)
+            if show.play.clip.kind == .walk { walked = true; #expect(show.requested == Show.walkRequest) }
+            if walked, show.requested == nil { break }
+        }
+        #expect(walked && show.requested == nil)
+        #expect(Show(clips: [basic[0], basic[4]]).actions.map(\.id) == ["wave"])
+    }
+
     @Test func manifestParsing() throws {
         let json = """
         {"spec":1,"name":"N","width":512,"height":768,"facing":"right","future":1,"clips":[
          {"id":"idle","file":"clips/idle.mov","kind":"idle","from":"front","to":"front","fps":6},
-         {"id":"w","file":"clips/w.mov","kind":"walk","from":"side","to":"side","speed":95},
+         {"id":"w","file":"clips/w.mov","kind":"walk","from":"side","to":"side","speed":95,"label":"Stroll"},
          {"id":"x","file":"clips/x.mov","kind":"mystery"}]}
         """
         let m = try PackageManifest.parse(Data(json.utf8))
         #expect(m.clips.map(\.id) == ["idle", "w"])
         #expect(m.clips[1].speed == 95 && m.clips[1].loop)
+        #expect(m.clips[0].label == nil && m.clips[1].label == "Stroll")
     }
 }

@@ -15,6 +15,8 @@ struct LibraryView: View {
     @State private var previewing = false
     @State private var order: [UUID] = []
     @State private var columns = 1
+    /// Bumped when a ⌘-click finds the desktop full, to shake the stage.
+    @State private var shake = 0
     @FocusState private var gridFocused: Bool
     @AppStorage(LibraryZoom.key) private var zoom = LibraryZoom.standard
     @Environment(\.undoManager) private var undoManager
@@ -38,7 +40,21 @@ struct LibraryView: View {
 
     private var selected: Character? { shown.first { $0.id == selection } }
 
+    /// "10 actions · Walks"
+    private static func detail(_ package: PackageActions) -> String {
+        let n = package.actions.count
+        let actions = n == 1 ? L("1 action") : L("%d actions", n)
+        return package.walks ? actions + " · " + L("Walks") : actions
+    }
+
     var body: some View {
+        VStack(spacing: 0) {
+            LibraryStage(model: model, thumbnails: thumbnails, shake: shake)
+            content
+        }
+    }
+
+    private var content: some View {
         GeometryReader { geo in
             ScrollViewReader { proxy in
                 ScrollView {
@@ -113,20 +129,32 @@ struct LibraryView: View {
                     video: video,
                     box: thumbnails.bounds[character.id],
                     height: height,
-                    lit: model.visible && character.id == model.selectedID,
+                    detail: model.packageActions(for: character).map(Self.detail),
+                    onStage: model.stage.contains(character.id),
                     selected: character.id == selection,
-                    onSelect: { selection = character.id; gridFocused = true },
+                    onToggle: { toggle(character) },
+                    onSelect: {
+                        selection = character.id
+                        gridFocused = true
+                        if NSEvent.modifierFlags.contains(.command) { toggle(character) } else { show(character) }
+                    },
                     onShow: { selection = character.id; show(character) },
                     onRename: { model.rename(character, to: $0) },
-                    onTrash: { trash(character) })
+                    onTrash: { trash(character) },
+                    onPreview: { selection = character.id; previewing = true })
                 .id(character.id)
             }
         }
     }
 
+    /// A click: only her on the desktop.
     private func show(_ character: Character) {
-        model.selectedID = character.id
-        model.visible = true
+        model.show(character.id)
+    }
+
+    /// A ⌘-click: her too, or her off; the stage shakes when the desktop is full.
+    private func toggle(_ character: Character) {
+        if !model.toggleOnStage(character.id) { shake += 1 }
     }
 
     /// The grid's keys, as in Finder and Photos.

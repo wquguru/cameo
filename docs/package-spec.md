@@ -43,12 +43,13 @@ A character is a folder. Production (frames → clips) and the player only meet 
 | `fps` | Playback frame rate; overrides the file's own if present. |
 | `speed` | Walk only: horizontal ground speed in canvas pixels per second at native size. Player scales it with display size. |
 | `repeat` | Action only: how many times to play in a row (default 1). |
+| `label` | Optional, action only: the button text in the popover. Without it Cameo translates the ids the package skill writes (`wave`, `bow`, `jump`, `spin`, `cheer`, `stretch`, `dance`, `lie_idle`, `lie_phone`, …) and shows any other id made readable (`lie_phone` → "Lie phone"). |
 
 Unknown fields are ignored; unknown kinds are skipped.
 
 ## Player behaviour (iStripper-style show)
 
-A scheduler strings clips into a show: enter from a screen edge walking → stop at a random x → turn to front → idle a while → an action → idle → turn to side → walk somewhere else (or off-screen and back). Only legal transitions (`to` == next `from`) are chosen; when no direct edge exists, the shortest path through transitions is used. Click → play a random action at the next front pose. Drag → pause walking; release → resume where it was dropped: on the ground, or on top of another app's window, whose top edge then counts as the ground (it walks along it and rides along when the window moves). Production needs nothing extra for this: feet on the bottom row is all the player relies on.
+A scheduler strings clips into a show: enter from a screen edge walking → stop at a random x → turn to front → idle a while → an action → idle → turn to side → walk somewhere else (or off-screen and back). Only legal transitions (`to` == next `from`) are chosen; when no direct edge exists, the shortest path through transitions is used. Click → play a random action at the next front pose. Choosing an action in the popover plays that one once at the next opportunity, going through the transitions it needs (lie down first, get up after), then the show carries on. Drag → pause walking; release → resume where it was dropped: on the ground, or on top of another app's window, whose top edge then counts as the ground (it walks along it and rides along when the window moves). Production needs nothing extra for this: feet on the bottom row is all the player relies on.
 
 ## Player notes and optional additions (Cameo implementation)
 

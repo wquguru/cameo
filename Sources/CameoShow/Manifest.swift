@@ -19,11 +19,13 @@ public struct ClipSpec: Equatable {
     public var repeatCount: Int
     /// Number of decoded frames; filled in once the clip is loaded.
     public var frames: Int
+    /// Action only: the button text, when the package names it (else the app derives one from `id`).
+    public var label: String?
 
     public init(id: String, file: String = "", kind: ClipKind, from: String, to: String, loop: Bool = false,
-                fps: Double = 10, speed: Double = 0, repeatCount: Int = 1, frames: Int = 0) {
+                fps: Double = 10, speed: Double = 0, repeatCount: Int = 1, frames: Int = 0, label: String? = nil) {
         self.id = id; self.file = file; self.kind = kind; self.from = from; self.to = to; self.loop = loop
-        self.fps = fps; self.speed = speed; self.repeatCount = repeatCount; self.frames = frames
+        self.fps = fps; self.speed = speed; self.repeatCount = repeatCount; self.frames = frames; self.label = label
     }
 
     /// Seconds for one pass through the clip.
@@ -56,7 +58,8 @@ public struct PackageManifest {
                 loop: item["loop"] as? Bool ?? (kind == .idle || kind == .walk),
                 fps: (item["fps"] as? NSNumber)?.doubleValue ?? 10,
                 speed: (item["speed"] as? NSNumber)?.doubleValue ?? 0,
-                repeatCount: max(1, (item["repeat"] as? NSNumber)?.intValue ?? 1)))
+                repeatCount: max(1, (item["repeat"] as? NSNumber)?.intValue ?? 1),
+                label: (item["label"] as? String).flatMap { $0.isEmpty ? nil : $0 }))
         }
         guard clips.contains(where: { $0.kind == .idle || $0.kind == .walk || $0.kind == .action }) else { throw ManifestError.noClips }
         return PackageManifest(name: root["name"] as? String ?? "", width: width, height: height,
