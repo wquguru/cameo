@@ -19,18 +19,57 @@ def cutout(src, model="birefnet-portrait", soft=True):
 
     soft keeps the model's fractional alpha (smooth hair and edges, needed for video);
     the default hard mask suits splitting sprite sheets."""
-    from rembg import new_session, remove
-    if model not in _sessions:
-        # CPU only: in a fresh venv onnxruntime prefers CoreML, whose Neural Engine compile can hang
-        # for good at 0% CPU on these large models.
-        _sessions[model] = new_session(model, providers=["CPUExecutionProvider"])
-    im = (src if isinstance(src, Image.Image) else Image.open(src)).convert("RGB")
-    out = remove(im, session=_sessions[model], post_process_mask=not soft)
-    a = np.array(out)
-    # Drop specks: keep only alpha components touching the biggest blob's bbox rows.
-    alpha = a[:, :, 3]
-    alpha[alpha < 12] = 0
-    return Image.fromarray(a)
+    im = src if isinstance(src, Image.Image) else Image.open(src)
+    given = None
+    if "A" in im.getbands() and im.getextrema()[-1][0] < 255:
+        # Already cut out: the colour under its transparent pixels is often the old background's
+        # fringe, which convert("RGB") would bring back as a glow. Flatten onto grey, keep its alpha.
+        given = np.array(im.convert("RGBA"))[:, :, 3]
+        flat = Image.new("RGBA", im.size, (128, 128, 128, 255))
+        flat.alpha_composite(im.convert("RGBA"))
+        im = flat
+    out = cutout_many([im], model, soft)[0]
+    if given is not None:
+        a = np.array(out)
+        a[:, :, 3] = np.minimum(a[:, :, 3], given)
+        out = Image.fromarray(a)
+    return out
+
+
+def cutout_many(images, model="birefnet-portrait", soft=True):
+    """cutout() for many frames at once. model "vision" is macOS's own matting (matte.swift, ~0.2 s
+    a frame); the others are rembg models (birefnet-portrait ~10 s a frame on the CPU)."""
+    if model == "vision":
+        outs = _vision([im.convert("RGB") for im in images])
+    else:
+        from rembg import new_session, remove
+        if model not in _sessions:
+            # CPU only: in a fresh venv onnxruntime prefers CoreML, whose Neural Engine compile can hang
+            # for good at 0% CPU on these large models.
+            _sessions[model] = new_session(model, providers=["CPUExecutionProvider"])
+        outs = [remove(im.convert("RGB"), session=_sessions[model], post_process_mask=not soft) for im in images]
+    res = []
+    for out in outs:
+        a = np.array(out.convert("RGBA"))
+        a[:, :, 3][a[:, :, 3] < 12] = 0   # faint haze
+        res.append(Image.fromarray(a))
+    return res
+
+
+def _vision(images):
+    """Run matte.swift over the frames, compiled once into ~/.cache (rebuilt when the source changes)."""
+    src = Path(__file__).with_name("matte.swift")
+    exe = Path.home() / ".cache" / "cameo-video-package" / "matte"
+    if not exe.exists() or exe.stat().st_mtime < src.stat().st_mtime:
+        exe.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["swiftc", "-O", "-o", str(exe), str(src)], check=True, capture_output=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        ind, outd = Path(tmp, "in"), Path(tmp, "out")
+        ind.mkdir(); outd.mkdir()
+        for k, im in enumerate(images):
+            im.save(ind / f"{k:05d}.png")
+        subprocess.run([str(exe), str(ind), str(outd)], check=True)
+        return [Image.open(outd / f"{k:05d}.png").copy() for k in range(len(images))]
 
 
 def bbox(im, thr=24):
@@ -132,11 +171,29 @@ def dekey(cut, orig, key, band=3):
         alpha[big] = 0
     m = alpha > 0.5
     edge = ndimage.binary_dilation(m, iterations=band) & ~ndimage.binary_erosion(m, iterations=band)
-    soft = np.clip((dist - 25) / 110, 0, 1)
+    # The background as seen next to each edge pixel: video models don't keep the key exactly flat
+    # (lighter towards the middle, drifting from frame to frame), and unmixing against the border
+    # colour then leaves a rim in the opposite hue (yellow on blue).
+    outside = (alpha < 0.02).astype(np.float32)
+    near_bg = ndimage.uniform_filter(outside, 31)
+    bg = np.stack([ndimage.uniform_filter(rgb[:, :, i] * outside, 31) for i in range(3)], -1)
+    bg = np.where((near_bg > 0.05)[..., None], bg / np.maximum(near_bg, 1e-6)[..., None], key)
+    # Likewise the figure's own colour just inside the edge. Alpha is where a pixel lies between the two;
+    # a fixed distance scale assumes the figure is far from the key and, for muted clothes (sage on
+    # blue), underestimates alpha, so unmixing overshoots into a dark rim of the opposite hue.
+    inside = ndimage.binary_erosion(alpha > 0.98, iterations=band).astype(np.float32)
+    near_fg = ndimage.uniform_filter(inside, 31)
+    fgc = np.stack([ndimage.uniform_filter(rgb[:, :, i] * inside, 31) for i in range(3)], -1)
+    fgc = fgc / np.maximum(near_fg, 1e-6)[..., None]
+    d = fgc - bg
+    span = (d * d).sum(axis=2)
+    proj = np.clip(((rgb - bg) * d).sum(axis=2) / np.maximum(span, 1), 0, 1)
+    dist = np.linalg.norm(rgb - bg, axis=2)
+    soft = np.where((near_fg > 0.05) & (span > 40 ** 2), proj, np.clip((dist - 25) / 110, 0, 1))
     alpha = np.where(edge, np.minimum(soft, ndimage.binary_dilation(m, iterations=band)), alpha)
-    # Unmix: observed = a*fg + (1-a)*key  ->  fg = key + (observed - key)/a
+    # Unmix: observed = a*fg + (1-a)*bg  ->  fg = bg + (observed - bg)/a
     a3 = np.maximum(alpha, 0.15)[..., None]
-    fg = np.clip(key + (rgb - key) / a3, 0, 255)
+    fg = np.clip(bg + (rgb - bg) / a3, 0, 255)
     col = np.where(edge[..., None], fg, out[:, :, :3])
     # Despill whatever key tint is left on the edge: cap the key's dominant channel.
     c = int(np.argmax(key))

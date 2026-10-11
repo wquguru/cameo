@@ -14,12 +14,20 @@ mode tells cut_clips.py how to find the cuts:
 # Background: the keyframe sits on a flat chroma colour (green, or blue for green-clad characters).
 # The image decides the colour; the prompt only says "keep it". A known flat colour lets the
 # cutter remove the halo and leftover patches that rembg leaves on white or checkerboard.
+# Edges: image-to-video tools often ignore alpha, so a cut-out PNG brings back the light fringe hidden
+# under its transparent pixels, and "keep the exact style" makes the model keep it on every frame.
+# The prompt calls such a fringe an artefact and asks for flat front light, which also avoids rim light.
 TAIL = ("Static camera, locked-off shot, no zoom, no pan. Full body visible, feet always in frame. "
         "Keep the plain solid chroma-key background of the input image: one flat color, evenly lit, "
-        "no shadows, no gradient, no floor. Keep the exact art style, colors and design of the input image.")
+        "no shadows, no gradient, no floor. Soft, even, flat front lighting: no backlight, no rim light. "
+        "Natural, sharp edges where the character meets the background, with no outline, halo or glow; "
+        "if the input image shows a thin light outline around the character, it is a cutout artifact, "
+        "leave it out from the first frame on. Keep the character's face, hair, clothes, colors and art "
+        "style from the input image.")
 NEG = ("camera movement, zoom, pan, cut, scene change, background objects, floor, floor shadow, gradient background, "
-       "checkerboard, transparency grid, white background, green spill, cropped feet, extra limbs, "
-       "deformed hands, morphing clothes, color change, text, watermark, blurry, child, loli, underage")
+       "checkerboard, transparency grid, white background, green spill, white outline, sticker border, halo, glow, "
+       "rim light, backlight, edge fringe, cropped feet, extra limbs, deformed hands, morphing clothes, "
+       "color change, text, watermark, blurry, child, loli, underage")
 
 # Action beats: (seconds, what happens). Each ends back in the standing pose.
 ACT = {
@@ -37,8 +45,9 @@ DUO_ACT = {
     "tickle":       (3.0, "the one on the right tickles the one on the left, who squirms and laughs, then tickles back"),
     "pillow_fight": (3.5, "both pick up white pillows, swing them at each other so the pillows hit shoulders softly, laugh, then drop the pillows"),
 }
-REST = "stands still facing the viewer in the starting pose, breathing softly"
-DUO_REST = "both stand still side by side facing the viewer, breathing softly"
+REST = ("stands still, upright on both feet, facing the viewer with the arms relaxed at the sides as in the "
+        "first frame, breathing softly")
+DUO_REST = "both stand still, upright on both feet, side by side facing the viewer as in the first frame, breathing softly"
 
 
 def prompt(beats, intro):
@@ -52,7 +61,43 @@ def prompt(beats, intro):
 
 def chain(mode, cuts, beats, intro="A single character, full body, on a plain solid-color background."):
     text, sec = prompt(beats, intro)
-    return dict(mode=mode, cuts=cuts, seconds=sec, prompt=text, beats=beats)
+    return dict(mode=mode, cuts=cuts, seconds=sec, prompt=text, beats=beats, intro=intro)
+
+
+def fit(c, limit):
+    """The chain retimed to at most limit seconds, for tools that cap the length (Grok 6 s, Kling 5 s).
+    The cutter finds cuts by pose, not by time, so only the pacing changes: standing beats shrink first
+    (0.5 s at the ends, 1 s before a walk, 0.75 s between steps, 1.25 s to rise, still long enough to read as a pause), then the motion
+    beats scale evenly, in quarter seconds. Returns (chain, note); note warns when motion runs below
+    60 % of its pace, where the tool is better asked for the longer length or the chain split."""
+    if c["seconds"] <= limit:
+        return c, ""
+    last = len(c["beats"]) - 1
+    rest = [i for i, (_, t) in enumerate(c["beats"]) if " still, upright" in t]
+    short = {i: 0.5 if i in (0, last) else 0.75 for i in rest}
+    if c["mode"] == "walk" and rest:
+        short[rest[0]] = 1   # the walk video's opening stand is where the breathing idle loop comes from
+    if c["beats"][0][1] == RISE:
+        short[0] = 1.25      # standing up from the start image: too fast and it blurs into the first step
+    beats = [(min(sec, short.get(i, sec)), t) for i, (sec, t) in enumerate(c["beats"])]
+    still = sum(sec for i, (sec, _) in enumerate(beats) if i in short)
+    moving = sum(sec for i, (sec, _) in enumerate(beats) if i not in short)
+    k = min(1, (limit - still) / moving)
+    beats = [(sec if i in short else max(0.25, int(sec * k * 4) / 4), t) for i, (sec, t) in enumerate(beats)]
+    out = chain(c["mode"], c["cuts"], beats, c["intro"])
+    return out, (f"motion at {k:.0%} of its pace: ask for a longer video if the tool has one" if k < 0.6 else "")
+
+
+RISE = ("The character gets up from the pose of the first frame and stands upright on both feet, facing the viewer, "
+        "arms relaxed at the sides")
+
+
+def rise(c):
+    """The chain for a start image that isn't standing (sitting, lying, waving...): it first stands up,
+    and every rest is that standing pose rather than the first frame. cut_clips.py skips the rise and
+    cuts from the first steady standing stretch. Image-to-video in first-frame mode, not loop mode."""
+    beats = [(1.5, RISE)] + [(sec, t.replace(" as in the first frame", "")) for sec, t in c["beats"]]
+    return chain(c["mode"], c["cuts"], beats, c["intro"])
 
 
 def actions(a, b):
@@ -82,7 +127,8 @@ CHAINS = {
             "the elbows with the chin resting in both hands, lower legs bent up in the air"),
         (3, "The character stays lying there, smiling at the viewer and lazily swinging the lower legs back and forth; "
             "the body does not move from its spot"),
-        (2, "The character pushes up, kneels and stands up facing the viewer"),
+        (2, "The character pushes up onto the knees, then rises fully onto both feet and stands upright facing "
+            "the viewer"),
         (1, "The character " + REST)]),
     "lie_phone": chain("lie_mid", ["lie_phone"], [
         (1, "The character " + REST),
@@ -90,7 +136,8 @@ CHAINS = {
             "the elbows, lower legs bent up in the air"),
         (3, "The character takes out a smartphone, looks at it with both hands, giggles at the screen while the legs "
             "kick slowly, then puts it away and rests the chin in both hands"),
-        (2, "The character pushes up, kneels and stands up facing the viewer"),
+        (2, "The character pushes up onto the knees, then rises fully onto both feet and stands upright facing "
+            "the viewer"),
         (1, "The character " + REST)]),
     "actions_a": actions("wave", "bow"),
     "actions_b": actions("jump", "spin"),

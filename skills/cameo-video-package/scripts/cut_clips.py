@@ -3,8 +3,8 @@
     cut_clips.py <videos-dir> <package-dir> <Name>          # one character: builds a new package
     cut_clips.py <videos-dir> <duo-package-dir> X --duo     # duo: adds the cut actions to an existing duo package
     --force     cut even when the first frames don't look like a chain start (see preflight)
-    --model M   rembg model (default birefnet-portrait: cleanest edges, ~10 s/frame;
-                isnet-general-use ~1 s/frame; isnet-anime for flat anime art)
+    --model M   matting model (default birefnet-portrait: cleanest edges, ~10 s/frame; vision: macOS's
+                own, ~0.2 s/frame; isnet-general-use ~1 s/frame; isnet-anime for flat anime art)
 Expects <chain>.mp4 files named after chains.py keys (walk.mp4, lie.mp4, ...); missing chains are skipped.
 The camera is static, so one scale/offset (from the first frame) is used for the whole
 video: motion such as jumps and lying down stays where the model put it.
@@ -34,13 +34,21 @@ def read_video(path):
     return [Image.fromarray(a) for a in arr]
 
 
-def preflight(path, duo=False):
-    """Seconds-long look at the first frame before the slow cut: the cutter relies on every chain
-    starting with the full figure standing on a flat background. Returns problems (empty = fine)."""
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-frames:v", "1", "-f", "image2pipe",
-                          "-vcodec", "png", "-"], capture_output=True, check=True).stdout
+def grab(path, t=None, from_end=False):
+    """One frame as RGB: at t seconds, or the last one."""
     import io
-    first = Image.open(io.BytesIO(raw)).convert("RGB")
+    pos = ["-sseof", "-0.2"] if from_end else (["-ss", str(t)] if t else [])
+    raw = subprocess.run(["ffmpeg", "-v", "error", *pos, "-i", str(path), "-frames:v", "1", "-f", "image2pipe",
+                          "-vcodec", "png", "-"], capture_output=True, check=True).stdout
+    return Image.open(io.BytesIO(raw)).convert("RGB") if raw else None
+
+
+def preflight(path, duo=False):
+    """Seconds-long look before the slow cut: the cutter relies on every chain starting (or standing up
+    first, chains.rise) and ending with the full figure standing on a flat background. Standing is
+    judged against the video's own last frame, so a short or wide figure (chibi, animal) still counts.
+    Returns problems (empty = fine)."""
+    first = grab(path)
     fig = C.cutout(first, MODEL, soft=True)
     x0, y0, x1, y1 = C.bbox(fig)
     w, h = first.size
@@ -48,9 +56,19 @@ def preflight(path, duo=False):
     if y0 <= 2 or y1 >= h - 2:
         problems.append("the figure touches the top or bottom of the frame (close-up?): the whole body, "
                         "with room above the head, must stay in frame")
-    if not duo and (y1 - y0) < 1.5 * (x1 - x0):
-        problems.append("the first frame is not a standing figure (sitting, lying or crouching?): every chain "
-                        "must start standing still, facing the viewer")
+    if not duo:
+        stand = C.body_height(C.cutout(grab(path, from_end=True), MODEL, soft=True))
+        if C.body_height(fig) < 0.85 * stand:
+            # Not standing yet: look every half second up to 2.5 s and stop at the first stand.
+            for t in (1, 1.5, 2, 2.5):
+                f = grab(path, t)
+                if f is not None and C.body_height(C.cutout(f, MODEL, soft=True)) >= 0.9 * stand:
+                    problems.append(f"note: starts in another pose and stands by {t:g} s; the cut starts once it stands")
+                    break
+            else:
+                problems.append("the figure doesn't stand at the start or by 2.5 s (compared with the last frame): "
+                                "every chain must start standing, or stand up first (prompts.py writes such "
+                                "prompts for any start image), and end standing")
     if C.key_color(first) is None:
         problems.append("note: the background is not a flat chroma colour, so edges get no colour clean-up "
                         "(use the start.png from prompts.py)")
@@ -61,31 +79,49 @@ class Video:
     """Cut-out, canvas-placed frames of one chain video plus the measures used to find cuts."""
 
     def __init__(self, path, duo=False):
-        cache = Path(path).with_suffix(f".{MODEL}.cut")   # rembg is the slow part: keep its output between runs
+        # rembg is the slow part: keep its raw output between runs; the edge clean-up is redone each
+        # time (seconds), so changes to it don't need the matting again.
+        cache = Path(path).with_suffix(f".{MODEL}.matte")
+        raw = read_video(path)
         if cache.is_dir() and cache.stat().st_mtime >= Path(path).stat().st_mtime:
             cut = [Image.open(p).convert("RGBA") for p in sorted(cache.glob("*.png"))]
         else:
-            raw = read_video(path)
-            key = C.key_color(raw[0])
-            cut = [C.cutout(f, MODEL, soft=True) for f in raw]
-            if key is not None:   # flat chroma background: clean edges and leftover patches against it
-                cut = [C.dekey(c, f, key) for c, f in zip(cut, raw)]
+            cut = C.cutout_many(raw, MODEL, soft=True)
             cache.mkdir(exist_ok=True)
             for k, c in enumerate(cut):
                 c.save(cache / f"{k:04d}.png")
-        ref = cut[0]
-        x0, y0, x1, y1 = C.bbox(ref)
-        ax = (x0 + x1) / 2 if duo else C.anchor_x(ref)
+        key = C.key_color(raw[0])
+        if key is not None:   # flat chroma background: clean edges and leftover patches against it
+            cut = [C.dekey(c, f, key) for c, f in zip(cut, raw)]
         # Scale from the standing height, not the first frame: a video may start sitting or crouched.
         # The camera is static, so the floor is the lowest the feet get.
         boxes = [C.bbox(c) for c in cut]
         heights = [(b[3] - b[1]) if duo else C.body_height(c) for b, c in zip(boxes, cut)]
-        hgt = float(np.percentile(heights, 95))
+        # Standing height: every chain ends standing still, so its last frames are this figure's own
+        # standing pose, whatever its build (a fixed height/width ratio fails chibis and animals). The top
+        # percentile of all frames would count arms stretched overhead (hands together read as a head).
+        end = float(np.median(heights[-max(2, FPS // 2):]))
+        top = float(np.percentile(heights, 95))
+        hgt = top if duo or end < 0.8 * top else end
         ground = int(np.percentile([b[3] for b in boxes], 95))
-        self.notes = []
+        self.notes, self.skipped = [], 0
+        if not duo and end < 0.8 * top:
+            self.notes.append("the video doesn't end standing: scale taken from its tallest frames")
         if heights[0] < 0.85 * hgt:
-            self.notes.append("first frame is not standing (sitting/crouching start image?): front clips "
-                              "start and end on that pose; regenerate from a standing start image for clean seams")
+            # A start image that isn't standing: the prompt (chains.rise) has the figure stand up first.
+            # Cut from the first steady standing stretch, so frame 0 is the rest pose as usual; a frame
+            # still rising would make every later frame look equally unlike it, and no action be found.
+            hold = FPS // 3
+            up = [h >= 0.97 * hgt for h in heights]
+            k = next((i for i in range(min(len(cut), 4 * FPS)) if all(up[i:i + hold])), None)
+            if k is None:
+                self.notes.append("first frame is not standing and the figure doesn't stand up in the first 4 s: "
+                                  "front clips start and end on that pose; regenerate with prompts.py's prompts")
+            else:
+                self.skipped, cut, boxes = k, cut[k:], boxes[k:]
+        ref = cut[0]
+        x0, y0, x1, y1 = C.bbox(ref)
+        ax = (x0 + x1) / 2 if duo else C.anchor_x(ref)
         self.cut, self.k, self.ax, self.ground = cut, C.FIG_H / hgt, ax, ground
         # Half the canvas width this video needs around the anchor (lying figures are long).
         self.half = max(max(ax - b[0], b[2] - ax) for b in boxes) * self.k
@@ -97,10 +133,26 @@ class Video:
         # Premultiplied so the background colour of transparent pixels doesn't count.
         self.feat = np.stack([np.concatenate([s[..., :3] * s[..., 3:], s[..., 3:]], -1).ravel() for s in small])
         self.n = len(self.frames)
+        if self.skipped:
+            # Just stood up: the first standing frames still sway. Rest on the stillest frame of the
+            # next second, or every later frame looks about as unlike frame 0 and no action is found.
+            r = min(range(min(FPS, self.n - 2)), key=lambda i: self.dist(i, i + 1) + self.dist(i, i + 2))
+            self.frames, self.feat, self.n, self.skipped = self.frames[r:], self.feat[r:], self.n - r, self.skipped + r
         d0 = self.dist(0)
         base = np.median(d0[1:max(2, FPS // 3)])
-        thr = base * 2 + 0.15 * (np.percentile(d0, 90) - base)
+        spread = np.percentile(d0, 90) - base
+        # A still start makes base ~0 and the threshold tight, but a figure rarely lands back exactly
+        # where it began (after a jump, a bow): allow a quarter of the video's motion at least.
+        # (Not "or like the last frame": a wave moves one arm and looks like any standing frame.)
+        thr = max(base * 2 + 0.15 * spread, 0.25 * spread)
         self.rest = clean(d0 < thr, FPS // 4)
+
+    def local(self, i, cell=4):
+        """Per frame, the mean change of the most-changed cell x cell patch against frame i."""
+        h, w = C.H // 8 // cell * cell, C.W // 8 // cell * cell
+        f = self.feat.reshape(self.n, C.H // 8, C.W // 8, 4)[:, :h, :w]
+        d = np.abs(f - f[i]).mean(-1).reshape(self.n, h // cell, cell, w // cell, cell).mean((2, 4))
+        return d.reshape(self.n, -1).max(1)
 
     def dist(self, i, j=None):
         if j is None:
@@ -189,7 +241,10 @@ def side_stretch(v, measure, thr):
 
 
 def cut_walk(v, ref, cuts):
-    st = side_stretch(v, C.symmetry, 0.8)
+    # Profile frames are lopsided, but how lopsided depends on the figure (a slim one in a loose shirt
+    # stays around 0.8): measure against this figure's own standing symmetry.
+    stand = float(np.median([C.symmetry(f) for f in v.frames[:FPS // 2]]))
+    st = side_stretch(v, C.symmetry, min(0.88, max(0.8, stand - 0.06)))
     if not st:
         raise SystemExit("walk: no profile frames found")
     r0, a, b, r1 = st
@@ -265,17 +320,47 @@ def cut_lie_mid(v, ref, cuts, lie_ref=None):
 
 
 def cut_actions(v, ref, cuts):
-    rs = runs(~v.rest)
+    """Find len(cuts) actions between standing rests. Measured by the most-changed patch rather than
+    the whole frame (a wave moves one arm, a small share of the figure), and against the rest level
+    of this video (start, end and the stillest point between actions), since a figure rarely lands
+    back exactly where it stood; the known action count settles what is left."""
+    s = v.local(0)
+    s = np.array([np.median(s[max(0, i - 1):i + 2]) for i in range(v.n)])
+    hi = np.percentile(s, 90)
+    tail = float(np.median(s[-max(2, FPS // 3):]))
+    edge = FPS // 2
+    inner = s[edge:v.n - edge] if v.n > 2 * edge + 1 else s
+    level = max(s[0], tail, float(inner.min()))
+    mid = (level + hi) / 2
+    rs = runs(s > mid)
     while len(rs) > len(cuts):   # one action that paused midway: merge the closest pair
         gaps = [b[0] - a[1] for a, b in zip(rs, rs[1:])]
         k = gaps.index(min(gaps))
         rs[k:k + 2] = [(rs[k][0], rs[k + 1][1])]
+    while 0 < len(rs) < len(cuts):   # two actions with no clear rest between: split at the stillest point
+        k = max(range(len(rs)), key=lambda i: rs[i][1] - rs[i][0])
+        a, b = rs[k]
+        if b - a < FPS:
+            break
+        m = min(range(a + FPS // 3, b - FPS // 3 + 1), key=lambda i: s[i])
+        rs[k:k + 1] = [(a, m - 1), (m + 1, b)]
+    # Widen each action to where the motion starts and ends (a crouch before a jump), not past a neighbour.
+    low = level + 0.25 * (hi - level)
+    wide = []
+    for k, (a, b) in enumerate(rs):
+        lo_lim = wide[-1][1] + 1 if wide else 0
+        hi_lim = rs[k + 1][0] - 1 if k + 1 < len(rs) else v.n - 1
+        while a > lo_lim and s[a - 1] > low:
+            a -= 1
+        while b < hi_lim and s[b + 1] > low:
+            b += 1
+        wide.append((a, b))
     out = []
-    for cid, (a, b) in zip(cuts, rs):
+    for cid, (a, b) in zip(cuts, wide):
         a, b = max(0, a - 2), min(v.n - 1, b + 2)
         out.append(clip(cid, "action", "front", "front", xfade(xfade(v.frames[a:b + 1], ref, end=False), ref)))
-    note = f"actions: {len(rs)} found for {len(cuts)}" + ("" if len(rs) == len(cuts) else "  <-- CHECK")
-    return out, note + " " + ", ".join(f"{c}={a}-{b}" for c, (a, b) in zip(cuts, rs))
+    note = f"actions: {len(wide)} found for {len(cuts)}" + ("" if len(wide) == len(cuts) else "  <-- CHECK")
+    return out, note + " " + ", ".join(f"{c}={a}-{b}" for c, (a, b) in zip(cuts, wide))
 
 
 def main(src, out, name, duo=False):
@@ -321,7 +406,8 @@ def main(src, out, name, duo=False):
         else:
             cs, note = cut_actions(v, ref, spec["cuts"])
         clips += cs
-        report.append(f"{cid}.mp4 ({v.n}f): {note}")
+        report.append(f"{cid}.mp4 ({v.n}f" + (f", stood up in the first {v.skipped}f" if v.skipped else "")
+                      + f"): {note}")
         report += [f"  <-- CHECK {cid}: {n}" for n in v.notes]
     if not duo and not any(c["kind"] == "idle" for c in clips):
         # No walk video: idle comes from the standing (or sitting) start of the first video.

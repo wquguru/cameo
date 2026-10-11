@@ -21,13 +21,13 @@ Creates a venv (rembg, scipy) and downloads the BiRefNet matting model (~1 GB, m
 
 ## 2. Start image and prompts
 
-Ask for one image of the character: full body, standing, arms down, facing the viewer, no cropping. A neutral pose matters: every clip starts and ends on it, so a waving start image makes the whole character "wave-idle". If they have none, have them make one with any image model first.
+Ask for one image of the character, full body, no cropping. Best is standing, arms down, facing the viewer: every clip starts and ends on that pose. Any other pose (sitting, waving) works too: `prompts.py` then has every video stand up first and the cutter skips that part, at the cost of 1.25 s per video and slightly looser seams between videos. It guesses the pose from the figure's shape and prints the guess; look at the image and pass `--pose stand` (a chibi, an animal) or `--pose other` when it's wrong.
 
 ```bash
 $PY <skill-dir>/scripts/prompts.py character.png work/<id>
 ```
 
-Writes `work/<id>/start.png` (figure cut out, on flat green #00B140, or blue #0047BB when the figure itself is green) and `work/<id>/prompts.md`. Give the user the prompts file. For each chain video they run image-to-video with `start.png` and that prompt, and save the result under the given name into `work/<id>/`:
+Writes `work/<id>/start.png` (figure cut out, on flat green #00B140, or blue #0047BB when the figure itself is green, muted sage included; `--key green|blue` overrides) and `work/<id>/prompts.md`. Give the user the prompts file. For each chain video they run image-to-video with `start.png` and that prompt, and save the result under the given name into `work/<id>/`:
 
 | Video | Seconds | Clips cut from it |
 | --- | --- | --- |
@@ -37,11 +37,13 @@ Writes `work/<id>/start.png` (figure cut out, on flat green #00B140, or blue #00
 | `actions_a.mp4` | 7 | wave, bow |
 | `actions_b.mp4` | 6.5 | jump, spin |
 
-Each video adds clips. Without `walk.mp4` the character stays in place (idle comes from the start of another video), so make `walk` first. Tool tips: feed `start.png`, never a transparent PNG (some tools paint transparency as a checkerboard); round fixed lengths up; if a tool caps below the length, split the timeline at a standing beat into two videos from the same image.
+Each video adds clips. Without `walk.mp4` the character stays in place (idle comes from the start of another video), so make `walk` first. Tool tips: feed `start.png`, never a transparent PNG (some tools paint transparency as a checkerboard, others show the old background's fringe hidden under it as a glow); round fixed lengths up. If the tool caps below these lengths (Grok 6 s unless its longer option is chosen, Kling 5 s), rerun `prompts.py` with `--max-seconds N`: standing beats shorten and motion speeds up to fit, cutting is unchanged (cuts are found by pose, not time), and a chain squeezed below 60 % of its pace is flagged.
+
+Image-to-video mode: with a standing start image use the tool's loop mode (the image starts and ends the video) if it has one, else first-frame mode; with any other pose use first-frame mode. `prompts.md` says which.
 
 A user who already has a video: look at a few frames (`ffmpeg -i in.mp4 -vf fps=1,scale=-1:200,tile=10x1 -frames:v 1 strip.jpg`), decide which chain it matches and copy it in under that name. It can only be cut if it fits the chain rules:
 
-- starts (and ends) standing still, facing the viewer; not sitting, crouching or waving
+- starts standing still, facing the viewer, or stands up within the first 2.5 s; ends standing
 - the whole body stays in frame the whole time, with room above the head (no close-ups)
 - the steps of one chain, in order, with standing beats between them
 
@@ -53,7 +55,7 @@ If it doesn't fit, say so and have them regenerate it from `start.png` with the 
 $PY <skill-dir>/scripts/cut_clips.py work/<id> work/<id>/package "<Name>"
 ```
 
-It first checks each video's first frame (seconds) and stops if a video doesn't start with a standing, fully framed figure; `--force` cuts anyway. Then about 10 s per frame of video (BiRefNet on the CPU; cached in `<video>.birefnet-portrait.cut/`, so reruns are instant), so run it in the background for several videos. `--model isnet-general-use` is ten times faster with softer edges; `--model isnet-anime` suits flat anime art.
+It first checks each video's first frame (seconds) and stops if a video isn't fully framed or doesn't stand by 2.5 s; `--force` cuts anyway. A video that starts in another pose is cut from its first steady standing stretch. Then about 10 s per frame of video (BiRefNet on the CPU; matting cached in `<video>.birefnet-portrait.matte/`, so reruns take seconds even after edge clean-up changes), so run it in the background for several videos. `--model isnet-general-use` is ten times faster with softer edges; `--model isnet-anime` suits flat anime art.
 
 How it cuts: frames like the first one are "standing", lopsided frames are "side", short figures are "lying"; loops run between their best-matching frames, transitions enter and leave a loop at its closest phase, and clips ending on the standing pose blend into the same standing frame. On a flat chroma background it also removes leftover background patches and colour spill from the edges.
 
