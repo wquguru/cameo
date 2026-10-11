@@ -4,7 +4,7 @@ public enum ClipKind: String {
     case idle, walk, transition, action, drag
 }
 
-/// One clip of a character package (see cameo-video/docs/package-spec.md).
+/// One clip of a character package (see docs/package-spec.md).
 public struct ClipSpec: Equatable {
     public var id: String
     public var file: String
