@@ -91,7 +91,10 @@ def anchor_x(im, band=(0.30, 0.55), thr=24):
 
 def place(im, W, H, scale, ax=None, ground=None):
     """Scale `im` by `scale`, put its ground line on the bottom row and `ax` at W/2."""
-    im = im.resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS)
+    # Premultiplied: unpremultiplied resizing pulls the colour hidden under transparent pixels into the
+    # edge (a key-coloured fringe, and Lanczos overshoot into stray red and yellow specks).
+    im = im.convert("RGBa").resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS).convert("RGBA")
+    im = bleed(im)
     if ax is None:
         ax = anchor_x(im)
     else:
@@ -103,6 +106,20 @@ def place(im, W, H, scale, ax=None, ground=None):
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     canvas.alpha_composite(im, (round(W / 2 - ax), round(H - ground)))
     return canvas
+
+
+def bleed(im, solid=128, faint=4):
+    """Drop the faintest alpha and give every pixel short of solid the colour of the nearest solid one.
+    Un-premultiplying after a resize turns near-zero alpha into random saturated colours, which any
+    later scaling (the player's size slider) would smear into the edge."""
+    from scipy import ndimage
+    a = np.array(im)
+    s = a[:, :, 3] >= solid
+    if s.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(~s, return_indices=True)
+        a[:, :, :3] = np.where(s[..., None], a[:, :, :3], a[iy, ix, :3])
+    a[:, :, 3][a[:, :, 3] < faint] = 0
+    return Image.fromarray(a)
 
 
 def checker(im, size=16):
@@ -151,56 +168,66 @@ def key_color(im):
     return k if flat and k.max() - k.min() > 80 else None
 
 
-def dekey(cut, orig, key, band=3):
-    """Clean a rembg cut-out against a known chroma background:
-    drop leftover background patches inside the mask (gaps between hair and neck), then in a thin
-    band along the edge derive soft alpha from the colour distance to the key and unmix the key
-    colour out of the edge pixels (no green halo)."""
+def dekey(cut, orig, key, band=2):
+    """Clean a matte against a known chroma background, keeping the model's alpha (never more opaque):
+    drop background the model kept (gaps between legs, shoelace loops) by colour, despill the rim,
+    and give every semi-transparent pixel the colour of the nearest solid one. Deriving alpha or
+    colour from the background instead fails on generated video: the key is never quite flat (darker
+    towards the floor) and the figure's colour next to the edge varies (white shoe beside skin), which
+    gave a faint glow outside the figure and a peach rim round the shoes."""
     from scipy import ndimage
     rgb = np.asarray(orig.convert("RGB")).astype(np.float32)
     out = np.asarray(cut).copy()
     alpha = out[:, :, 3].astype(np.float32) / 255
     key = np.asarray(key, np.float32)
     dist = np.linalg.norm(rgb - key, axis=2)
-    # Leftover background inside the mask: key-coloured blobs bigger than a speck.
-    near = (dist < 60) & (alpha > 0)
+    # Key-coloured blobs inside the mask: any size when close to the key (a shoelace loop is a few
+    # pixels), larger ones a little further off. Blue eyes on a blue key are darker and greyer (~55).
+    # Only where the model says solid: the soft rim blends with the key all round the figure, and as
+    # one long blob it would be cut off hard, leaving stair-stepped edges.
+    near = (dist < 60) & (alpha > 0.9)
     lab, n = ndimage.label(near)
+    # Fade by colour rather than cut: pure key goes, pixels blended with the figure keep some alpha.
+    fade = np.clip((dist - 20) / 40, 0, 1)
     if n:
-        sizes = ndimage.sum(near, lab, range(1, n + 1))
-        big = np.isin(lab, np.where(sizes >= 30)[0] + 1)
-        alpha[big] = 0
-    m = alpha > 0.5
-    edge = ndimage.binary_dilation(m, iterations=band) & ~ndimage.binary_erosion(m, iterations=band)
-    # The background as seen next to each edge pixel: video models don't keep the key exactly flat
-    # (lighter towards the middle, drifting from frame to frame), and unmixing against the border
-    # colour then leaves a rim in the opposite hue (yellow on blue).
-    outside = (alpha < 0.02).astype(np.float32)
-    near_bg = ndimage.uniform_filter(outside, 31)
-    bg = np.stack([ndimage.uniform_filter(rgb[:, :, i] * outside, 31) for i in range(3)], -1)
-    bg = np.where((near_bg > 0.05)[..., None], bg / np.maximum(near_bg, 1e-6)[..., None], key)
-    # Likewise the figure's own colour just inside the edge. Alpha is where a pixel lies between the two;
-    # a fixed distance scale assumes the figure is far from the key and, for muted clothes (sage on
-    # blue), underestimates alpha, so unmixing overshoots into a dark rim of the opposite hue.
-    inside = ndimage.binary_erosion(alpha > 0.98, iterations=band).astype(np.float32)
-    near_fg = ndimage.uniform_filter(inside, 31)
-    fgc = np.stack([ndimage.uniform_filter(rgb[:, :, i] * inside, 31) for i in range(3)], -1)
-    fgc = fgc / np.maximum(near_fg, 1e-6)[..., None]
-    d = fgc - bg
-    span = (d * d).sum(axis=2)
-    proj = np.clip(((rgb - bg) * d).sum(axis=2) / np.maximum(span, 1), 0, 1)
-    dist = np.linalg.norm(rgb - bg, axis=2)
-    soft = np.where((near_fg > 0.05) & (span > 40 ** 2), proj, np.clip((dist - 25) / 110, 0, 1))
-    alpha = np.where(edge, np.minimum(soft, ndimage.binary_dilation(m, iterations=band)), alpha)
-    # Unmix: observed = a*fg + (1-a)*bg  ->  fg = bg + (observed - bg)/a
-    a3 = np.maximum(alpha, 0.15)[..., None]
-    fg = np.clip(bg + (rgb - bg) / a3, 0, 255)
-    col = np.where(edge[..., None], fg, out[:, :, :3])
-    # Despill whatever key tint is left on the edge: cap the key's dominant channel.
+        idx = np.arange(1, n + 1)
+        sizes = ndimage.sum(near, lab, idx)
+        mean = ndimage.mean(dist, lab, idx)
+        drop = np.isin(lab, idx[(sizes >= 30) | (mean < 46)])
+        alpha = np.where(drop, alpha * fade, alpha)
+    # Key-tinted slivers the model kept solid: narrow gaps between arm and body or fingers, a few pixels
+    # wide and blended with skin, too far from the key for the rule above. By shape: gaps are large or
+    # long and thin; an eye of the key's hue is small and round, and stays.
     c = int(np.argmax(key))
-    others = [i for i in range(3) if i != c]
-    cap = col[:, :, others].max(axis=2)
-    col[:, :, c] = np.where(edge, np.minimum(col[:, :, c], cap), col[:, :, c])
-    out[:, :, :3] = col.astype(np.uint8)
+    tint = rgb[:, :, c] - np.delete(rgb, c, axis=2).max(axis=2)
+    cand = (tint > 25) & (alpha > 0.5)
+    lab, n = ndimage.label(cand)
+    if n:
+        gaps = np.zeros_like(cand)
+        for k, sl in enumerate(ndimage.find_objects(lab), 1):
+            blob = lab[sl] == k
+            h, w = blob.shape
+            if tint[sl][blob].mean() > 40 and (blob.sum() >= 20 or (max(h, w) >= 10 and max(h, w) >= 3 * min(h, w))):
+                gaps[sl] |= blob
+        gaps = ndimage.binary_dilation(gaps) & (tint > 10)   # and their blended edge
+        alpha = np.where(gaps, alpha * np.clip(1 - (tint - 15) / 45, 0, 1), alpha)
+    # The rim the model left soft: key-coloured pixels there are background, so fade them too.
+    rim_soft = (alpha > 0) & (alpha < 0.95)
+    alpha = np.where(rim_soft, alpha * fade, alpha)
+    col = rgb.copy()
+    solid = alpha >= 0.95
+    if solid.any():
+        # Despill: the key bleeds into the figure (compression, the model's own light, slivers too small to
+        # tell from an eye), so no pixel may be much more of the key's channel than of the others; on
+        # the rim, none at all. The key is picked to be a colour the figure doesn't wear (prompts.py).
+        rim = solid & ~ndimage.binary_erosion(solid, iterations=band)
+        cap = np.delete(col, c, axis=2).max(axis=2)
+        col[:, :, c] = np.minimum(col[:, :, c], np.where(rim, cap, cap + 10))
+        # Every pixel that isn't solid, transparent ones too, takes the nearest solid pixel's colour: no
+        # key mixed in, no overshoot, and nothing for scaling to bleed in from behind the figure.
+        _, (iy, ix) = ndimage.distance_transform_edt(~solid, return_indices=True)
+        col = np.where(solid[..., None], col, col[iy, ix])
+    out[:, :, :3] = np.clip(col, 0, 255).astype(np.uint8)
     out[:, :, 3] = (alpha * 255).astype(np.uint8)
     return Image.fromarray(out)
 
@@ -246,7 +273,7 @@ def breathe(base, n=12, amp=0.010):
         top = Image.fromarray(a[:hip])
         th = top.height
         nh = round(th * (1 + s))
-        top = top.resize((top.width, nh), Image.LANCZOS)
+        top = top.convert("RGBa").resize((top.width, nh), Image.LANCZOS).convert("RGBA")
         im = Image.new("RGBA", base.size, (0, 0, 0, 0))
         im.alpha_composite(Image.fromarray(a[hip:]), (0, hip))
         im.alpha_composite(top, (0, hip - nh))

@@ -77,9 +77,11 @@ def main(src, work, duo=False, limit=None, key=None, pose=None):
            "Negative prompt (if the tool has one):\n\n```\n" + NEG + "\n```\n"]
     out.insert(1, "The figure stands: use the tool's loop mode (image starts and ends the video) if it has one, "
                   "else first-frame mode.\n" if standing or duo else
-                  "The figure isn't standing, so every video starts by standing up (the cutter skips that part). "
-                  "Use first-frame mode, not loop mode. A standing start image gives cleaner seams and more time "
-                  "for the motion.\n")
+                  "The figure isn't standing, so every video starts by standing up (the cutter skips that part); "
+                  "use first-frame mode. Make walk.mp4 first and cut it: the cutter writes stand.png, its standing "
+                  "pose. Rerun prompts.py on stand.png with --pose stand and make the other videos from that "
+                  "start.png in loop mode, so they all start and end on one pose (each stand-up ends a little "
+                  "differently, and the clips would ghost where they join).\n")
     if limit:
         out.insert(1, f"Retimed to fit {limit:g} s videos: standing beats are shorter and motion faster than the "
                       "full-length prompts in references/prompts.md. Set the tool to its longest length.\n")

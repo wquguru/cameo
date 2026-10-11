@@ -21,7 +21,7 @@ Creates a venv (rembg, scipy) and downloads the BiRefNet matting model (~1 GB, m
 
 ## 2. Start image and prompts
 
-Ask for one image of the character, full body, no cropping. Best is standing, arms down, facing the viewer: every clip starts and ends on that pose. Any other pose (sitting, waving) works too: `prompts.py` then has every video stand up first and the cutter skips that part, at the cost of 1.25 s per video and slightly looser seams between videos. It guesses the pose from the figure's shape and prints the guess; look at the image and pass `--pose stand` (a chibi, an animal) or `--pose other` when it's wrong.
+Ask for one image of the character, full body, no cropping. Best is standing, arms down, facing the viewer: every clip starts and ends on that pose. Any other pose (sitting, waving) works too: `prompts.py` then has every video stand up first and the cutter skips that part, at the cost of 1.25 s per video and slightly looser seams between videos. It guesses the pose from the figure's shape and prints the guess; look at the image and pass `--pose stand` (a chibi, an animal) or `--pose other` when it's wrong. With a start image in another pose, have them make only `walk.mp4` first and cut it: the cutter then writes `work/<id>/stand.png`, the walk's standing pose; rerun `prompts.py work/<id>/stand.png work/<id> --pose stand` and have the other videos made from the new `start.png` in loop mode. Each stand-up ends a little differently, so videos that each stand up on their own ghost where their clips join.
 
 ```bash
 $PY <skill-dir>/scripts/prompts.py character.png work/<id>

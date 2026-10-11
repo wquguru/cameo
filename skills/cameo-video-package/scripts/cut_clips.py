@@ -104,7 +104,7 @@ class Video:
         top = float(np.percentile(heights, 95))
         hgt = top if duo or end < 0.8 * top else end
         ground = int(np.percentile([b[3] for b in boxes], 95))
-        self.notes, self.skipped = [], 0
+        self.notes, self.skipped, self.dx, self.cut0 = [], 0, 0, 0
         if not duo and end < 0.8 * top:
             self.notes.append("the video doesn't end standing: scale taken from its tallest frames")
         if heights[0] < 0.85 * hgt:
@@ -138,6 +138,7 @@ class Video:
             # next second, or every later frame looks about as unlike frame 0 and no action is found.
             r = min(range(min(FPS, self.n - 2)), key=lambda i: self.dist(i, i + 1) + self.dist(i, i + 2))
             self.frames, self.feat, self.n, self.skipped = self.frames[r:], self.feat[r:], self.n - r, self.skipped + r
+            self.cut0 = r
         d0 = self.dist(0)
         base = np.median(d0[1:max(2, FPS // 3)])
         spread = np.percentile(d0, 90) - base
@@ -146,6 +147,22 @@ class Video:
         # (Not "or like the last frame": a wave moves one arm and looks like any standing frame.)
         thr = max(base * 2 + 0.15 * spread, 0.25 * spread)
         self.rest = clean(d0 < thr, FPS // 4)
+
+    def align(self, ref, reach=24):
+        """Shift the whole video sideways so its first (standing) frame lines up with `ref`, the shared
+        standing pose every front clip blends into. Videos that start in another pose stand up in a
+        slightly different spot each time, and the blend would show two figures. Sideways only: the
+        feet stay on the ground."""
+        ra = np.asarray(ref)[:, :, 3] > 128
+        fa = np.asarray(self.frames[0])[:, :, 3] > 128
+        dx = min(range(-reach, reach + 1), key=lambda d: np.logical_xor(ra, np.roll(fa, d, 1)).sum())
+        if dx:
+            def shift(f):
+                im = Image.new("RGBA", f.size, (0, 0, 0, 0))
+                im.alpha_composite(f, (dx, 0) if dx > 0 else (0, 0), (0, 0) if dx > 0 else (-dx, 0))
+                return im
+            self.frames = [shift(f) for f in self.frames]
+        self.dx = dx
 
     def local(self, i, cell=4):
         """Per frame, the mean change of the most-changed cell x cell patch against frame i."""
@@ -344,20 +361,28 @@ def cut_actions(v, ref, cuts):
             break
         m = min(range(a + FPS // 3, b - FPS // 3 + 1), key=lambda i: s[i])
         rs[k:k + 1] = [(a, m - 1), (m + 1, b)]
-    # Widen each action to where the motion starts and ends (a crouch before a jump), not past a neighbour.
-    low = level + 0.25 * (hi - level)
+    # Widen each action while the figure is still heading back towards standing (a crouch before a
+    # jump), and stop where that levels off: a pause between two actions may be in a slightly different
+    # pose than the start, and must not be counted as part of either.
+    eps = 0.02 * (hi - level)
     wide = []
     for k, (a, b) in enumerate(rs):
         lo_lim = wide[-1][1] + 1 if wide else 0
         hi_lim = rs[k + 1][0] - 1 if k + 1 < len(rs) else v.n - 1
-        while a > lo_lim and s[a - 1] > low:
+        look = FPS // 4   # a slow settle has small plateaus: look a few frames ahead
+        while a > lo_lim and s[max(lo_lim, a - look):a].min() < s[a] - eps:
             a -= 1
-        while b < hi_lim and s[b + 1] > low:
+        while b < hi_lim and s[b + 1:min(hi_lim, b + look) + 1].min() < s[b] - eps:
             b += 1
         wide.append((a, b))
     out = []
-    for cid, (a, b) in zip(cuts, wide):
-        a, b = max(0, a - 2), min(v.n - 1, b + 2)
+    pad = FPS // 4
+    for k, (cid, (a, b)) in enumerate(zip(cuts, wide)):
+        # Keep a few still frames at each end, so the blend into the shared pose isn't over a moving arm,
+        # but never past halfway to the neighbouring action.
+        lo = (wide[k - 1][1] + a) // 2 + 1 if k else 0
+        hi_ = (b + wide[k + 1][0]) // 2 if k + 1 < len(wide) else v.n - 1
+        a, b = max(lo, a - pad), min(hi_, b + pad)
         out.append(clip(cid, "action", "front", "front", xfade(xfade(v.frames[a:b + 1], ref, end=False), ref)))
     note = f"actions: {len(wide)} found for {len(cuts)}" + ("" if len(wide) == len(cuts) else "  <-- CHECK")
     return out, note + " " + ", ".join(f"{c}={a}-{b}" for c, (a, b) in zip(cuts, wide))
@@ -368,7 +393,7 @@ def main(src, out, name, duo=False):
     specs = DUO_CHAINS if duo else {**CHAINS, **OPTIONAL}
     if duo:
         C.W = 1024
-    clips, report, ref, lie_ref = [], [], None, None
+    clips, report, ref, lie_ref, stand_note = [], [], None, None, None
     if duo:   # anchor every cut on the existing package's idle pose
         m = json.load(open(out / "manifest.json"))
         idle = next(c for c in m["clips"] if c["kind"] == "idle")
@@ -395,8 +420,18 @@ def main(src, out, name, duo=False):
         spec = specs[cid]
         if ref is None:
             ref = v.frames[0]
+        elif not duo:
+            v.align(ref)
         if spec["mode"] == "walk":
             cs, note = cut_walk(v, ref, spec["cuts"])
+            if v.skipped:
+                # The walk stood up from another pose: its standing frame, cut out at full size, is the
+                # start image the other videos should share (prompts.py --pose stand, loop mode), so
+                # every clip starts and ends on the same pose instead of ghosting at the seams.
+                C.bleed(v.cut[v.cut0]).save(src / "stand.png")
+                stand_note = (f"stand.png: the walk's standing pose. Run prompts.py {src / 'stand.png'} {src} --pose stand "
+                              "and regenerate the other videos from the new start.png in loop mode: they then all "
+                              "start and end on this pose (no stand-up, no ghosting where clips join).")
             ref = cs[0]["frames"][0]   # the idle pose is the seam every front clip lands on
         elif spec["mode"] == "lie":
             cs, note = cut_lie(v, ref, spec["cuts"])
@@ -405,8 +440,13 @@ def main(src, out, name, duo=False):
             cs, note = cut_lie_mid(v, ref, spec["cuts"], lie_ref)
         else:
             cs, note = cut_actions(v, ref, spec["cuts"])
+        for c in cs:   # the same action in two chains (wave in actions_a and actions_d): keep both
+            n, base = 2, c["id"]
+            while any(o["id"] == c["id"] for o in clips):
+                c["id"], n = f"{base}_{n}", n + 1
         clips += cs
         report.append(f"{cid}.mp4 ({v.n}f" + (f", stood up in the first {v.skipped}f" if v.skipped else "")
+                      + (f", shifted {v.dx:+d}px to the shared pose" if v.dx else "")
                       + f"): {note}")
         report += [f"  <-- CHECK {cid}: {n}" for n in v.notes]
     if not duo and not any(c["kind"] == "idle" for c in clips):
@@ -422,6 +462,8 @@ def main(src, out, name, duo=False):
         if hit:
             report.append(f"  <-- CHECK {c['id']}: {hit}/{len(c['frames'])} frames touch the canvas side (clipped)")
     print("\n".join(report))
+    if stand_note:
+        print(stand_note)
     if duo:
         m = json.load(open(out / "manifest.json"))
         new = {c["id"] for c in clips}

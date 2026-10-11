@@ -45,8 +45,10 @@ DUO_ACT = {
     "tickle":       (3.0, "the one on the right tickles the one on the left, who squirms and laughs, then tickles back"),
     "pillow_fight": (3.5, "both pick up white pillows, swing them at each other so the pillows hit shoulders softly, laugh, then drop the pillows"),
 }
-REST = ("stands still, upright on both feet, facing the viewer with the arms relaxed at the sides as in the "
-        "first frame, breathing softly")
+# Between actions the arms must come all the way down: a model squeezed for time goes from one action
+# into the next (hands already together for the bow), and the clips then can't join the shared pose.
+REST = ("stands completely still, upright on both feet, facing the viewer, both arms hanging straight down at "
+        "the sides as in the first frame, breathing softly")
 DUO_REST = "both stand still, upright on both feet, side by side facing the viewer as in the first frame, breathing softly"
 
 
