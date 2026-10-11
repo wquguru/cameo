@@ -24,6 +24,7 @@ Cameo lit en boucle une vidéo dotée d’une couche alpha sous la forme d’un 
 ## Fonctionnalités
 
 - **Un chat intégré** — Chaofei, un British Shorthair tabby argenté dessiné en code d’après le chat de l’auteur, se promène en bas de l’écran : il marche, s’assoit, se couche et s’assoupit, se lève et se roule par terre. Cliquez dessus pour qu’il se roule, faites-le glisser pour le prendre, ou fixez une action depuis la fenêtre contextuelle.
+- **Des personnages qui marchent** — un paquet de personnage marche en bas de l’écran, se retourne et fait des actions. Déposez-le sur une fenêtre : il reste dessus et suit la fenêtre quand vous la déplacez.
 - **Vraiment transparent** — seuls les pixels visibles du personnage captent la souris ; tout le reste laisse passer les clics.
 - **Toujours au premier plan** — flotte au-dessus de toutes les fenêtres, dans chaque Space.
 - **Formats natifs** — HEVC with Alpha et ProRes 4444 (`.mov`), décodés par AVFoundation. Pas de FFmpeg, aucun codec embarqué.

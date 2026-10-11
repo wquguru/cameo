@@ -48,7 +48,7 @@ Unknown fields are ignored; unknown kinds are skipped.
 
 ## Player behaviour (iStripper-style show)
 
-A scheduler strings clips into a show: enter from a screen edge walking → stop at a random x → turn to front → idle a while → an action → idle → turn to side → walk somewhere else (or off-screen and back). Only legal transitions (`to` == next `from`) are chosen; when no direct edge exists, the shortest path through transitions is used. Click → play a random action at the next front pose. Drag → pause walking; release → resume.
+A scheduler strings clips into a show: enter from a screen edge walking → stop at a random x → turn to front → idle a while → an action → idle → turn to side → walk somewhere else (or off-screen and back). Only legal transitions (`to` == next `from`) are chosen; when no direct edge exists, the shortest path through transitions is used. Click → play a random action at the next front pose. Drag → pause walking; release → resume where it was dropped: on the ground, or on top of another app's window, whose top edge then counts as the ground (it walks along it and rides along when the window moves). Production needs nothing extra for this: feet on the bottom row is all the player relies on.
 
 ## Player notes and optional additions (Cameo implementation)
 

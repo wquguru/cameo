@@ -24,6 +24,7 @@ Cameo spielt ein Video mit Alphakanal in Endlosschleife als frei schwebende Figu
 ## Funktionen
 
 - **Eine Katze ist schon dabei** — Chaofei, eine silber getigerte Britisch Kurzhaar, in Code gezeichnet nach dem Vorbild der Katze des Autors, streift am unteren Bildschirmrand umher: Sie läuft, sitzt, legt sich hin und döst ein, steht auf und rollt sich. Klick sie an, damit sie sich rollt, zieh sie, um sie hochzuheben, oder leg im Popover eine feste Aktion fest.
+- **Figuren, die laufen** — ein Figurenpaket läuft am unteren Bildschirmrand, dreht sich um und zeigt Aktionen. Lass es auf einem Fenster los, dann steht es oben drauf und fährt mit, wenn du das Fenster bewegst.
 - **Wirklich transparent** — nur die sichtbaren Pixel der Figur reagieren auf die Maus; alles andere lässt Klicks durch.
 - **Immer im Vordergrund** — schwebt in jedem Space über allen Fenstern.
 - **Native Formate** — HEVC with Alpha und ProRes 4444 (`.mov`), dekodiert von AVFoundation. Kein FFmpeg, keine mitgelieferten Codecs.

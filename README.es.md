@@ -24,6 +24,7 @@ Cameo reproduce en bucle un vídeo con canal alfa como una figura flotante que p
 ## Funciones
 
 - **Incluye un gato** — Chaofei, un británico de pelo corto atigrado plateado dibujado en código a partir del gato del autor, deambula por la parte inferior de la pantalla: camina, se sienta, se tumba y se queda dormido, se pone de pie y rueda. Haz clic en él para que ruede, arrástralo para cogerlo en brazos o fija una acción desde el popover.
+- **Personajes que caminan** — un paquete de personaje camina por la parte inferior de la pantalla, se gira y actúa. Suéltalo sobre una ventana y se queda encima, moviéndose con ella.
 - **Transparencia real** — solo los píxeles visibles de la figura reciben el ratón; el resto deja pasar los clics.
 - **Siempre visible** — flota por encima de todas las ventanas en todos los espacios.
 - **Formatos nativos** — HEVC with Alpha y ProRes 4444 (`.mov`), decodificados por AVFoundation. Sin FFmpeg ni códecs incluidos.
