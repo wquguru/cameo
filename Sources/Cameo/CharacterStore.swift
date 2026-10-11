@@ -40,11 +40,12 @@ final class CharacterStore {
     let directory: URL
     private var indexURL: URL { directory.appendingPathComponent("characters.json") }
 
-    /// `CAMEO_DATA_DIR` points at another folder, for testing without touching the real library.
+    /// `CAMEO_DATA_DIR` points at another folder, for testing without touching the real library;
+    /// dev builds keep theirs in "Cameo Dev".
     init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         directory = ProcessInfo.processInfo.environment["CAMEO_DATA_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
-            ?? support.appendingPathComponent("Cameo/Characters", isDirectory: true)
+            ?? support.appendingPathComponent(DevBuild.isDev ? "Cameo Dev/Characters" : "Cameo/Characters", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 

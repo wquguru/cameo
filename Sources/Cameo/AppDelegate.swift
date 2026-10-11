@@ -26,8 +26,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                                        styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: DevBuild.isDev ? NSStatusItem.variableLength : NSStatusItem.squareLength)
         statusItem.button?.image = Glyph.template
+        if DevBuild.isDev {
+            // A dev build says so next to its glyph, so it isn't mistaken for the installed app.
+            statusItem.button?.imagePosition = .imageLeading
+            statusItem.button?.attributedTitle = NSAttributedString(string: "DEV", attributes: [.font: NSFont.systemFont(ofSize: 9, weight: .bold)])
+            statusItem.button?.toolTip = "Cameo · \(DevBuild.label ?? "")"
+        }
         statusItem.button?.target = self
         statusItem.button?.action = #selector(togglePopover)
 

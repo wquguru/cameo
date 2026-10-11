@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds a universal (Apple silicon + Intel) build/Cameo.app.
 # ARCHS="arm64" scripts/build.sh builds one architecture only, for quicker local runs.
+# Without RELEASE=1 it is a dev build: "Cameo Dev", bundle id io.github.wquguru.cameo.dev (its own
+# settings and characters) and stamped with the branch and commit, shown in the menu bar and popover.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -22,6 +24,14 @@ lipo -create "${BINARIES[@]}" -output "$APP/Contents/MacOS/Cameo"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 # Strings tables, plus en.lproj so AppKit knows English is a language Cameo has.
 cp -R Resources/Localizations/*.lproj "$APP/Contents/Resources/"
+if [[ "${RELEASE:-}" != 1 ]]; then
+  PLIST="$APP/Contents/Info.plist"
+  STAMP="$(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short HEAD)"
+  [[ -n "$(git status --porcelain --untracked-files=no)" ]] && STAMP+="+"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.github.wquguru.cameo.dev" \
+    -c "Set :CFBundleName Cameo Dev" -c "Set :CFBundleDisplayName Cameo Dev" \
+    -c "Add :CameoDev string $STAMP" "$PLIST"
+fi
 if [[ -n "${BUILD_NUMBER:-}" ]]; then
   /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 fi

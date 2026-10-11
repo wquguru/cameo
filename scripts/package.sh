@@ -6,7 +6,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-scripts/build.sh
+RELEASE=1 scripts/build.sh
+ID=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" build/Cameo.app/Contents/Info.plist)
+[[ "$ID" == io.github.wquguru.cameo ]] || { echo "Not a release build: $ID" >&2; exit 1; }
 VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Resources/Info.plist)
 NAME="Cameo-$VERSION-macOS-Universal"
 APP=build/Cameo.app

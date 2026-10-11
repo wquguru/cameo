@@ -92,8 +92,20 @@ struct PopoverView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
-                Text("Cameo").fontWeight(.semibold)
+                HStack(spacing: 6) {
+                    Text("Cameo").fontWeight(.semibold)
+                    if let dev = DevBuild.label {
+                        // Dev builds only, so not translated.
+                        Text("DEV").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
+                            .padding(.horizontal, 4).padding(.vertical, 1)
+                            .background(Capsule().fill(Color.pink))
+                            .help(dev)
+                    }
+                }
                 Text(status).font(.system(size: 11)).foregroundStyle(.secondary)
+                if let dev = DevBuild.label {
+                    Text(dev).font(.system(size: 11).monospaced()).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                }
             }
             Spacer()
             Toggle(L("Show Character"), isOn: $model.visible)
