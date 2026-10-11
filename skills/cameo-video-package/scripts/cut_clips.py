@@ -194,7 +194,16 @@ def cut_walk(v, ref, cuts):
         raise SystemExit("walk: no profile frames found")
     r0, a, b, r1 = st
     pad = FPS // 4
-    i, j = v.best_loop(a + pad, b - pad, 0.6, 1.6)
+    # Lopsided is not enough: lying and crawling are lopsided too. Walking frames stand upright at
+    # full height; anything else would slide a lying figure across the desktop.
+    upright = [C.body_height(f) / C.FIG_H > 0.85 for f in v.frames[a:b + 1]]
+    if sum(upright) < 0.8 * len(upright):
+        raise SystemExit(f"walk: the side-view stretch ({a}-{b}) is not upright walking "
+                         f"({sum(upright)}/{len(upright)} frames at standing height). Is this really walk.mp4?")
+    loop = v.best_loop(a + pad, b - pad, 0.6, 1.6)
+    if not loop:
+        raise SystemExit(f"walk: side-view stretch {a}-{b} is too short for a stride loop: regenerate walk.mp4")
+    i, j = loop
     t, walk, e = enter_exit(v, a, b, i, j)
     flip = sum(C.facing(f) == "left" for f in walk) > len(walk) / 2
     fl = (lambda fs: [f.transpose(Image.FLIP_LEFT_RIGHT) for f in fs]) if flip else (lambda fs: fs)
