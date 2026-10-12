@@ -4,7 +4,8 @@
     cut_clips.py <videos-dir> <duo-package-dir> X --duo     # duo: adds the cut actions to an existing duo package
     --force     cut even when the first frames don't look like a chain start (see preflight)
     --model M   matting model (default birefnet-portrait: cleanest edges, ~10 s/frame; vision: macOS's
-                own, ~0.2 s/frame; isnet-general-use ~1 s/frame; isnet-anime for flat anime art)
+                own, ~0.2 s/frame; matanyone2: video matting, sharper edges, ~0.5 s/frame, needs
+                setup-matanyone2.sh; isnet-general-use ~1 s/frame; isnet-anime for flat anime art)
 Expects <chain>.mp4 files named after chains.py keys (walk.mp4, lie.mp4, ...); missing chains are skipped.
 The camera is static, so one scale/offset (from the first frame) is used for the whole
 video: motion such as jumps and lying down stays where the model put it.

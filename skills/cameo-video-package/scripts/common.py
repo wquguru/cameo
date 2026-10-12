@@ -38,9 +38,13 @@ def cutout(src, model="birefnet-portrait", soft=True):
 
 def cutout_many(images, model="birefnet-portrait", soft=True):
     """cutout() for many frames at once. model "vision" is macOS's own matting (matte.swift, ~0.2 s
-    a frame); the others are rembg models (birefnet-portrait ~10 s a frame on the CPU)."""
-    if model == "vision":
-        outs = _vision([im.convert("RGB") for im in images])
+    a frame); "matanyone2" is video matting from the first frame's Vision mask (setup-matanyone2.sh,
+    ~0.5 s a frame on MPS, sharper edges); the others are rembg models (birefnet-portrait ~10 s a
+    frame on the CPU)."""
+    if model == "vision" or (model == "matanyone2" and len(images) == 1):
+        outs = _vision([im.convert("RGB") for im in images])   # a single frame has no video to propagate
+    elif model == "matanyone2":
+        outs = _matanyone2([im.convert("RGB") for im in images])
     else:
         from rembg import new_session, remove
         if model not in _sessions:
@@ -54,6 +58,29 @@ def cutout_many(images, model="birefnet-portrait", soft=True):
         a[:, :, 3][a[:, :, 3] < 12] = 0   # faint haze
         res.append(Image.fromarray(a))
     return res
+
+
+def _matanyone2(frames):
+    """MatAnyone 2 over consecutive frames, seeded with Vision's mask of the first one."""
+    import os
+    base = Path(os.environ.get("CAMEO_MA2_HOME", Path.home() / ".cache" / "cameo-video-package"))
+    py, repo = base / "ma2-venv" / "bin" / "python", base / "matanyone2"
+    if not py.exists() or not (repo / "pretrained_models" / "matanyone2.pth").exists():
+        raise SystemExit(f"MatAnyone 2 isn't set up: run {Path(__file__).with_name('setup-matanyone2.sh')}")
+    mask = np.asarray(_vision([frames[0]])[0])[:, :, 3] > 128
+    with tempfile.TemporaryDirectory() as tmp:
+        ind, out = Path(tmp, "clip"), Path(tmp, "out")
+        ind.mkdir()
+        for k, im in enumerate(frames):
+            im.save(ind / f"{k:05d}.png")
+        Image.fromarray((mask * 255).astype(np.uint8)).save(Path(tmp, "mask.png"))
+        subprocess.run([str(py), "inference_matanyone2.py", "-i", str(ind), "-m", str(Path(tmp, "mask.png")),
+                        "-o", str(out), "--save_image"], cwd=repo, check=True, capture_output=True)
+        phas = sorted((out / "clip" / "pha").glob("*.png"))
+        if len(phas) != len(frames):
+            raise SystemExit(f"MatAnyone 2 returned {len(phas)} mattes for {len(frames)} frames")
+        return [Image.fromarray(np.dstack([np.asarray(f), np.asarray(Image.open(p).convert("L"))]))
+                for f, p in zip(frames, phas)]
 
 
 def _vision(images):
