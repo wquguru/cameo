@@ -270,6 +270,16 @@ def symmetry(im):
     return float((l & r).sum() / max((l | r).sum(), 1))
 
 
+def shoulder_width(im):
+    """Opaque width of the shoulder rows (17-22 % of the body height below the head top), as a fraction
+    of the body height (facing the viewer ~0.3, profile ~0.1)."""
+    a = np.array(im)[:, :, 3] > 24
+    y1 = bbox(im)[3]
+    bh = body_height(im)
+    top = y1 - bh
+    return float(a[top + int(bh * 0.17): top + int(bh * 0.22)].sum(axis=1).mean() / max(bh, 1))
+
+
 def body_height(im):
     """Feet to top of head, ignoring raised hands (rows narrower than a head)."""
     a = np.array(im)[:, :, 3] > 24

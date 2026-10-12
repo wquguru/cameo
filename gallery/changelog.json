@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.6.2",
+    "date": null,
+    "items": [
+      {
+        "kind": "fixed",
+        "en": "cameo-video-package: a walk video that starts with a wave or a hand on the hip no longer has the wave cut as the walk; the cutter tells the profile apart by shoulder width instead.",
+        "zh": "cameo-video-package：开头挥手或叉腰的走路视频不会再把挥手误切成走路，这种情况改按肩宽区分侧身。"
+      }
+    ]
+  },
+  {
     "version": "0.6.1",
     "date": "2026-10-11",
     "items": [

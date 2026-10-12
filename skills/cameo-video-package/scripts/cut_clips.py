@@ -70,6 +70,9 @@ def preflight(path, duo=False):
                 problems.append("the figure doesn't stand at the start or by 2.5 s (compared with the last frame): "
                                 "every chain must start standing, or stand up first (prompts.py writes such "
                                 "prompts for any start image), and end standing")
+    if Path(path).stem == "walk" and C.symmetry(fig) < 0.86:
+        problems.append("note: the start pose is lopsided (an arm raised?), so side-view frames are found by "
+                        "shoulder width instead of symmetry; a start with arms down cuts more reliably")
     if C.key_color(first) is None:
         problems.append("note: the background is not a flat chroma colour, so edges get no colour clean-up "
                         "(use the start.png from prompts.py)")
@@ -262,7 +265,15 @@ def cut_walk(v, ref, cuts):
     # Profile frames are lopsided, but how lopsided depends on the figure (a slim one in a loose shirt
     # stays around 0.8): measure against this figure's own standing symmetry.
     stand = float(np.median([C.symmetry(f) for f in v.frames[:FPS // 2]]))
-    st = side_stretch(v, C.symmetry, min(0.88, max(0.8, stand - 0.06)))
+    if stand >= 0.86:
+        st = side_stretch(v, C.symmetry, min(0.88, stand - 0.06))
+    else:
+        # Lopsided standing pose (an arm raised in a wave, a hand on the hip): it reads as asymmetric as a
+        # profile, so symmetry can't tell them apart. Shoulders narrow side-on instead (a waving start: 0.30
+        # of the body height facing the viewer, 0.11 walking). Only here: swinging arms and loose hair widen
+        # the shoulder rows of many walks, so it is no general measure.
+        sh = float(np.median([C.shoulder_width(f) for f in v.frames[:FPS // 2]]))
+        st = side_stretch(v, lambda f: C.shoulder_width(f) / sh, 0.6)
     if not st:
         raise SystemExit("walk: no profile frames found")
     r0, a, b, r1 = st
