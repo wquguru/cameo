@@ -9,6 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/wquguru/cameo/releases/latest"><b>下載 macOS 版</b></a> · <a href="https://wquguru.github.io/cameo/"><b>角色庫</b></a> · <a href="https://wquguru.github.io/cameo/#make"><b>自己做一個</b></a> · <a href="https://wquguru.github.io/cameo/#changelog"><b>更新日誌</b></a>
+</p>
+
+<p align="center">
+  <a href="https://wquguru.github.io/cameo/"><img src="docs/hero.jpg" width="880" alt="Cameo 角色站在視窗上，沿著 Mac 桌面底部走動"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/wquguru/cameo/actions/workflows/build.yml"><img src="https://github.com/wquguru/cameo/actions/workflows/build.yml/badge.svg" alt="建置"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-black" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-5-orange" alt="Swift 5">

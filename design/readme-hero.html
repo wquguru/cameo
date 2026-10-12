@@ -1,0 +1,173 @@
+<!doctype html>
+<!-- The README's hero image: a Mac desktop with characters standing on windows and walking the
+     screen bottom. Mirrors HeroDesktop on the "Cameo README Hero" design canvas.
+     Rendered to docs/hero.jpg by scripts/readme-hero.sh; edit here, then rerun it. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cameo README hero</title>
+<style>
+  html, body { margin: 0; }
+  body {
+    position: relative; width: 1280px; height: 720px; overflow: hidden;
+    background: #3A3F73; color: #FFFFFF;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .abs { position: absolute; }
+  .hill { position: absolute; border-radius: 50%; }
+
+  .menubar {
+    position: absolute; left: 0; top: 0; width: 1280px; height: 30px; box-sizing: border-box;
+    padding: 0 14px 0 18px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px; letter-spacing: -.01em; text-shadow: 0 0 6px rgba(0, 0, 0, .35);
+  }
+  .menubar .side { display: flex; align-items: center; gap: 22px; }
+  .menubar .side.right { gap: 18px; }
+
+  .window {
+    position: absolute; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .6);
+  }
+  .titlebar { display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+  .light { width: 12px; height: 12px; border-radius: 50%; }
+  .red { background: #FF5F57; } .yellow { background: #FEBC2E; } .green { background: #28C840; }
+
+  .term { left: 96px; top: 250px; width: 600px; height: 330px; background: #1E1E1E; border: 1px solid rgba(255, 255, 255, .1); }
+  .term .titlebar { height: 40px; background: #2B2B2B; }
+  .term .titlebar .name { flex: 1; text-align: center; margin-right: 52px; font-size: 13px; font-weight: 600; color: #A8A8A8; }
+  .term pre { margin: 0; padding: 18px 20px; font: 15px/1.6 Menlo, Monaco, monospace; color: #E6E6E6; }
+  .term .p { color: #7CD47C; } .term .d { color: #8A8A8A; }
+  .term .cursor { display: inline-block; width: 9px; height: 18px; background: #E6E6E6; vertical-align: -3px; }
+
+  .safari { left: 760px; top: 320px; width: 430px; height: 260px; background: #FBFAF7; color: #161618; }
+  .safari .titlebar { height: 42px; background: #ECEAE6; }
+  .safari .url { margin-left: 14px; flex: 1; height: 26px; border-radius: 13px; background: #FFFFFF; font-size: 12px; color: #55524C; display: flex; align-items: center; justify-content: center; }
+  .safari .page { padding: 14px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .safari h2 { margin: 0; font-size: 19px; font-weight: 700; }
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .card { height: 134px; border-radius: 10px; background: #E9E6E0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+  .card.lit { background: #161618; }
+  .card img { height: 118px; }
+  .card:not(.lit) img { opacity: .55; filter: grayscale(1); }
+  .pills { display: flex; gap: 8px; }
+  .pill { padding: 6px 12px; border-radius: 14px; background: #E9E6E0; font-size: 12px; font-weight: 600; }
+  .pill.amber { background: #FFB340; }
+
+  .figure { position: absolute; object-fit: contain; object-position: bottom; }
+  .flip { transform: scaleX(-1); }
+
+  .dock {
+    position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
+    height: 74px; padding: 0 10px; box-sizing: border-box; border-radius: 26px;
+    background: rgba(250, 250, 252, .42); backdrop-filter: blur(24px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, .7);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, .22), inset 0 1px 1px rgba(255, 255, 255, .8), inset 0 -1px 1px rgba(0, 0, 0, .06);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .app { width: 54px; height: 66px; padding-top: 3px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .icon { width: 54px; height: 54px; border-radius: 13px; box-shadow: 0 2px 4px rgba(0, 0, 0, .18); display: flex; align-items: center; justify-content: center; box-sizing: border-box; position: relative; overflow: hidden; }
+  .glass { background: linear-gradient(180deg, #FFFFFF, #ECEDF2); }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0, 0, 0, .6); }
+  .sep { width: 1px; height: 50px; margin: 0 3px; background: rgba(0, 0, 0, .16); }
+</style>
+</head>
+<body>
+  <div class="hill" style="left: -300px; top: 300px; width: 1100px; height: 700px; background: #5B4E8C"></div>
+  <div class="hill" style="left: 500px; top: 360px; width: 1200px; height: 700px; background: #C0688A"></div>
+  <div class="hill" style="left: -100px; top: 520px; width: 1500px; height: 600px; background: #2A2C55"></div>
+
+  <div class="menubar">
+    <div class="side">
+      <svg width="14" height="17" viewBox="0 0 14 17" fill="#FFFFFF"><path d="M11.6 9c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7C3.4 4.4 2.1 5.2 1.4 6.4c-1.5 2.6-.4 6.4 1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.6 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.4-.9-2.4-3.6zM9.6 3c.6-.7 1-1.6.8-2.6-.8 0-1.8.5-2.4 1.200-.5.6-1 1.6-.9 2.5.9.1 1.9-.4 2.5-1.1z"/></svg>
+      <b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+    </div>
+    <div class="side right">
+      <svg width="22" height="16" viewBox="0 0 22 16" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="6" width="19" height="9" rx="1.6"/><path d="M8 6.2V4.6a3 3 0 0 1 6 0v1.6"/></svg>
+      <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".75" y=".75" width="21.5" height="11.5" rx="3.5" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/><rect x="2.6" y="2.6" width="15" height="7.8" rx="2" fill="#FFFFFF"/><path d="M24 4.5v4" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <svg width="17" height="13" viewBox="0 0 17 13" fill="#FFFFFF"><path d="M8.5 2.2c2.4 0 4.6.9 6.3 2.5l1.1-1.2C13.9 1.6 11.3.5 8.5.5S3.1 1.6 1.1 3.5l1.1 1.2C3.9 3.1 6.1 2.2 8.5 2.2z"/><path d="M8.5 5.6c1.5 0 2.9.6 4 1.6l1.1-1.2C12.3 4.7 10.5 4 8.5 4S4.7 4.7 3.4 6l1.1 1.2c1.1-1 2.5-1.6 4-1.6z"/><path d="M8.5 9c.7 0 1.3.3 1.8.7L8.5 12 6.7 9.7c.5-.4 1.1-.7 1.8-.7z"/></svg>
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"><circle cx="6.2" cy="6.2" r="4.7"/><path d="M9.8 9.8 13.8 13.8"/></svg>
+      <svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="#FFFFFF" stroke-width="1.4"><rect x=".7" y=".7" width="16.6" height="5.6" rx="2.8"/><circle cx="13.5" cy="3.5" r="1.6" fill="#FFFFFF"/><rect x=".7" y="7.7" width="16.6" height="5.6" rx="2.8"/><circle cx="4.5" cy="10.5" r="1.6" fill="#FFFFFF"/></svg>
+      <span>Mon Oct 12&nbsp;&nbsp;9:41 AM</span>
+    </div>
+  </div>
+
+  <div class="window term">
+    <div class="titlebar"><span class="light red"></span><span class="light yellow"></span><span class="light green"></span><span class="name">cameo — zsh — 80×24</span></div>
+<pre><span class="p">~/cameo %</span> scripts/build.sh
+<span class="d">Building for production...</span>
+<span class="d">Build complete!</span>
+<span class="d">→ build/Cameo.app</span>
+<span class="p">~/cameo %</span> open build/Cameo.app
+<span class="p">~/cameo %</span> <span class="cursor"></span></pre>
+  </div>
+  <img class="figure" src="../gallery/posters/nina.png" alt="" style="left: 470px; top: 18px; width: 87px; height: 232px">
+
+  <div class="window safari">
+    <div class="titlebar"><span class="light red"></span><span class="light yellow"></span><span class="light green"></span><span class="url">wquguru.github.io/cameo</span></div>
+    <div class="page">
+      <h2>Cameo characters</h2>
+      <div class="cards">
+        <div class="card lit"><img src="../gallery/posters/lily.png" alt=""></div>
+        <div class="card"><img src="../gallery/posters/olivia.png" alt=""></div>
+        <div class="card"><img src="../gallery/posters/mei.png" alt=""></div>
+        <div class="card" style="align-items: center"><img src="../gallery/posters/chaofei.png" alt="" style="width: 84px; height: auto"></div>
+      </div>
+      <div class="pills"><span class="pill amber">Add to Cameo</span><span class="pill">Make your own</span></div>
+    </div>
+  </div>
+  <img class="figure flip" src="../gallery/posters/mei.png" alt="" style="left: 1030px; top: 118px; width: 86px; height: 202px">
+
+  <img class="figure" src="../gallery/posters/chaofei.png" alt="" style="left: 40px; top: 560px; width: 186px; height: 160px">
+  <img class="figure flip" src="../gallery/posters/lily.png" alt="" style="left: 1170px; top: 476px; width: 82px; height: 244px">
+
+  <div class="dock">
+    <div class="app">
+      <div class="icon" style="padding: 0">
+        <span style="position: absolute; left: 0; top: 0; width: 27px; height: 54px; background: linear-gradient(180deg, #4FB2FF, #1A72F0)"></span>
+        <span style="position: absolute; left: 27px; top: 0; width: 27px; height: 54px; background: linear-gradient(180deg, #F4FAFF, #CFE6FF)"></span>
+        <svg width="54" height="54" viewBox="0 0 54 54" fill="none" stroke="#0A2A57" stroke-width="2.4" stroke-linecap="round" style="position: absolute; left: 0; top: 0"><path d="M27 7c-3 8-4 17-2 27"/><path d="M17 19v5M37 19v5"/><path d="M14 35c8 6 18 6 26 0"/></svg>
+      </div>
+      <span class="dot"></span>
+    </div>
+    <div class="app">
+      <div class="icon glass" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); align-items: stretch; justify-content: stretch; gap: 4px; padding: 12px">
+        <span style="border-radius: 4px; background: #FF6B5E"></span><span style="border-radius: 4px; background: #FFB340"></span><span style="border-radius: 4px; background: #34C759"></span>
+        <span style="border-radius: 4px; background: #5AC8FA"></span><span style="border-radius: 4px; background: #5E5CE6"></span><span style="border-radius: 4px; background: #FF5FA2"></span>
+        <span style="border-radius: 4px; background: #64D2FF"></span><span style="border-radius: 4px; background: #30B0C7"></span><span style="border-radius: 4px; background: #A2845E"></span>
+      </div>
+    </div>
+    <div class="app">
+      <div class="icon glass"><svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="19" fill="#1E8BFF"/><circle cx="21" cy="21" r="15.5" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.2" stroke-dasharray=".8 2.6"/><path d="M21 21 31 11 23.5 23.5z" fill="#FF3B30"/><path d="M21 21 11 31 18.5 18.5z" fill="#FFFFFF"/></svg></div>
+      <span class="dot"></span>
+    </div>
+    <div class="app">
+      <div class="icon" style="background: linear-gradient(180deg, #5BE07A, #28B84A)"><svg width="34" height="30" viewBox="0 0 34 30"><path d="M17 2C8.7 2 2 7.6 2 14.5c0 3.8 2 7.1 5.2 9.4-.3 2-1.4 3.8-3 4.9 3.3.2 6-1 7.6-2.7 1.6.4 3.4.6 5.2.6 8.3 0 15-5.6 15-12.5S25.3 2 17 2z" fill="#FFFFFF"/></svg></div>
+    </div>
+    <div class="app">
+      <div class="icon" style="background: linear-gradient(180deg, #D9DADF, #9C9DA3)"><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="16" fill="#5B5C61"/><circle cx="20" cy="20" r="11" stroke="#C9CACF" stroke-width="2.4" stroke-dasharray="2.4 2.4"/><circle cx="20" cy="20" r="4.5" fill="#C9CACF"/><path d="M20 9v7M20 24v7M9 20h7M24 20h7" stroke="#C9CACF" stroke-width="1.6"/></svg></div>
+    </div>
+    <div class="app">
+      <div class="icon" style="background: linear-gradient(180deg, #2A2A2D, #0E0E10); box-shadow: 0 2px 4px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.12); align-items: flex-start; justify-content: flex-start; padding: 10px 11px; font: 700 15px Menlo, Monaco, monospace">&gt;_</div>
+      <span class="dot"></span>
+    </div>
+    <span class="sep"></span>
+    <div class="app">
+      <div class="icon" style="background: #FFFFFF; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 8px; padding: 12px 0 0 16px">
+        <span style="height: 1.5px; background: #F2A0A0"></span><span style="height: 1.5px; background: #C9D7EA"></span><span style="height: 1.5px; background: #C9D7EA"></span><span style="height: 1.5px; background: #C9D7EA"></span>
+      </div>
+    </div>
+    <div class="app">
+      <div class="icon glass"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="17" cy="17" r="12" stroke="#1E8BFF" stroke-width="5"/><path d="M23 23l8 8" stroke="#1E8BFF" stroke-width="5" stroke-linecap="round"/></svg></div>
+    </div>
+    <div class="app">
+      <img src="../docs/icon.png" alt="" style="width: 54px; height: 54px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.2))">
+      <span class="dot"></span>
+    </div>
+    <span class="sep"></span>
+    <div class="app" style="justify-content: center; padding: 0 0 6px">
+      <svg width="40" height="50" viewBox="0 0 40 50"><path d="M5 9h30l-3 38H8z" fill="rgba(255,255,255,.45)" stroke="rgba(255,255,255,.95)" stroke-width="1.2"/><ellipse cx="20" cy="8.5" rx="16" ry="3.5" fill="rgba(255,255,255,.75)" stroke="rgba(160,160,168,.6)"/><path d="M14 15l1 28M20 15v28M26 15l-1 28" stroke="rgba(140,140,148,.35)" stroke-width="1.2"/></svg>
+    </div>
+  </div>
+</body>
+</html>
