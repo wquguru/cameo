@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.6.1",
+    "date": null,
+    "items": [
+      {
+        "kind": "improved",
+        "en": "Walking characters stay where you drop them, even in the middle of the screen, and walk along that height. Let go just above a window or the bottom of the screen and they still land on it.",
+        "zh": "会走的角色松手在哪就停在哪，屏幕中间也行，并在那个高度继续走动；在窗口或屏幕底边上方一点松手，仍会落到上面。"
+      }
+    ]
+  },
+  {
     "version": "0.6.0",
     "date": "2026-10-11",
     "items": [

@@ -33,6 +33,11 @@ final class CharacterWindowController {
     private var feet: NSPoint?
     /// The window a package stands on (top edge as ground), or nil for the screen bottom.
     private var ledge: Ledge?
+    /// The height a package was dropped at in the air, where it then stands and walks; nil for
+    /// the screen bottom (or its window).
+    private var floor: CGFloat?
+    /// A package dropped this close above a window top or the screen bottom lands on it.
+    private static let snap: CGFloat = 40
     /// Ticks left of following the ledge every tick after it last moved (then a few times a second).
     private var ledgeHot = 0
     /// Checks in a row the ledge was missing or covered.
@@ -156,7 +161,7 @@ final class CharacterWindowController {
             }
         }
         if character != nil { restored = true }
-        if ledge != nil, figureView !== packageView { dropOffLedge(below: nil) }
+        if figureView !== packageView { floor = nil; if ledge != nil { dropOffLedge(below: nil) } }
         layout()
         if model.visible && character != nil {
             panel.orderFrontRegardless()
@@ -174,8 +179,9 @@ final class CharacterWindowController {
             layout()
             packageView.load(package, entering: entering)
             if !entering, ledge == nil, let saved = feet {
-                // Left standing on a window: back on it if that window is still there.
-                ledge = landing(x: saved.x, y: saved.y + 2)
+                // Left standing on a window: back on it if that window is still there; left
+                // standing in the air: there again.
+                settle(at: saved, within: 2)
                 layout()
             }
         } catch {
@@ -208,11 +214,13 @@ final class CharacterWindowController {
         if figureView.isDragging { feet = shownFeet }
         let wanted = anchor()
         feet = wanted
-        // A package walks the screen bottom: it stands on the ground unless it is being dragged.
+        // A package stands on the screen bottom, a window or where it was dropped in the air,
+        // unless it is being dragged.
         let walker = figureView === packageView
-        let grounded = walker && !figureView.isDragging
-        var shown = Self.keepVisible(wanted, size: size, walker: walker, grounded: grounded)
-        if grounded, let ledge {
+        let standing = walker && !figureView.isDragging
+        var shown = Self.keepVisible(NSPoint(x: wanted.x, y: standing ? floor ?? wanted.y : wanted.y), size: size, walker: walker,
+                                     grounded: standing && floor == nil)
+        if standing, let ledge {
             // On a window: its top is the ground, and the body stays over it.
             let reach = size.width * packageView.reach
             shown = NSPoint(x: min(max(wanted.x, ledge.minX + reach), max(ledge.minX + reach, ledge.maxX - reach)), y: ledge.top)
@@ -221,11 +229,12 @@ final class CharacterWindowController {
     }
 
     /// A drag puts the figure where it was dropped, moved back on screen if it went off; a
-    /// package dropped in the air falls back to the ground.
+    /// package dropped just above a window or the screen bottom drops onto it, and anywhere
+    /// else stands where it was let go.
     private func dropped() {
         feet = shownFeet
         let from = panel.frame
-        ledge = landing(x: shownFeet.x, y: shownFeet.y)
+        settle(at: shownFeet, within: Self.snap)
         layout()
         feet = shownFeet
         saveAnchor()
@@ -247,6 +256,16 @@ final class CharacterWindowController {
                 self?.falling = false
             }
         }
+    }
+
+    /// Where a package with its feet at `point` stands: the window top or screen bottom up to
+    /// `within` below them, else right there (`floor`).
+    private func settle(at point: NSPoint, within: CGFloat) {
+        guard figureView === packageView else { (ledge, floor) = (nil, nil); return }
+        let screen = NSScreen.screens.first { $0.frame.contains(point) } ?? panel.screen
+        let place = Ledges.settle(y: Double(point.y), landing: landing(x: point.x, y: point.y),
+                                  bottom: Double(screen?.visibleFrame.minY ?? point.y), within: Double(within))
+        (ledge, floor) = (place.ledge, place.floor.map { CGFloat($0) })
     }
 
     // MARK: Standing on windows
@@ -289,6 +308,7 @@ final class CharacterWindowController {
     private func dropOffLedge(below current: Ledge?) {
         let from = panel.frame
         ledge = current.flatMap { landing(x: from.midX, y: $0.top - 3) }
+        floor = nil
         layout()
         feet = shownFeet
         if from.minY - panel.frame.minY > 1 { fall(from: from) }

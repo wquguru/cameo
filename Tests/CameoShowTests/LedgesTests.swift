@@ -12,6 +12,34 @@ private func land(_ x: Double, _ y: Double, _ windows: [Ledge]) -> Ledge? {
 }
 
 @Suite struct LedgesTests {
+    @Test func dropJustAboveAWindowLandsOnIt() {
+        let w = win(1, x: 100, y: 200, w: 400, h: 300)   // top at 500
+        let place = Ledges.settle(y: 530, landing: w, bottom: 0, within: 40)
+        #expect(place.ledge?.id == 1 && place.floor == nil)
+    }
+
+    @Test func dropHighAboveAWindowStaysInTheAir() {
+        let w = win(1, x: 100, y: 200, w: 400, h: 300)
+        let place = Ledges.settle(y: 700, landing: w, bottom: 0, within: 40)
+        #expect(place.ledge == nil && place.floor == 700)
+    }
+
+    @Test func dropMidScreenStaysThere() {
+        let place = Ledges.settle(y: 450, landing: nil, bottom: 25, within: 40)
+        #expect(place.ledge == nil && place.floor == 450)
+    }
+
+    @Test func dropJustAboveTheBottomLandsOnIt() {
+        let place = Ledges.settle(y: 50, landing: nil, bottom: 25, within: 40)
+        #expect(place.ledge == nil && place.floor == nil)
+    }
+
+    @Test func restoredFeetOnAWindowStayOnIt() {
+        let w = win(1, x: 100, y: 200, w: 400, h: 300)
+        #expect(Ledges.settle(y: 500, landing: w, bottom: 0, within: 2).ledge?.id == 1)
+        #expect(Ledges.settle(y: 25, landing: nil, bottom: 25, within: 2).floor == nil)
+    }
+
     @Test func landsOnTheWindowUnderTheFeet() {
         let w = win(1, x: 100, y: 200, w: 400, h: 300)  // top at 500
         #expect(land(300, 700, [w])?.id == 1)

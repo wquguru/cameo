@@ -35,6 +35,13 @@ public enum Ledges {
         return best
     }
 
+    /// Where feet let go at `y` come to stand: on the window top (`landing`) or the `bottom` up to
+    /// `within` below them, else right there in the air (`floor`, the height to keep).
+    public static func settle(y: Double, landing: Ledge?, bottom: Double, within: Double) -> (ledge: Ledge?, floor: Double?) {
+        if let landing, y - landing.top <= within { return (landing, nil) }
+        return (nil, y - bottom > within ? y : nil)
+    }
+
     /// The window a figure standing on `ledge` is on now (it may have moved), and whether a window
     /// in front covers the spot where its feet would be. Nil when the window is gone (closed,
     /// minimised, on another Space) or too narrow. Callers let go only after a few misses in a
